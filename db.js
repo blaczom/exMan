@@ -14,18 +14,18 @@ var UserOper = {
         try {gdb.run("INSERT INTO userinfo(username,userpass) VALUES (?, ?)",  [aUser.username, aUser.userpass]);}
             catch (err) { aCallback(err,result); }            
             finally {  aCallback(null, result); }            
-    };
+    },
     //根据用户名得到用户数量
     getUserNumByName: function getUserNumByName(aUserName, aCallback) {
         gdb.get("SELECT COUNT(1) AS num FROM userinfo WHERE username = ?", aUserName, function(err, row) {  if (err) { console.log("getUserNumByName Error: " + err.message); }
             aCallback(err,row);  });
-    }
+    },
     //根据用户名得到用户信息
     getUserByUserName:function getUserNumByName(aUserName, aCallback) {
         gdb.get("SELECT * FROM userinfo WHERE username = ?", [aUserName], function (err, row) {
             if (err) {console.log("getUserByUserName Error: " + err.message);}
             aCallback(err,row); });        
-    };       
+    }
 }
 
 var db = {

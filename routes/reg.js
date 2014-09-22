@@ -5,7 +5,9 @@ var express = require('express'),
     TITLE_REG = '注册';
 
 router.get('/', function(req, res) {
-  res.render('reg',{title:TITLE_REG});
+  //res.render('reg',{title:TITLE_REG});
+  //res.sendfile('reg.html');
+  res.render('reg');
 });
 
 router.post('/', function(req, res) {
