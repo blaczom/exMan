@@ -1,0 +1,57 @@
+﻿set NODE_ENV=production
+node app.js
+
+req.query：我用来接收GET方式提交参数
+req.body：我用来接收POST提交的参数
+req.params：两种都能接收到
+
+-------------fg
+var bodyParser = require('body-parser');
+...
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
+
+　　没有这个中间件Express就不知道怎么处理这个请求，通过bodyParser中间件分析 application/x-www-form-urlencoded和application/json请求，并把变量存入req.body，这种我们才能够获取到！
+
+
+
+> u = require('./user')
+[Function]
+> a1 = {}
+{}
+> a1.username='a11'; a1.userpass = 'apass11';
+'apass11'
+> a1
+{ username: 'a11', userpass: 'apass11' }
+> aUser = new u(a1)
+{ username: 'a11',
+  userpass: 'apass11',
+  save: [Function: save],
+  getUserNumByName: [Function: getUserNumByName],
+  getUserByUserName: [Function: getUserNumByName] }
+> aUser.getUserNumByName('a11', function(e,r){console.log(e, r)})
+undefined
+> null { num: 0 }
+> aUser.save(function(e,r){console.log(e, r)})
+null ''
+undefined
+> aUser.getUserNumByName('a11', function(e,r){console.log(e, r)})
+undefined
+> null { num: 1 }
+> aUser.getUserByUserName('a11', function(e,r){console.log(e, r)})
+undefined
+> null { UserName: 'a11', UserPass: 'apass11' }
+
+
+
+
+
+
+
+
+
+//清除cookies
+res.clearCookie('islogin');
+  
+//清除session
+req.session.destroy();

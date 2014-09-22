@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">       
+    <title>reguser</title>
+  
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/css/style.css" />
+  </head>
+
+  <body ng-app="exman">
+    <div ng-controller="regUser as regUser" id="container" class="container">
+      <form class="form-signin" role="form" method="post" novalidate>
+        <h2 class="form-signin-heading">注册</h2>
+
+        <input ng-model="regUser.user.userName" id="txtUserName" name="txtUserName" type="text" class="form-control" placeholder="用户名" required autofocus />
+        <input ng-model="regUser.user.userPass" id="txtUserPwd" name="txtUserPwd" type="password" class="form-control" placeholder="密码" required/>
+        <input ng-model="regUser.user.userPass2" id="txtUserRePwd"  name="txtUserRePwd" type="password" class="form-control" placeholder="重复密码" required/>   
+        <h3 ng-show="(regUser.user.userPass != regUser.user.userPass2)"> 2次密码不匹配 </h3>
+        <button id="btnSub" class="btn btn-lg btn-primary" type="submit">注  册</button>
+        <a class="btn btn-link" href="/login" role="button">登  录</a>
+        <div> {{ regUser.user }} </div>
+        {{ global_name }}
+      </form>             
+      
+    </div> 
+    <div ng-controller="testWatch as ttt"  id="divWatch">
+        watch1 is {{ ttt.w1 }}  -- watch2 is {{ ttt.w2 }}
+        $scope.counter = {{ counter}}  this.thisCounter {{ thisCounter}} 
+        <form class="form-signin" role="form" method="post" novalidate>
+        <input ng-model="ttt.w2" id="w2" name="w2" type="text" class="form-control" placeholder="w2" required autofocus />
+        <input ng-model="ttt.w1" id="w1" name="w1" type="text" class="form-control" placeholder="w1" required  />
+        ==== {{ttt.counter}}  ---
+        {{ttt.thisCounter}}
+        </form>
+    </div>
+    
+    
+    <div ng-controller="MainCtrl">
+<input type="text" ng-model="text" /> {{updated}} times updated.
+<button ng-click="stop()">Stop count</button>
+</div>
+
+
+
+  </body>
+</html>
+
+<script src="/js/angular1.3.min.js" type="text/javascript"></script>
+<script src="/js/exman.js" type="text/javascript"></script>

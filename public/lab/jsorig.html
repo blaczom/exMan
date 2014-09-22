@@ -1,0 +1,39 @@
+<html>
+<body>
+this is a test.
+
+<h1>test h1</h1>
+
+<input type="text" name="test" id="test"> </input>
+
+
+<a href="javascript:void(0)" 
+onClick="alert('标记总数：' + countTotalElement(document) + '/r/n全部标记如下：/r/n' + elementName);elementName='';">开始统计</a>
+
+
+
+</body>
+<script>
+/*    alert(window);
+    alert(document); */
+    
+var elementName = ""; //全局变量，保存Element标记名，使用完毕要清空
+function countTotalElement(node) { //参数node是一个Node对象
+ var total = 0;
+ if(node.nodeType == 1) { //检查node是否为Element对象
+     total++;      //如果是，计数器加1
+     elementName = elementName + node.tagName + "/r/n"; //保存标记名
+ }
+ var childrens = node.childNodes;     //获取node的全部子节点
+ for(var i=0;i<childrens.length;i++) {
+     total += countTotalElement(childrens[i]); //在每个子节点上进行递归操作
+ }
+ return total;
+}
+
+
+</script>
+
+
+
+</html>

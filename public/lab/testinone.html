@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TEST</title>
+ </head>
+<body>
+
+<div ng-app="testInOne">
+    
+    <input type="text" ng-model="w1">
+    <h2>全局的</h2>  -- {{w1}}
+<h2>=========华丽分界线===========</h2>
+    <div ng-controller="controller1 as controller1">
+      scope的w1: <input type="text" ng-model="w1"> <br/> w1 ------( {{w1}} )
+      <h2>===小分界线=====</h2>      
+      contrl的w1<input type="text" ng-model="controller1.w2"> <br/> controller1.w2  ---(- {{controller1.w2}} )
+      =----w3--(-{{controller1.w3}} )
+    </div>
+<h2>=========华丽分界线===========</h2>
+    <div ng-controller="controller2 as controller2">
+      scope的w1: <input type="text" ng-model="w1"> <br/> w1 -- {{w1}}
+      <h2>===小分界线=====</h2>  
+      contrl的w1: <input type="text" ng-model="controller2.w1"><br/> controller2.w1 ----- {{controller2.w1}}
+    </div>
+<h3>=====control3 界线===========</h3>
+    <div ng-controller="controller3">
+      contrl的w1: <input type="text" ng-model="controller3.w1"><br/> controller3.w1 ----- {{controller3.w1}}
+    </div>
+    
+  </div>
+
+  <script src="angular1.3.min.js" type="text/javascript"></script>
+  <script>
+    var app = angular.module('testInOne', []);
+    app.controller('controller1',
+                    ['$scope','$rootScope', function($scope,$rootScope) {
+                        $rootScope.w1 = "gloabl rootscop1";
+                        $scope.w1 = 'controller1 scope1';
+                        this.w2 = 'controller1 this2';
+                        var w3 = "function w3";
+                    }]);
+    app.controller('controller2',
+                    ['$scope','$rootScope', function($scope,$rootScope) {        
+                        $scope.w1 = 'controller2 scope1';
+                        this.w1 = 'controller2 this1';
+                    }]);   
+    app.controller('controller3',function() {                                
+                        this.w1 = 'controller3 this w1';
+                    });                      
+  </script>
+
+</body>
+</html>

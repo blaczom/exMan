@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">       
+    <title>reguser</title>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/css/style.css" />
+  </head>
+
+  <body ng-app="exman">
+    <div ng-controller="regUser as regUser" id="container" class="container">
+      <form class="form-signin" ng-submit="regUser.addUser()" role="form" method="post" novalidate>
+        <h2 class="form-signin-heading">注册</h2>
+        <input ng-model="regUser.user.userName" id="txtUserName" name="txtUserName" type="text" class="form-control" placeholder="用户名" required autofocus />
+        <input ng-model="regUser.user.userPass" id="txtUserPwd" name="txtUserPwd" type="password" class="form-control" placeholder="密码" required/>
+        <input ng-model="regUser.user.userPass2" id="txtUserRePwd"  name="txtUserRePwd" type="password" class="form-control" placeholder="重复密码" required/>   
+        <div ng-show="(regUser.user.userPass != regUser.user.userPass2)"> 2次密码不匹配 </div>
+        <button id="btnSub" class="btn btn-lg btn-primary" type="submit">注  册</button>
+        <a class="btn btn-link" href="/login" role="button">登  录</a>
+      </form>                 
+    </div> 
+  </body>
+</html>
+<script src="/js/angular1.3.min.js" type="text/javascript"></script>
+<script src="/js/agmd5.js" type="text/javascript"></script>
+<script src="/js/exman.js" type="text/javascript"></script>
