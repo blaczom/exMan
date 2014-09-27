@@ -1,4 +1,21 @@
-﻿set NODE_ENV=production
+﻿db = require('./db.js')
+User = db.User;
+u1 = User.new()
+u1.NICKNAME = 'dddh'
+User.save(u1,function(e, r){});
+// 返回所有对象。
+User.getBy("" , function(er,ret){u2=ret;})
+
+
+Task = db.Task;
+t1 = Task.new()
+t1. = 'dddh'
+User.save(u1,function(e, r){});
+// 返回所有对象。
+User.getBy("" , function(er,ret){u2=ret;})
+
+
+set NODE_ENV=production
 node app.js
 
 req.query：我用来接收GET方式提交参数
@@ -55,3 +72,8 @@ res.clearCookie('islogin');
   
 //清除session
 req.session.destroy();
+-----------------------------
+解决回调函数传递父节点的问题：
+function test(avar){ cb = new function(){console.log(this.target)}; cb.target = avar; cb();  }
+
+function test(avar){ function cb(){console.log(this.target)}; cb.target = avar; cb();  }
