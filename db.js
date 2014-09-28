@@ -25,14 +25,14 @@ if (!fs.exists('exman.db'))
   l_run.push("CREATE INDEX if not exists [idx_task_uuid] ON [TASK] ([UUID] ASC);");
   l_run.push("CREATE INDEX if not exists [idx_task_state] ON [TASK] ([STATE] ASC);");
 
-  l_run.push("CREATE TABLE if not exists LOG(UUID CHAR(36), UPTASK CHAR(36), CREATETIME DATETIME NOT NULL,  " +
-    " UPDATETIME DATETIME, STATE NVARCHAR2(8), OWNER NVARCHAR2(36) NOT NULL, PRIVATE BOOLEAN" +
+  l_run.push("CREATE TABLE if not exists WORK(UUID CHAR(36), UPTASK CHAR(36), CREATETIME DATETIME NOT NULL,  " +
+    " UPDATETIME DATETIME, STATE NVARCHAR2(8), OWNER NVARCHAR2(36) NOT NULL, PRIVATE BOOLEAN, " +
     " MEMEN BOOLEAN, MEMTIMER NVARCHAR2(60),CONTENT NVARCHAR2(6000) );");
 
   l_run.push( "CREATE TABLE if not exists MSG(UUID CHAR(36), CREATETIME DATETIME NOT NULL,  " +
     " MSG NVARCHAR2(6000), TARGET NVARCHAR2(6000), OVER NVARCHAR2(6000), VALIDATE DATETIME) ");
 
-  l_run.push( "CREATE TABLE if not exists TASK_MAN(TASK_ID CHAR(36), MAN_ID CHAR(36) ) ");
+  l_run.push( "CREATE TABLE if not exists TASK_MAN(TASK_ID CHAR(36), MAN_NICK CHAR(36) ) ");
 //每次执行前删除一边 validate过期的东东。
   var l_init = true;
 }
@@ -53,6 +53,13 @@ if (l_init) {
 var reConnect = function(){
   if (!gdb)  var gdb = new sqlite3.Database('exman.db');  // 时间长了可能会自动断掉?
 };
+function getDateTime(aTime){
+  // 向后一天，用 new Date( new Date() - 0 + 1*86400000)
+  // 向后一小时，用 new Date( new Date() - 0 + 1*3600000)
+  var l_date = new Array(aTime.getFullYear(), aTime.getMonth() < 9 ? '0' + (aTime.getMonth() + 1) : aTime.getMonth(), aTime.getDate() < 10 ? '0' + aTime.getDate() : aTime.getDate());
+  var l_time = new Array(aTime.getHours() < 10 ? '0' + aTime.getHours() : aTime.getHours(), aTime.getMinutes() < 10 ? '0' + aTime.getMinutes() : aTime.getMinutes(), aTime.getSeconds() < 10 ? '0' + aTime.getSeconds() : aTime.getSeconds());
+  return( l_date.join('-') + ' ' + l_time.join(':')); // '2014-01-02 09:33:33'
+}
 
 function runSql(aSql, aCallback){
   console.log("db.runsql " + aSql);
@@ -60,6 +67,41 @@ function runSql(aSql, aCallback){
     if (err) { console.log("runSql Error: " + err.message);  }
     aCallback(err, row);
   } );
+};
+function comSave(aTarget, aTable, aCallback) {
+  try {
+    ls_sql = dbHelp.genSave(aTarget, aTable);
+    gdb.run(ls_sql, function (err, row) {
+      if (err) {
+        console.log("save Error: " + err.message);
+      }
+      else {
+        aTarget._exState = 'clean';
+      }
+      aCallback(err, row);
+    });
+  }
+  catch (err) {
+    aCallback(err, err);
+  }
+};
+function comGetBy(aTable, aWhere,  aCallback) {
+  try {
+    gdb.all("SELECT * FROM  " + aTable + ' ' + aWhere, function (err, row) {
+      if (err) {
+        console.log(aTable + ".all Error: " + err.message);
+      }
+      else {
+        for (var i in row) {
+          row[i]._exState = 'clean';
+        }
+      }
+      aCallback(err, row); // 只要引用了上下文的变量，变量就可以继续引用。atable从上层传递下来。就能回溯到上层的aCallback.
+    });
+  }
+  catch (err) {
+    aCallback(err, err);
+  }
 };
 
 function USER(){
@@ -79,25 +121,16 @@ function USER(){
     }
   };
   USER.prototype.save = function (aUser, aCallback){
-    try {
-      ls_sql = dbHelp.genSave(aUser, 'user');
-      gdb.run(ls_sql, function (err, row){
-        if (err) { console.log("save Error: " + err.message);  }
-        else { aUser._exState = 'clean'; }
-        aCallback(err, row);
-      } );
-    }
-    catch (err) { aCallback(err, err); }
+    comSave(aUser, 'USER', aCallback);
+  };
+  USER.prototype.delete = function(aUUID, aCallback){
+    gdb.run("delete USER where UUID = '?'", aUUID, function (err, row) {
+      if (err) {  console.log("delete user Error: " + err.message);   }
+      aCallback(err, row);
+    });
   };
   USER.prototype.getBy = function (aWhere, aCallback) {
-    try {
-      gdb.all("SELECT * FROM USER " + aWhere, function (err, row) {
-        if (err) {  console.log("user.get Error: " + err.message); }
-        else{ for (var i in row) { row[i]._exState = 'clean'; } }
-        aCallback(err, row);
-      });
-    }
-    catch (err) {  aCallback(err, err); }
+    comGetBy('USER', aWhere, aCallback);
   };
   USER.prototype.getByNickName = function (aNick, aCallback) {
     USER.prototype.getBy(" where NICKNAME='" + aNick  + "'", aCallback);
@@ -120,22 +153,18 @@ function USER(){
     runSql("update User set REMPASS='" + aAuto + "' where NICKNAME='" + aNick + "'", aCallback );
   };
   USER.prototype.getMyTask = function(aNick, aCallback){
-    runSql(' ');
   };
   USER.prototype.getAllTask = function(){
-    runSql(' ');
   };
+
 };
 
 function TASK() {
   TASK.prototype.new = function () {
-    var l_now = new Date();
-    var l_date = new Array(l_now.getFullYear(), l_now.getMonth() < 9 ? '0' + (l_now.getMonth() + 1) : l_now.getMonth(), l_now.getDate() < 10 ? '0' + l_now.getDate() : l_now.getDate());
-    var l_time = new Array(l_now.getHours() < 10 ? '0' + l_now.getHours() : l_now.getHours(), l_now.getMinutes() < 10 ? '0' + l_now.getMinutes() : l_now.getMinutes(), l_now.getSeconds() < 10 ? '0' + l_now.getSeconds() : l_now.getSeconds());
-    var l_fmtDatetime = l_date.join('-') + ' ' + l_time.join(':'); // '2014-01-02 09:33:33'
+    var l_fmtDatetime = getDateTime(new Date());
     return {
       UUID: gUid.v1(),
-      UPTASK: 0,
+      UPTASK: "",
       START: l_fmtDatetime,
       FINISH: l_fmtDatetime,
       STATE: '',  // 'plan', 'do', 'ok', 'fail'
@@ -147,75 +176,119 @@ function TASK() {
     }
   };
   TASK.prototype.save = function (aTask, aCallback) {
-    try {
-      ls_sql = dbHelp.genSave(aTask, 'task');
-      gdb.run(ls_sql, function (err, row) {
-        if (err) {
-          console.log("save Error: " + err.message);
-        }
-        else {
-          aTask._exState = 'clean';
-        }
-        aCallback(err, row);
-      });
-    }
-    catch (err) {
-      aCallback(err, err);
-    }
+    comSave(aTask, 'TASK', aCallback);
   };
+  TASK.prototype.delete = function(aUUID, aCallBack){
+    gdb.run("delete TASK_MAN where UUID = '?'", aUUID, function (err, row) {
+      if (err) {  console.log("delete task Error: " + err.message);   }
+      aCallback(err, row);
+    });
+  }
   TASK.prototype.getBy = function (aWhere, aCallback) {
-    try {
-      gdb.all("SELECT * FROM Task " + aWhere, function (err, row) {
-        if (err) {
-          console.log("Task.all Error: " + err.message);
-        }
-        else {
-          for (var i in row) {
-            row[i]._exState = 'clean';
-          }
-        }
-        aCallback(err, row);
-      });
-    }
-    catch (err) {
-      aCallback(err, err);
-    }
+    comGetBy('TASK', aWhere, aCallback);
   };
   TASK.prototype.getByUUID = function (aUUID, aCallback) {
     TASK.prototype.getBy(" where UUID='" + aUUID + "'", aCallback);
   };
-  TASK.prototype.getChildren = function (aUUID, aCallback) {
-    var getChild = function(aRow) {
-      var callback = function (err, row) {
+  TASK.prototype.getChildren = function (rootTask) {
+    function getChild(aRow){
+      console.log('deal ' + aRow);
+      gdb.all("SELECT * FROM Task where UPTASK='" + aRow.UUID + "'", function (err, row) {
         if (row.length > 0) {
-          callback.target.children = [];
+          aRow.children = [];
           for (var i in row) {
+            aRow.children.push(row[i])
             getChild(row[i]);
           }
         }
-      };
-      callback.target = aRow;
-      gdb.all("SELECT * FROM Task where UPTASK='" + aRow.UUID + "'", callback);
+      });
     };
-    gdb.all("SELECT * FROM Task where UPTASK='" + aUUID + "'", function (err, row) {
-      if (row.length > 0) {
-        aRoot = [];
-        for (var i in row) {
-          aRoot.push(row[i])
-          getChild(row[i]);
-        }
-      }
+    getChild(rootTask);
+  };
+  TASK.prototype.assignUser = function(aUUID, aUserNick, aCallBack){
+    gdb.run("insert into TASK_MAN values('?', '?')", aUUID, aUserNick, function (err, row) {
+      if (err) {  console.log("add man to task Error: " + err.message);   }
+      aCallback(err, row);
+    });
+  };
+
+}
+
+function WORK() {
+  WORK.prototype.new = function () {
+    var l_fmtDatetime = getDateTime(new Date());
+    return {
+      UUID: gUid.v1(),
+      UPTASK: 0,
+      CREATETIME: l_fmtDatetime,
+      UPDATETIME : l_fmtDatetime,
+      STATE: "plan",
+      OWNER: "",
+      PRIVATE: false,
+      MEMEN: false,
+      MEMTIMER: "",
+      CONTENT: "",
+      _exState: "new" // new , clean, dirty.
+    }
+  };
+  WORK.prototype.save = function (aWORK, aCallback) {
+    comSave(aWORK, 'WORK', aCallback);
+  };
+  WORK.prototype.getBy = function (aWhere, aCallback) {
+    comGetBy('WORK', aWhere, aCallback)
+  };
+  WORK.prototype.getByUUID = function (aUUID, aCallback) {
+    comGetBy("WORK", " where UUID='" + aUUID + "'", aCallback);
+  };
+  WORK.prototype.delete = function(aUUID, aCallBack){
+    gdb.run("delete WORK where UUID = '?'", aUUID, function (err, row) {
+      if (err) {  console.log("delete WORK Error: " + err.message);   }
+      aCallback(err, row);
     });
   }
 }
 
+function MSG() {
+  MSG.prototype.new = function () {
+    var l_fmtDatetime = getDateTime(new Date());
+    return {
+      UUID: gUid.v1(),
+      UPTASK: 0,
+      CREATETIME: l_fmtDatetime,
+      OWNER: "",
+      MSG:"",
+      TARGET:"",
+      OVER:"",
+      VALIDATE:"",
+      _exState: "new" // new , clean, dirty.
+    }
+  };
+  MSG.prototype.save = function (aMsg, aCallback) {
+    comSave(aMsg, 'MSG', aCallback);
+  };
+  MSG.prototype.delete = function(aUUID, aCallBack){
+    gdb.run("delete MSG where UUID = '?'", aUUID, function (err, row) {
+      if (err) {  console.log("delete MSG Error: " + err.message);   }
+      aCallback(err, row);
+    });
+  }
+  MSG.prototype.getBy = function (aWhere, aCallback) {
+    comGetBy('MSG', aWhere, aCallback)
+  };
+  MSG.prototype.getByUUID = function (aUUID, aCallback) {
+    comGetBy('MSG', " where UUID='" + aUUID + "'", aCallback);
+  };
+  MSG.prototype.getByOwner = function (aNick, aCallback) {
+    comGetBy('MSG', " where Owner ='" + aNick + "'", aCallback);
+  };
+
+}
+
 exports.User = function(){  return new USER(); }();
 exports.Task = function(){  return new TASK();}();
-
-
-
-
-
+exports.Work = function(){  return new WORK();}();
+exports.Msg = function(){  return new MSG();}();
+exports.runSql = runSql;
 /*
 module.exports = {
   factory: function (aName) {
@@ -228,42 +301,65 @@ module.exports = {
   }
 }
 
- node
- User = require('./db.js').User;
- u1 = new User();
+ node -------------------------- usage
+ DB = require('./db.js')
+---------------------
+ u1 = DB.User.new();
  u1.NICKNAME = 'fire'
- u1.save(function(err, row){console.log('save')})
+ User.save(u1, function(err, row){console.log('new save')})
  u1.EMAIL = 'FF@111.COM'
  u1._exState = 'dirty'
- u1.save(function(err, row){console.log('save')})
-
- u1.getBy("where UUID='" + u1.UUID + "'" , function(er,ret){u2=ret;})
- u1.getByNickName("fire", function(er,ret){u2=ret});
+ User.save(u1, function(err, row){console.log('update save')})
+ User.getBy("where UUID='" + u1.UUID + "'" , function(er,ret){u2=ret;})
+ User.getByNickName("fire", function(er,ret){u2=ret});
  if (u2.length > 0) { ok ; }
-
- NICKNAME
-
- *
- *
-
- // 得到数据库对象的属性。
-
+-------------
+ DB.Work.getBy("",  function(err, row){ gRtn = row })
+ w1 = DB.Work.new();
+ DB.Work.save(w1,  function(err, row){console.log('new save')})
+ w2 = DB.Work.new();
+ DB.Work.save(w2,  function(err, row){console.log('new save')})
+ DB.Work.getByUUID(w2.UUID, function(err, row){ gRtn = row })
+ for (var i in gRtn[0]) { console.log(gRtn[0][i] == w2[i]); }
+-------------------------------------------
+t1 = DB.Task.new();
+t2 = DB.Task.new();
+t3 = DB.Task.new();
+t2.UPTASK = t1.UUID;
+t3.UPTASK = t1.UUID;
+t21 = DB.Task.new();
+t22 = DB.Task.new();
+t21.UPTASK = t2.UUID;
+t22.UPTASK = t2.UUID;
+DB.Task.save(t1,  function(err, row){console.log('new save')});
+DB.Task.save(t2,  function(err, row){console.log('new save')});
+DB.Task.save(t3,  function(err, row){console.log('new save')});
+DB.Task.save(t21,  function(err, row){console.log('new save')});
+DB.Task.save(t22,  function(err, row){console.log('new save')});
+DB.Task.getBy("",  function(err, row){ gRtn = row })
+gRoot = { UUID: t1.UUID };
+DB.Task.getChildren(gRoot, function(err, row){console.log('show children')});
+sql = "SELECT * FROM Task where UPTASK='" + gRoot.UUID + "'"
+DB.runSql(sql, function(err, row){ gtt = row })
+--------------------------------------------------------
+============================================================
  var sqlite3 = require('sqlite3');
  var gdb = new sqlite3.Database('exman.db');
- gdb.get("select * from xxxx ", function(err,rtn){gRtn = rtn} );
+ db = require('./db.js');
+ u1 = db.WORK.new
+
+ gdb.get("select * from WORK ", function(err,rtn){gRtn = rtn} );
  生成对象的语句：
  this.xxx = xxx
  for (var i in gRtn) { console.log("this." + i + " = '' ;" ) ;}
-
 
  var u2;
  aCallback = function(err, row){u2 = row};
  u1.get("where UUID='" + u1.UUID + "'" , function(er,ret){u2=ret;})
 
-
  var str = JSON.stringify(u2);
  var obj2 = JSON.parse(str);
  *
- *
- *
+
+ };
 */
