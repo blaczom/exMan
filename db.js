@@ -190,20 +190,49 @@ function TASK() {
   TASK.prototype.getByUUID = function (aUUID, aCallback) {
     TASK.prototype.getBy(" where UUID='" + aUUID + "'", aCallback);
   };
-  TASK.prototype.getChildren = function (rootTask) {
-    function getChild(aRow){
-      console.log('deal ' + aRow);
-      gdb.all("SELECT * FROM Task where UPTASK='" + aRow.UUID + "'", function (err, row) {
-        if (row.length > 0) {
-          aRow.children = [];
-          for (var i in row) {
-            aRow.children.push(row[i])
-            getChild(row[i]);
+  TASK.prototype.getChildren = function (rootTask, aCallback) {
+    var statckCallback = [];
+    gdb.all("SELECT * FROM Task where UPTASK='" + rootTask.UUID + "'", function(err, row){
+      rootTask.subTask = [];
+      if (row.length > 0) {
+        nextTask(rootTask.subTask, row, 0, aCallback); // 就调用一次over。
+      }
+      else
+      { aCallback(null,rootTask); }
+    });
+    function nextTask(aParent, aRow, aI, aCallFin)  // aRow, 是一个数组。aI作为索引。 alen作为结束判断。
+    {
+      /*console.log('nextTask running ... aParent , aRow, ai');
+      console.log(aParent);
+      console.log(aRow);
+      console.log(aI);
+      console.log('--------------'); */
+      if (aI < aRow.length) {
+        aRow[aI].subTask = [];
+        aParent.push(aRow[aI]);
+        gdb.all("SELECT * FROM Task where UPTASK='" + aRow[aI].UUID + "'", function (err, row) {
+          if (row.length > 0) {
+            // console.log('有孩子的对象：');      console.log(aRow[aI]);
+            statckCallback.push({a:aParent, b:aRow, c:(aI+1), d:aCallback });
+            nextTask(aRow[aI].subTask, row, 0, aCallback);
           }
+          else {
+            //  console.log('没孩子的对象：');  console.log(aRow[aI]);
+            nextTask(aParent, aRow, ++aI, aCallback);
+          }
+        })
+      }
+      else {
+        if (rootTask.subTask === aParent) {
+          aCallFin(null, rootTask);  // 循环到最上层，就可以直接返回。
         }
-      });
+        else {
+          // 调用上层的next来继续。next(aParent, aRow, ++aI, aCallback);
+          var tmp = statckCallback.pop(); // ({a:aParent, b:aRow, c:++aI, d:aCallback });
+          nextTask(tmp.a, tmp.b, tmp.c, tmp.d);
+        }
+      }
     };
-    getChild(rootTask);
   };
   TASK.prototype.assignUser = function(aUUID, aUserNick, aCallBack){
     gdb.run("insert into TASK_MAN values('?', '?')", aUUID, aUserNick, function (err, row) {
