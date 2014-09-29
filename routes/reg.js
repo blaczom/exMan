@@ -1,50 +1,40 @@
 var express = require('express'),
     router = express.Router(),
-    db = require('../db.js'),
     crypto = require('crypto'),
     TITLE_REG = '注册';
 
 router.get('/', function(req, res) {
   //res.render('reg',{title:TITLE_REG});
   //res.sendfile('reg.html');
-  res.render('reg');
+  res.render('reg', {layout:false});
 });
 
 router.post('/', function(req, res) {
   var userName = req.body['txtUserName'],
       userPwd = req.body['txtUserPwd'],   
-      md5 = crypto.createHash('md5');
-      userPwd = md5.update(userPwd).digest('hex');
-
-  res.render('reg', { title: userName });
-  //检查用户名是否已经存在
-  /*User.getUserNumByName(newUser.username, function (err, results) {                    
-      if (results != null && results[0]['num'] > 0) {
-          err = '用户名已存在';
+      md5 = crypto.createHash('md5'),f
+      userPwd = md5.update(userName + userPwd).digest('hex');
+  app.db.User.getByNickName(userName, function(aErr, aRtn){
+    if (aErr){
+      //res.render('reg', { showInfo: "查询数据库失败。请通知管理员。"});
+      res.json({rtnCode:-10, rtnInfo: "查询数据库失败。请通知管理员。"});
+    }
+    else
+    {
+      if(aRtn.length > 0){
+        res.json({rtnCode:-1,  rtnInfo: "用户已经存在。" });
       }
-      if (err) {
-          res.locals.error = err;
-          res.render('reg', { title: TITLE_REG });
-          return;
+      else{
+        userAdd = app.db.User.new();
+        userAdd.NICKNAME = userName;
+        userAdd.PASS = userPwd;
+        app.db.User.save(userAdd, function(aErr, aRtn){
+          if (aErr){ res.json({rtnCode:-10,  rtnInfo: "创建失败。请通知管理员" });}
+          else{ res.json({rtnCode:1,  rtnInfo: "创建成功，请<a href='\login'>登录</a>" });}
+        })
       }
-      newUser.save(function (err,result) {
-          if (err) {
-              res.locals.error = err;
-              res.render('reg', { title: TITLE_REG }); 
-              return;            
-          }        
-          if(result.insertId > 0)
-          {
-              res.locals.success = '注册成功,请点击   <a class="btn btn-link" href="/login" role="button"> 登录 </a>' ;
-          }
-          else
-          {
-              res.locals.error = err;
-          
-          res.render('reg', { title: TITLE_REG });
-          });   
-    }); 
-    */ 
+    }
+  });
 });
 
 module.exports = router;

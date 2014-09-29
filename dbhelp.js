@@ -1,15 +1,6 @@
 /**
  * Created by donghai on 2014/9/26.
  *
- * insert into task values(2, 2, '2014-1-1', '2014-3-3', 'p', 'dh', 9, 1);
-node
-mdb = require('./db.js');
-a = mdb.User;
-u1 = new a();
-dbHelp = require('./dbhelp.js');
-console.log(dbHelp.genSave(u1, 'user'));
-u1._exState = 'dirty'
-console.log(dbHelp.genSave(u1, 'user'));
  *
  *
  *

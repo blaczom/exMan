@@ -4,12 +4,12 @@
 
 var gUid = require('uuid');
 var sqlite3 = require('sqlite3');
-
+var gdbFile = 'exman.db';
 // if exist exman.db, means the sql ddl have been execute.
 var fs = require('fs');
 var dbHelp = require('./dbhelp.js');
 
-if (!fs.exists('exman.db'))
+if (!fs.exists(gdbFile))
 {
   console.log("no databse file. will create it.");
   var l_run = [];
@@ -36,7 +36,7 @@ if (!fs.exists('exman.db'))
 //每次执行前删除一边 validate过期的东东。
   var l_init = true;
 }
-var gdb = new sqlite3.Database('exman.db');
+var gdb = new sqlite3.Database(gdbFile);
 
 if (l_init) {
   gdb.serialize(function() {
@@ -51,7 +51,7 @@ if (l_init) {
 }
 
 var reConnect = function(){
-  if (!gdb)  var gdb = new sqlite3.Database('exman.db');  // 时间长了可能会自动断掉?
+  if (!gdb)  gdb = new sqlite3.Database(gdbFile);  // 时间长了可能会自动断掉?
 };
 function getDateTime(aTime){
   // 向后一天，用 new Date( new Date() - 0 + 1*86400000)
@@ -82,6 +82,7 @@ function comSave(aTarget, aTable, aCallback) {
     });
   }
   catch (err) {
+    console.log('save catch a error: ' + err.message);
     aCallback(err, err);
   }
 };
@@ -318,6 +319,9 @@ exports.Task = function(){  return new TASK();}();
 exports.Work = function(){  return new WORK();}();
 exports.Msg = function(){  return new MSG();}();
 exports.runSql = runSql;
+exports.close = gdb.close;
+
+
 /*
 module.exports = {
   factory: function (aName) {

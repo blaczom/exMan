@@ -11,6 +11,10 @@
 
   <body ng-app="exman">
     <div ng-controller="regUser as regUser" id="container" class="container">
+      <div id="alt_info" ng-show="regUser.rtnInfo" class="alert alert-success">
+        {{regUser.rtnInfo}}
+      </div>
+
       <form class="form-signin" ng-submit="regUser.addUser()" role="form" method="post" novalidate>
         <h2 class="form-signin-heading">注册</h2>
         <input ng-model="regUser.user.userName" id="txtUserName" name="txtUserName" type="text" class="form-control" placeholder="用户名" required autofocus />

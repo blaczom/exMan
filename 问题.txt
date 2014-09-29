@@ -61,7 +61,13 @@ undefined
 
 
 
+res.render("index",{"layout":false});
+5、如果不想每个请求都单独设置一次。可以使用全局设置：
 
+[javascript] view plaincopy
+app.set("view options",{
+    "layout":false
+});
 
 
 

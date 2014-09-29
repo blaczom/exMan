@@ -14,7 +14,9 @@ var logout = require('./routes/logout');
 // ============
 var fs = require('fs');
 
-var app = express();
+app = express();
+var gDB = require('./db');
+app.db=gDB;
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
