@@ -11,10 +11,11 @@ var routes = require('./routes/index');
 var reg = require('./routes/reg');
 var login = require('./routes/login');
 var logout = require('./routes/logout');
+var exTools = require('./routes/extools');
 // ============
 var fs = require('fs');
 
-app = express();
+var app = express();
 var gDB = require('./db');
 app.db=gDB;
 
@@ -42,6 +43,7 @@ app.use('/', routes);
 app.use('/reg', reg);
 app.use('/login', login);
 app.use('/logout', logout);
+app.use('/extools', exTools);
 //---------------------------------------
 
 // catch 404 and forward to error handler

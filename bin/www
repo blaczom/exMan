@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 var debug = require('debug')('myapp');
-var app = require('../app');
+app = require('../app');  // 全局变量。用来给别的模块服务。
 
 app.set('port', process.env.PORT || 80);
 

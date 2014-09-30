@@ -10,17 +10,17 @@
   </head>
 
   <body ng-app="exman">
-    <div ng-controller="regUser as regUser" id="container" class="container">
-      <div id="alt_info" ng-show="regUser.rtnInfo" class="alert alert-success">
-        {{regUser.rtnInfo}}
+    <div ng-controller="regUser" id="container" class="container">
+      <div id="alt_info" ng-show="rtnInfo" class="alert alert-success">
+        {{rtnInfo}}
       </div>
 
-      <form class="form-signin" ng-submit="regUser.addUser()" role="form" method="post" novalidate>
+      <form class="form-signin" ng-submit="addUser()" role="form" method="post" novalidate>
         <h2 class="form-signin-heading">注册</h2>
-        <input ng-model="regUser.user.userName" id="txtUserName" name="txtUserName" type="text" class="form-control" placeholder="用户名" required autofocus />
-        <input ng-model="regUser.user.userPass" id="txtUserPwd" name="txtUserPwd" type="password" class="form-control" placeholder="密码" required/>
-        <input ng-model="regUser.user.userPass2" id="txtUserRePwd"  name="txtUserRePwd" type="password" class="form-control" placeholder="重复密码" required/>   
-        <div ng-show="(regUser.user.userPass != regUser.user.userPass2)"> 2次密码不匹配 </div>
+        <input ng-model="user.userName" id="txtUserName" name="txtUserName" type="text" class="form-control" placeholder="用户名" required autofocus />
+        <input ng-model="user.userPass" id="txtUserPwd" name="txtUserPwd" type="password" class="form-control" placeholder="密码" required/>
+        <input ng-model="user.userPass2" id="txtUserRePwd"  name="txtUserRePwd" type="password" class="form-control" placeholder="重复密码" required/>
+        <div ng-show="(user.userPass != user.userPass2)"> 2次密码不匹配 </div>
         <button id="btnSub" class="btn btn-lg btn-primary" type="submit">注  册</button>
         <a class="btn btn-link" href="/login" role="button">登  录</a>
       </form>                 

@@ -311,7 +311,6 @@ function MSG() {
   MSG.prototype.getByOwner = function (aNick, aCallback) {
     comGetBy('MSG', " where Owner ='" + aNick + "'", aCallback);
   };
-
 }
 
 exports.User = function(){  return new USER(); }();
@@ -320,6 +319,7 @@ exports.Work = function(){  return new WORK();}();
 exports.Msg = function(){  return new MSG();}();
 exports.runSql = runSql;
 exports.close = gdb.close;
+exports.gdb = gdb;
 
 
 /*
