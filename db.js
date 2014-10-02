@@ -319,7 +319,7 @@ exports.Work = function(){  return new WORK();}();
 exports.Msg = function(){  return new MSG();}();
 exports.runSql = runSql;
 exports.close = gdb.close;
-exports.gdb = gdb;
+exports.directDb = gdb;
 
 
 /*

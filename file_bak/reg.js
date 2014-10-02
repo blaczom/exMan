@@ -12,7 +12,7 @@ router.get('/', function(req, res) {
 router.post('/', function(req, res) {
   var userName = req.body['txtUserName'],
       userPwd = req.body['txtUserPwd'],   
-      md5 = crypto.createHash('md5'),f
+      md5 = crypto.createHash('md5'),
       userPwd = md5.update(userName + userPwd).digest('hex');
   app.db.User.getByNickName(userName, function(aErr, aRtn){
     if (aErr){

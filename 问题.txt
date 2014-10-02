@@ -31,36 +31,6 @@ app.use(bodyParser.urlencoded());
 　　没有这个中间件Express就不知道怎么处理这个请求，通过bodyParser中间件分析 application/x-www-form-urlencoded和application/json请求，并把变量存入req.body，这种我们才能够获取到！
 
 
-
-> u = require('./user')
-[Function]
-> a1 = {}
-{}
-> a1.username='a11'; a1.userpass = 'apass11';
-'apass11'
-> a1
-{ username: 'a11', userpass: 'apass11' }
-> aUser = new u(a1)
-{ username: 'a11',
-  userpass: 'apass11',
-  save: [Function: save],
-  getUserNumByName: [Function: getUserNumByName],
-  getUserByUserName: [Function: getUserNumByName] }
-> aUser.getUserNumByName('a11', function(e,r){console.log(e, r)})
-undefined
-> null { num: 0 }
-> aUser.save(function(e,r){console.log(e, r)})
-null ''
-undefined
-> aUser.getUserNumByName('a11', function(e,r){console.log(e, r)})
-undefined
-> null { num: 1 }
-> aUser.getUserByUserName('a11', function(e,r){console.log(e, r)})
-undefined
-> null { UserName: 'a11', UserPass: 'apass11' }
-
-
-
 res.render("index",{"layout":false});
 5、如果不想每个请求都单独设置一次。可以使用全局设置：
 
@@ -69,9 +39,16 @@ app.set("view options",{
     "layout":false
 });
 
+版本变化。angular把router分出去了。。。
 
+如果用app.controller("名称", [] 来配置
+controller: ""，应该是“”里面。
 
+angular app的router，中链接，必须前面带 #号。
 
+注意有问题的时候，查看是不是名称写错了。比如多了个s... sessions - session
+
+$location.path('/main'); 如果是外面的链接，需要是 '#/main'
 
 //清除cookies
 res.clearCookie('islogin');

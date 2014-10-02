@@ -1,0 +1,19 @@
+<div id="container" class="container">
+
+    <div id="alt_info" ng-show="rtnInfo" class="alert alert-success">
+        {{rtnInfo}}
+    </div>
+
+    <form ng-submit="userLogin()" class="form-signin" role="form" method="post">
+        <h2 class="form-signin-heading">partial登录</h2>
+        <input ng-model="user.userName" id="txtUserName" name="txtUserName" type="text" class="form-control" placeholder="用户名" required autofocus />
+        <input ng-model="user.userPass" id="txtUserPwd" name="txtUserPwd" type="password" class="form-control" placeholder="密码" required/>
+        <label  class="checkbox">
+            <input ng-model="user.rememberMe" name="chbRem" id="chbRem" type="checkbox" value="remember-me"> 记住密码
+        </label>
+        <button id="btnSub" class="btn btn-lg btn-primary" type="submit">登  录</button>
+        <a class="btn btn-link" href="#/reg" role="button">注  册</a>
+
+    </form>
+
+</div>
