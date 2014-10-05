@@ -29,7 +29,7 @@ if (!fs.exists(gdbFile))
     " UPDATETIME DATETIME, STATE NVARCHAR2(8), OWNER NVARCHAR2(36) NOT NULL, PRIVATE BOOLEAN, " +
     " MEMEN BOOLEAN, MEMTIMER NVARCHAR2(60),CONTENT NVARCHAR2(6000) );");
 
-  l_run.push( "CREATE TABLE if not exists MSG(UUID CHAR(36), CREATETIME DATETIME NOT NULL,  " +
+  l_run.push( "CREATE TABLE if not exists MSG(UUID CHAR(36),OWNER NVARCHAR2(36) NOT NULL,CREATETIME DATETIME NOT NULL," +
     " MSG NVARCHAR2(6000), TARGET NVARCHAR2(6000), OVER NVARCHAR2(6000), VALIDATE DATETIME) ");
 
   l_run.push( "CREATE TABLE if not exists TASK_MAN(TASK_ID CHAR(36), MAN_NICK CHAR(36) ) ");
@@ -53,12 +53,15 @@ if (l_init) {
 var reConnect = function(){
   if (!gdb)  gdb = new sqlite3.Database(gdbFile);  // 时间长了可能会自动断掉?
 };
-function getDateTime(aTime){
+function getDateTime(aTime, aOnlyDate){
   // 向后一天，用 new Date( new Date() - 0 + 1*86400000)
   // 向后一小时，用 new Date( new Date() - 0 + 1*3600000)
   var l_date = new Array(aTime.getFullYear(), aTime.getMonth() < 9 ? '0' + (aTime.getMonth() + 1) : aTime.getMonth(), aTime.getDate() < 10 ? '0' + aTime.getDate() : aTime.getDate());
   var l_time = new Array(aTime.getHours() < 10 ? '0' + aTime.getHours() : aTime.getHours(), aTime.getMinutes() < 10 ? '0' + aTime.getMinutes() : aTime.getMinutes(), aTime.getSeconds() < 10 ? '0' + aTime.getSeconds() : aTime.getSeconds());
-  return( l_date.join('-') + ' ' + l_time.join(':')); // '2014-01-02 09:33:33'
+  if (aOnlyDate)
+    return( l_date.join('-')) ; // '2014-01-02'
+  else
+    return( l_date.join('-') + ' ' + l_time.join(':')); // '2014-01-02 09:33:33'
 }
 
 function runSql(aSql, aCallback){
@@ -283,7 +286,6 @@ function MSG() {
     var l_fmtDatetime = getDateTime(new Date());
     return {
       UUID: gUid.v1(),
-      UPTASK: 0,
       CREATETIME: l_fmtDatetime,
       OWNER: "",
       MSG:"",

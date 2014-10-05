@@ -33,7 +33,7 @@ postargs: {
         "alertType" "0",    # 0 不提示。 1。弹出框提示。2。状态栏目提示。
         "error": ["xxx", "xx"]...        # 数组，所有的错误信息。
         "func": "回调的功能名称",
-        ex_parm {
+        "ex_parm" {
           "effectnum": "xx" ,              #  影响行数。
           "total":22,
           "rows":[{},{},{}],
@@ -41,3 +41,21 @@ postargs: {
         }
 }
 
+
+======================================
+$http.post('/rest',
+
+
+  { func: 'userlogin',    // 用户登录
+    ex_parm: { txtUserName: lp.user.userName,
+    txtUserPwd: lp.user.userPass, remPass: lp.user.rememberMe
+  }
+  { func: 'userReg',      // 注册用户。
+          ex_parm: { txtUserName: lp.user.userName, txtUserPwd: lp.user.userPass  }
+        })
+ { func: 'mainQueMsg',    //  查询消息。
+    ex_parm: { queryType: "", sub_func: ""  }
+  })
+  { func: 'msgEditGet',   // 检索消息。
+    ex_parm: { queryType: "new", queryId: "" }
+  })

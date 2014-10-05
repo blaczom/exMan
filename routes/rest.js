@@ -26,15 +26,20 @@ router.post('/', function(req, res) {
   var lFunc = req.body['func']; // 'userlogin',req.body['txtUserName'],
   var lExparm = req.body['ex_parm'];
 
-  if ("userlogin,userReg,".indexOf(lFunc+",") < 0) {
+  if ("userPrelogin, userlogin,userReg,".indexOf(lFunc+",") < 0) {
     checkLogin(req,res,true);
   }
 
   switch (lFunc){
+    case 'userPrelogin':
+      if(req.cookies.loginUser)  {
+        var lrtn = app.rtnMsg('return rempass');
+        lrtn.ex_parm = {username:req.cookies.loginUser, userpass:req.cookies.loginPass, userrem:req.cookies.remPass };
+        res.json(lrtn);
+      }
+      break;
     case "userlogin": // lExparm.txtUserName, lExparm.txtUserPwd
-      var userName = lExparm.txtUserName,
-          userPwd = lExparm.txtUserPwd,
-          userRem = lExparm.remPass;
+      var userName = lExparm.txtUserName,  userPwd = lExparm.txtUserPwd,  userRem = lExparm.remPass;
       app.db.User.getByNickName(userName, function (aErr, aRtn) {
         if (aErr) res.json(app.rtnErr(aErr));
         else {
@@ -44,7 +49,14 @@ router.post('/', function(req, res) {
             if (aRtn[0].PASS == md5UserPwd) {
               req.session.loginUser = userName;
               if (userRem) {
-                res.cookie('loginUser', userName, { maxAge: 600000 });
+                res.cookie('loginUser', userName, { maxAge: 3600000 * 7 });
+                res.cookie('loginPass', userPwd, { maxAge: 3600000 * 7 });
+                res.cookie('remPass', true, { maxAge: 3600000 * 7 });
+              }
+              else
+              {
+                res.cookie('loginPass', "", { maxAge: 600000 });
+                res.cookie('remPass', false, { maxAge: 600000 });
               }
               res.json(app.rtnMsg('登录成功。'));
             }
@@ -87,6 +99,28 @@ router.post('/', function(req, res) {
       break;
     case "mainList":
       // get the
+      break;
+    case 'msgEditGet':
+      app.db.Msg.getByUUID(lExparm.msgId, function(aErr, aRtn) {
+        if (aErr) res.json(app.rtnErr(aErr));
+        else {
+          if (aRtn.length > 0) {      // 存在。
+            res.json(aRtn[0]); // 返回msgObject
+          }
+          else {
+            res.json(app.rtnErr("消息id不存在，请重新操作。"));
+          }
+        }
+      });
+      break;
+    case 'msgEditSave':  // lExparm.msgObj
+      app.db.Msg.save(lExparm.msgObj, function(aErr, aRtn){
+        if (aErr) res.json(app.rtnErr(aErr));
+        else {
+          res.json(app.rtnMsg("更新成功."));
+        }
+      });
+      break;
     default :
       res.json(app.rtnErr('不存在该请求：' + JSON.stringify(req.body)));
       break;

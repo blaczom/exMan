@@ -1,0 +1,15 @@
+<div id="alt_info" ng-show="rtnInfo" class="alert alert-success">
+    {{rtnInfo}}
+</div>
+<form ng-submit="msgSave()" class="formex" role="form" method="post" novalidate>
+    <h2 class="fromex-heading">消息编辑</h2>
+    <input ng-model="msg.UUID" id="txtUUID" name="txtUUID" type="text" class="fromex-control" placeholder="消息id" required autofocus />
+    <input ng-model="msg.CREATETIME" id="txtCreateTime" name="txtCreateTime" type="text" class="fromex-control" placeholder="创建时间" required/>
+    <input ng-model="msg.OWNER" id="txtOwner" name="txtOwner" type="text" class="formex-control" placeholder="发起人" required/>
+    <textarea ng-model="msg.MSG" class="formex-control" name="txtMsg" id="txtMsg" cols="60" rows="6" placeholder="消息主题"  required> </textarea>
+    <input ng-model="msg.TARGET" id="txtTarget" name="txtTarget" type="text" class="formex-control" placeholder="目标" required/>
+    <input ng-model="msg.OVER" id="txtOver" name="txtOver" type="text" class="formex-control" placeholder="接收人" />
+    <input ng-model="msg.VALIDATE" id="txtValidate" name="txtValidate" type="date" class="formex-control" placeholder="有效期" required/>
+    <button id="btnSub" class="btn btn-lg btn-primary" type="submit">保存</button>
+</form>
+
