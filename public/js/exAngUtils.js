@@ -118,7 +118,7 @@ UUID.rand = function(max){
 function getDateTime(aTime, aOnlyDate){
   // 向后一天，用 new Date( new Date() - 0 + 1*86400000)
   // 向后一小时，用 new Date( new Date() - 0 + 1*3600000)
-  var l_date = new Array(aTime.getFullYear(), aTime.getMonth() < 9 ? '0' + (aTime.getMonth() + 1) : aTime.getMonth(), aTime.getDate() < 10 ? '0' + aTime.getDate() : aTime.getDate());
+  var l_date = new Array(aTime.getFullYear(), aTime.getMonth()  < 9 ? '0' + (aTime.getMonth() + 1) : (aTime.getMonth()+1), aTime.getDate() < 10 ? '0' + aTime.getDate() : aTime.getDate());
   var l_time = new Array(aTime.getHours() < 10 ? '0' + aTime.getHours() : aTime.getHours(), aTime.getMinutes() < 10 ? '0' + aTime.getMinutes() : aTime.getMinutes(), aTime.getSeconds() < 10 ? '0' + aTime.getSeconds() : aTime.getSeconds());
   if (aOnlyDate)
     return( l_date.join('-')) ; // '2014-01-02'
@@ -128,7 +128,7 @@ function getDateTime(aTime, aOnlyDate){
 
 angular.module('exService', []).
   service('exUtil', function(){
-      this.uuid = UUID.prototype.createUUID();
+      this.uuid = UUID.prototype.createUUID;
       this.getDateTime = getDateTime;
   });
 // uuid = require('./uuid.js')     uuid()

@@ -42,7 +42,7 @@ postargs: {
 }
 
 
-======================================
+======================================  访问rest的功能。
 $http.post('/rest',
 
 
@@ -59,3 +59,11 @@ $http.post('/rest',
   { func: 'msgEditGet',   // 检索消息。
     ex_parm: { queryType: "new", queryId: "" }
   })
+---------- 返回的消息格式。
+app.rtnErr = function(aMsg, aErr) {
+  return { "rtnInfo": strMsg, rtnCode: -1, "alertType": 0, error: strErr, exObj = object }
+  return { "rtnInfo": aMsg, rtnCode: 1, "alertType": 0, error:, exObj = object }
+};
+
+
+

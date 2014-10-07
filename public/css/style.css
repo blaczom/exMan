@@ -1,8 +1,15 @@
 body {
   padding: 5px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-  min-height: 2000px;
+  min-height: 400px;
   background-color: #eee;
+}
+
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+
+span {
+    display:inline-block;
+    border: 1px solid red;
 }
 
 a {
@@ -23,15 +30,18 @@ a {
 .formex .checkbox {
   margin-bottom: 5px;
   background-color: #ffff00;
+    display:block;
 }
 .formex .checkbox {
   font-weight: normal;
+  display:block;
 }
 .formex .formex-control {
   position: relative;
   font-size: 16px;
   height: auto;
   padding: 5px;
+  display: block;
   -webkit-box-sizing: border-box;
      -moz-box-sizing: border-box;
           box-sizing: border-box;
@@ -43,9 +53,12 @@ a {
   margin-bottom: 5px;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
+  display:block;
 }
+
 .formex input[type="password"] {
   margin-bottom: 5px;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
+  display:block;
 }

@@ -72,12 +72,16 @@ app.rtnErr = function(aMsg, aErr) {
   var strErr, strMsg;
   ((typeof aMsg) == 'object') ? strMsg = JSON.stringify(aMsg) : strMsg = aMsg;
   ((typeof aErr) == 'object') ? strErr = JSON.stringify(aErr): strErr = aErr;
-  return { "rtnInfo": strMsg, rtnCode: -1, "alertType": 0, error: strErr }
+  return { "rtnInfo": strMsg, rtnCode: -1, "alertType": 0, error: strErr, exObj:{} }
 };
 app.rtnMsg = function(aMsg) {
-  return { "rtnInfo": aMsg, rtnCode: 1, "alertType": 0, error: [] }
+  return { "rtnInfo": aMsg, rtnCode: 1, "alertType": 0, error: [], exObj:{} }
 };
 
+app.logInfo = function()
+{
+  console.log(arguments);
+};
 
 
 module.exports = app;

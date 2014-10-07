@@ -89,16 +89,20 @@ function comSave(aTarget, aTable, aCallback) {
     aCallback(err, err);
   }
 };
-function comGetBy(aTable, aWhere,  aCallback) {
+function comAllBy(aCol, aTable, aWhere,  aCallback) {
   try {
-    gdb.all("SELECT * FROM  " + aTable + ' ' + aWhere, function (err, row) {
+    var ls_sql = "SELECT " + aCol + " FROM  " + aTable + ' ' + aWhere;
+    console.log("comAllBy " + ls_sql);
+    gdb.all(ls_sql, function (err, row) {
       if (err) {
         console.log(aTable + ".all Error: " + err.message);
       }
       else {
+        if(row){
         for (var i in row) {
           row[i]._exState = 'clean';
-        }
+        }}
+        else row = [];
       }
       aCallback(err, row); // 只要引用了上下文的变量，变量就可以继续引用。atable从上层传递下来。就能回溯到上层的aCallback.
     });
@@ -128,13 +132,13 @@ function USER(){
     comSave(aUser, 'USER', aCallback);
   };
   USER.prototype.delete = function(aUUID, aCallback){
-    gdb.run("delete USER where UUID = '?'", aUUID, function (err, row) {
+    gdb.run("delete from USER where UUID = '?'", aUUID, function (err, row) {
       if (err) {  console.log("delete user Error: " + err.message);   }
       aCallback(err, row);
     });
   };
   USER.prototype.getBy = function (aWhere, aCallback) {
-    comGetBy('USER', aWhere, aCallback);
+    comAllBy("*", 'USER', aWhere, aCallback);
   };
   USER.prototype.getByNickName = function (aNick, aCallback) {
     USER.prototype.getBy(" where NICKNAME='" + aNick  + "'", aCallback);
@@ -183,13 +187,14 @@ function TASK() {
     comSave(aTask, 'TASK', aCallback);
   };
   TASK.prototype.delete = function(aUUID, aCallBack){
-    gdb.run("delete TASK_MAN where UUID = '?'", aUUID, function (err, row) {
+
+    gdb.run("delete from TASK where UUID = ?", aUUID, function (err, row) {
       if (err) {  console.log("delete task Error: " + err.message);   }
-      aCallback(err, row);
+      aCallBack(err, row);
     });
   }
   TASK.prototype.getBy = function (aWhere, aCallback) {
-    comGetBy('TASK', aWhere, aCallback);
+    comAllBy("*", 'TASK', aWhere, aCallback);
   };
   TASK.prototype.getByUUID = function (aUUID, aCallback) {
     TASK.prototype.getBy(" where UUID='" + aUUID + "'", aCallback);
@@ -268,13 +273,13 @@ function WORK() {
     comSave(aWORK, 'WORK', aCallback);
   };
   WORK.prototype.getBy = function (aWhere, aCallback) {
-    comGetBy('WORK', aWhere, aCallback)
+    comAllBy("*", 'WORK', aWhere, aCallback)
   };
   WORK.prototype.getByUUID = function (aUUID, aCallback) {
-    comGetBy("WORK", " where UUID='" + aUUID + "'", aCallback);
+    comAllBy("*", "WORK", " where UUID='" + aUUID + "'", aCallback);
   };
   WORK.prototype.delete = function(aUUID, aCallBack){
-    gdb.run("delete WORK where UUID = '?'", aUUID, function (err, row) {
+    gdb.run("delete from WORK where UUID = '?'", aUUID, function (err, row) {
       if (err) {  console.log("delete WORK Error: " + err.message);   }
       aCallback(err, row);
     });
@@ -305,13 +310,13 @@ function MSG() {
     });
   }
   MSG.prototype.getBy = function (aWhere, aCallback) {
-    comGetBy('MSG', aWhere, aCallback)
+    comAllBy("*", 'MSG', aWhere, aCallback)
   };
   MSG.prototype.getByUUID = function (aUUID, aCallback) {
-    comGetBy('MSG', " where UUID='" + aUUID + "'", aCallback);
+    comAllBy("*", 'MSG', " where UUID='" + aUUID + "'", aCallback);
   };
   MSG.prototype.getByOwner = function (aNick, aCallback) {
-    comGetBy('MSG', " where Owner ='" + aNick + "'", aCallback);
+    comAllBy("*", 'MSG', " where Owner ='" + aNick + "'", aCallback);
   };
 }
 
@@ -320,8 +325,10 @@ exports.Task = function(){  return new TASK();}();
 exports.Work = function(){  return new WORK();}();
 exports.Msg = function(){  return new MSG();}();
 exports.runSql = runSql;
+exports.comAllBy = comAllBy;
 exports.close = gdb.close;
 exports.directDb = gdb;
+
 
 
 /*
@@ -335,66 +342,4 @@ module.exports = {
     }
   }
 }
-
- node -------------------------- usage
- DB = require('./db.js')
----------------------
- u1 = DB.User.new();
- u1.NICKNAME = 'fire'
- User.save(u1, function(err, row){console.log('new save')})
- u1.EMAIL = 'FF@111.COM'
- u1._exState = 'dirty'
- User.save(u1, function(err, row){console.log('update save')})
- User.getBy("where UUID='" + u1.UUID + "'" , function(er,ret){u2=ret;})
- User.getByNickName("fire", function(er,ret){u2=ret});
- if (u2.length > 0) { ok ; }
--------------
- DB.Work.getBy("",  function(err, row){ gRtn = row })
- w1 = DB.Work.new();
- DB.Work.save(w1,  function(err, row){console.log('new save')})
- w2 = DB.Work.new();
- DB.Work.save(w2,  function(err, row){console.log('new save')})
- DB.Work.getByUUID(w2.UUID, function(err, row){ gRtn = row })
- for (var i in gRtn[0]) { console.log(gRtn[0][i] == w2[i]); }
--------------------------------------------
-t1 = DB.Task.new();
-t2 = DB.Task.new();
-t3 = DB.Task.new();
-t2.UPTASK = t1.UUID;
-t3.UPTASK = t1.UUID;
-t21 = DB.Task.new();
-t22 = DB.Task.new();
-t21.UPTASK = t2.UUID;
-t22.UPTASK = t2.UUID;
-DB.Task.save(t1,  function(err, row){console.log('new save')});
-DB.Task.save(t2,  function(err, row){console.log('new save')});
-DB.Task.save(t3,  function(err, row){console.log('new save')});
-DB.Task.save(t21,  function(err, row){console.log('new save')});
-DB.Task.save(t22,  function(err, row){console.log('new save')});
-DB.Task.getBy("",  function(err, row){ gRtn = row })
-gRoot = { UUID: t1.UUID };
-DB.Task.getChildren(gRoot, function(err, row){console.log('show children')});
-sql = "SELECT * FROM Task where UPTASK='" + gRoot.UUID + "'"
-DB.runSql(sql, function(err, row){ gtt = row })
---------------------------------------------------------
-============================================================
- var sqlite3 = require('sqlite3');
- var gdb = new sqlite3.Database('exman.db');
- db = require('./db.js');
- u1 = db.WORK.new
-
- gdb.get("select * from WORK ", function(err,rtn){gRtn = rtn} );
- 生成对象的语句：
- this.xxx = xxx
- for (var i in gRtn) { console.log("this." + i + " = '' ;" ) ;}
-
- var u2;
- aCallback = function(err, row){u2 = row};
- u1.get("where UUID='" + u1.UUID + "'" , function(er,ret){u2=ret;})
-
- var str = JSON.stringify(u2);
- var obj2 = JSON.parse(str);
- *
-
- };
 */

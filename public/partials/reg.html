@@ -2,12 +2,12 @@
     {{rtnInfo}}
 </div>
 
-<form ng-submit="userReg()" class="form-signin" role="form" method="post" novalidate>
-    <h2 class="form-signin-heading">this is partials 注册</h2>
-    <input ng-model="user.userName" id="txtUserName" name="txtUserName" type="text" class="form-control" placeholder="用户名" required autofocus />
-    <input ng-model="user.userPass" id="txtUserPwd" name="txtUserPwd" type="password" class="form-control" placeholder="密码" required/>
-    <input ng-model="user.userPass2" id="txtUserRePwd"  name="txtUserRePwd" type="password" class="form-control" placeholder="重复密码" required/>
-    <div ng-show="(user.userPass != user.userPass2)"> 2次密码不匹配 </div>
-    <button ng-disabled="(user.userPass != user.userPass2)" id="btnSub" class="btn btn-lg btn-primary" type="submit">注  册</button>
+<form ng-submit="userReg()" class="formex" role="form" method="post" novalidate>
+    <h2 class="formex-heading">this is partials 注册</h2>
+    <input ng-model="user.NICKNAME" id="txtUserName" name="txtUserName" type="text" class="formex-control" placeholder="用户名" required autofocus />
+    <input ng-model="user.PASS" id="txtUserPwd" name="txtUserPwd" type="password" class="formex-control" placeholder="密码" required/>
+    <input ng-model="user.PASS2" id="txtUserRePwd"  name="txtUserRePwd" type="password" class="formex-control" placeholder="重复密码" required/>
+    <div ng-show="(user.PASS != user.PASS2)"> 2次密码不匹配 </div>
+    <button ng-disabled="(user.PASS != user.PASS2)" id="btnSub" class="btn btn-lg btn-primary" type="submit">注  册</button>
     <a class="btn btn-link" href="#/login" role="button">登  录</a>
 </form>

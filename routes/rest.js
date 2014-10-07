@@ -9,13 +9,11 @@ router.get('/', function(req, res) {
   res.render('login',{ title: ""});
 });
 
-function checkLogin(req, res, redirection){
+function checkLogin(req, res){
   if(req.cookies.loginUser)  {
     req.session.loginUser = req.cookies.loginUser;
   }
-  if (!req.session.loginUser)  {
-    if (redirection) { res.redirect('/partials/index.html') ;}
-  }
+  if (req.session.loginUser) return true; else return false;
 }
 
 router.post('/', function(req, res) {
@@ -26,8 +24,11 @@ router.post('/', function(req, res) {
   var lFunc = req.body['func']; // 'userlogin',req.body['txtUserName'],
   var lExparm = req.body['ex_parm'];
 
-  if ("userPrelogin, userlogin,userReg,".indexOf(lFunc+",") < 0) {
-    checkLogin(req,res,true);
+  if ("userPrelogin,userlogin,userReg,".indexOf(lFunc+",") < 0) {
+    if (!checkLogin(req,res)) {
+      res.json(app.rtnErr('未登录，请先登录。'));
+      return
+    };
   }
 
   switch (lFunc){
@@ -105,7 +106,9 @@ router.post('/', function(req, res) {
         if (aErr) res.json(app.rtnErr(aErr));
         else {
           if (aRtn.length > 0) {      // 存在。
-            res.json(aRtn[0]); // 返回msgObject
+            ls_rtn = app.rtnMsg('');  // 检索成功不需要提示信息。
+            ls_rtn.exObj = aRtn[0];
+            res.json(ls_rtn); // 返回msgObject
           }
           else {
             res.json(app.rtnErr("消息id不存在，请重新操作。"));
@@ -115,11 +118,48 @@ router.post('/', function(req, res) {
       break;
     case 'msgEditSave':  // lExparm.msgObj
       app.db.Msg.save(lExparm.msgObj, function(aErr, aRtn){
-        if (aErr) res.json(app.rtnErr(aErr));
+        if (aErr) { res.json(app.rtnErr(aErr)) }
         else {
           res.json(app.rtnMsg("更新成功."));
         }
       });
+      break;
+    case 'taskListGet':
+      var lUser = req.session.loginUser;
+      app.db.comAllBy("distinct *", 'task',
+        "where owner = '"+ lUser +  "' or uuid in (select task_id from task_man where man_nick = '" +
+        lUser + "') order by START", function(aErr, aRtn) {
+        if (aErr) res.json(app.rtnErr(aErr));
+        else {
+          ls_rtn = app.rtnMsg('');  // 检索成功不需要提示信息。
+          ls_rtn.exObj = aRtn?aRtn:[];  // 返回数组。
+          res.json(ls_rtn);
+        }
+      });
+      break;
+    case 'taskEditSave':  // lExparm.msgObj
+      lExparm.msgObj.OWNER = req.session.loginUser;
+      app.db.Task.save(lExparm.msgObj, function(aErr, aRtn){
+        if (aErr) { res.json(app.rtnErr(aErr)) }
+        else {
+          res.json(app.rtnMsg("更新成功."));
+        }
+      });
+      break;
+    case 'taskEditDelete':
+      if (lExparm.msgObj.OWNER == req.session.loginUser)
+      {
+        app.db.Task.delete(lExparm.msgObj.UUID, function(aErr, aRtn){
+          if (aErr) { res.json(app.rtnErr(aErr)) }
+          else {
+            res.json(app.rtnMsg("删除成功."));
+          }
+        });
+      }
+      else
+      {
+        res.json(app.rtnErr("不能删除别人的任务。."));
+      }
       break;
     default :
       res.json(app.rtnErr('不存在该请求：' + JSON.stringify(req.body)));

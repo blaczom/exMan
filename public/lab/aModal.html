@@ -1,0 +1,35 @@
+<html>
+<head>
+    <title>精简模式窗口</title>
+    <script type="text/javascript">
+        //显示的方法，说明：前缀的div1、div2、body等，均为Id值
+        function show()
+        {
+            divCover.style.display="inline";//设置层1显示
+            divCover.style.width="100%";//设置层1宽度等于body宽度，width=100%也可以，不过有一些误差，所以最好用这个
+            divCover.style.height="100%";//设置层1高度满屏
+            divModal.style.display="inline";//设置层2的显示
+        }
+        function closeShow()
+        {
+            divCover.style.display="none";
+            divModal.style.display="none";
+        }
+    </script>
+</head>
+<body bgcolor="#CCFF00" id="body">
+
+<input type="button" value="测试按钮" onClick="show()"/> <!--测试按钮点击触发show()方法-->
+
+<div style="background-color:#989898;position:absolute;top:0;left:0;z-index:10;display:none;" id="divCover"></div>
+<div style="z-index:12;display:none;position:absolute;top:0;left:0;background-color:#9999CC;" id="divModal"><!--这是弹出的模式窗口层-->  <!--嵌套在层中的层，用来做标题栏，按个人需求定义-->
+    <div id="div3" style="width:100%;height:20px; background-color:#0099FF" align="left">
+        <label onClick="closeShow()" style="font-weight:bolder;cursor:hand">
+            关闭&nbsp;&nbsp;<!--用来关闭显示，在label中加了onclick事件，与鼠标悬停手的样式-->
+        </label>
+    </div>
+    <br>
+    这个模式窗口很简单吧！就是这个意思，具体样式可以随意设置，如果想设置可拖动的模式窗体，那就再下篇技术交流文章：js鼠标拖动层/层的移动和浮动效果里交流吧！<!--层中的内容-->
+</div>
+</body>
+</html>

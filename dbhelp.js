@@ -1,7 +1,14 @@
 /**
  * Created by donghai on 2014/9/26.
  *
- *
+ ------------------
+ var ls_sql = dbHelp.genSave(aTarget, aTable);
+ 根据aTarget的_exState属性(new,dirty,clean)返回对应aTable的sql语句。
+ 返回：aTarget的字段 insert/update语句。
+ ------------------
+ DbHelp = require('./dbhelp');DbHelp.genModel();
+ 返回：select数据库的this对象。
+ -------------------
  *
  *
  */
@@ -51,4 +58,26 @@ exports.genSave = function (aObj, aTable) {
       ls_sql = "";
   }
   return ls_sql;
+}
+exports.genModel = function()
+{
+  var DB = require('./db');
+  DB.directDb.get("select * from WORK ", function(err,rtn) {
+    console.log("--------------Work-----------");
+    for (var i in rtn) {
+      console.log("this." + i + " = "+ rtn[i]  +" ;");  // 没错误顺便输出对象的数据库属性。
+    }
+    DB.directDb.get("select * from TASK ", function (err, rtn) {
+      console.log("--------------Task-----------");
+      for (var i in rtn) {
+        console.log("this." + i + " = "+ rtn[i]  +" ;");  // 没错误顺便输出对象的数据库属性。
+      }
+      DB.directDb.get("select * from user ", function (err, rtn) {
+        console.log("--------------User-----------");
+        for (var i in rtn) {
+          console.log("this." + i + " = "+ rtn[i]  +" ;");  // 没错误顺便输出对象的数据库属性。
+        }
+      })
+    })
+  })
 }
