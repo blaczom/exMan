@@ -163,7 +163,7 @@
       });
     }
   }]);
-  app.controller("ctrlTaskList", ['$http', '$scope', '$routeParams', 'exUtil', function($http, $scope, $routeParams, exUtil){
+  app.controller("ctrlTaskList", ['$http', '$scope', '$routeParams', 'exUtil', function($http, $scope, $routeParams, exUtil)  {
     var lp = $scope;
     lp.aType = $routeParams.aType;
     lp.rtnInfo = "";
