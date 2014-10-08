@@ -26,7 +26,18 @@
     <div ng-controller="controller3">
       contrl的w1: <input type="text" ng-model="controller3.w1"><br/> controller3.w1 ----- {{controller3.w1}}
     </div>
-    
+
+    <div ng-controller="controller4">
+        <select ng-model="selected" multiple  ng-options="m.id as m.productName for m in model">
+            <option value="">-- 请选择 --</option>
+        </select>
+        <span ng-bind="selected"></span>
+        <span ng-bind="selected2"></span>
+        <button id="btnSub" ng-click="test()" class="btn btn-lg btn-primary"> set </button>
+    </div>
+
+
+
   </div>
 
   <script src="angular1.3.min.js" type="text/javascript"></script>
@@ -46,7 +57,37 @@
                     }]);   
     app.controller('controller3',function() {                                
                         this.w1 = 'controller3 this w1';
-                    });                      
+                    });
+
+    app.controller('controller4',[ '$scope', function($scope) {
+        var lp = $scope;
+        w1 = 'controller4 this w1';
+        lp.selected = '';
+        lp.selected2 = 'eeeee';
+        lp.test = function(){
+            lp.selected = '10002';
+            lp.selected2 = 'dddddd';
+        }
+        lp.model = [{
+            id: 10001,
+            mainCategory: '男',
+            productName: '水洗T恤',
+            productColor: '白'
+        }, {
+            id: 10002,
+            mainCategory: '女',
+            productName: '圆领短袖',
+            productColor: '黑'
+        }, {
+            id: 10003,
+            mainCategory: '女',
+            productName: '短袖短袖',
+            productColor: '黃'
+        }];
+
+
+    }]);
+
   </script>
 
 </body>

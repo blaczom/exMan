@@ -1,0 +1,4 @@
+2014/10/8
+数据库增加一个depart表
+user、task。增加一个depart的属性。
+增加一个从test中，连接到数据库，导出对象文件到文件中的功能。objectDb.js / user/task/work/task_user/depart/

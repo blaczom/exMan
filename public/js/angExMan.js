@@ -1,3 +1,5 @@
+  var app = angular.module("exman", ['ngRoute', 'exService']);
+
   var objUser = {
     UUID : "",
     NICKNAME : "",
@@ -49,7 +51,7 @@
     this._exState = "new"; // new , clean, dirty.
   }
 
-  var app = angular.module("exman", ['ngRoute', 'exService']);
+
 
   app.controller("ctrlLogin", ['$http', '$scope', '$location', function($http, $scope, $location) {
     var lp = $scope;
