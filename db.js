@@ -13,26 +13,43 @@ if (!fs.exists(gdbFile))
 {
   console.log("no databse file. will create it.");
   var l_run = [];
-  l_run.push( "CREATE TABLE if not exists USER(UUID CHAR(36), NICKNAME NVARCHAR2(36) NOT NULL, " +
-    " PASS CHAR(36) NOT NULL, REMPASS BOOL, MOBILE NVARCHAR2(20), EMAIL NVARCHAR2(80), IDCARD NVARCHAR2(30), " +
-    " UPMAN NVARCHAR2(36), LEVEL INTEGER, GRANT INTEGER  );");
-  l_run.push("CREATE UNIQUE INDEX if not exists  [pk_usernick] ON [USER] ([NICKNAME]);");
+  l_run.push( "CREATE TABLE if not exists USER(NICKNAME NVARCHAR2(32) NOT NULL PRIMARY KEY, " +
+    " PASS CHAR(32) NOT NULL, REMPASS BOOL, MOBILE NVARCHAR2(20), EMAIL NVARCHAR2(80), IDCARD NVARCHAR2(32), " +
+    " UPUSER NVARCHAR2(32), LEVEL INTEGER, GRANT INTEGER  ) WITHOUT ROWID;"   );
+  //l_run.push("CREATE UNIQUE INDEX if not exists  [pk_usernick] ON [USER] ([NICKNAME]);");
 
-  l_run.push("CREATE TABLE if not exists TASK(UUID CHAR(36), UPTASK CHAR(36), START DATETIME NOT NULL, " +
-    " FINISH DATETIME NOT NULL, STATE NVARCHAR2(8), OWNER NVARCHAR2(36) NOT NULL, LEVEL INTEGER NOT NULL, " +
-    " PRIVATE BOOLEAN, CONTENT NVARCHAR2(6000) );");
-  l_run.push("CREATE INDEX if not exists [idx_task_owner] ON [TASK] ([OWNER] ASC);");
-  l_run.push("CREATE INDEX if not exists [idx_task_uuid] ON [TASK] ([UUID] ASC);");
+  l_run.push("CREATE TABLE if not exists TASK(UUID CHAR(32) NOT NULL PRIMARY KEY, UPTASK CHAR(32), PLANSTART DATETIME NOT NULL, " +
+    " PLANFINISH DATETIME NOT NULL, FINISH DATETIME, STATE NCHAR(2), OWNER NVARCHAR2(32) NOT NULL, OUGHT NVARCHAR2(6000), " +
+    " PRIVATE BOOLEAN, CONTENT NVARCHAR2(6000) ) WITHOUT ROWID;");
+  l_run.push("CREATE INDEX if not exists [idx_task_depart] ON [TASK] ([DEPART] ASC);");
   l_run.push("CREATE INDEX if not exists [idx_task_state] ON [TASK] ([STATE] ASC);");
+  l_run.push("CREATE INDEX if not exists [idx_task_owner] ON [TASK] ([OWNER] ASC);");
+  l_run.push("CREATE INDEX if not exists [idx_task_start] ON [TASK] ([PLANFINISH] DESC);");
 
-  l_run.push("CREATE TABLE if not exists WORK(UUID CHAR(36), UPTASK CHAR(36), CREATETIME DATETIME NOT NULL,  " +
-    " UPDATETIME DATETIME, STATE NVARCHAR2(8), OWNER NVARCHAR2(36) NOT NULL, PRIVATE BOOLEAN, " +
-    " MEMEN BOOLEAN, MEMTIMER NVARCHAR2(60),CONTENT NVARCHAR2(6000) );");
+  l_run.push("CREATE TABLE if not exists WORKLOG(UUID CHAR(32) NOT NULL PRIMARY KEY, UPTASK CHAR(32), START DATETIME NOT NULL,  " +
+    " OWNER NVARCHAR2(32) NOT NULL, PRIVATE BOOLEAN, LEVEL INTEGER, CONTENT NVARCHAR2(6000) ) ,MEMPOINT NVARCHAR2(20)" +
+    " MEMEN BOOLEAN, MEMTIMER DATETIME, WITHOUT ROWID;");
+  l_run.push("CREATE INDEX if not exists [idx_work_start] ON [WORK] ([START] DESC);");
+  l_run.push("CREATE INDEX if not exists [idx_work_owner] ON [WORK] ([OWNER] ASC);");
+  l_run.push("CREATE INDEX if not exists [idx_work_state] ON [WORK] ([STATE] ASC);");
+/* 按照1,2,4,7,15,60来提醒学习。 */
 
-  l_run.push( "CREATE TABLE if not exists MSG(UUID CHAR(36),OWNER NVARCHAR2(36) NOT NULL,CREATETIME DATETIME NOT NULL," +
-    " MSG NVARCHAR2(6000), TARGET NVARCHAR2(6000), OVER NVARCHAR2(6000), VALIDATE DATETIME) ");
 
-  l_run.push( "CREATE TABLE if not exists TASK_MAN(TASK_ID CHAR(36), MAN_NICK CHAR(36) ) ");
+  /*
+  我的任务： plan和doing的，owner、ought有我的。列表。已完成不再列出。 点击task，列出下面的所有worklog(level权限。)
+  新建任务。（可以是根），选人的时候，只能选择myman。
+
+  任务全览。回头搞。
+
+  日志查询。查询状态、内容。按照owner。和level查询。leve能够查询同等级的。
+
+  user管理。，myman选项，自动列出自己的所有员工。user查询，查看他的task。和worklog（根据权限。）
+
+  */
+
+
+  l_run.push( "CREATE TABLE if not exists TASK_USER(TASK_UUID CHAR(36) CONSTRAINT [CONS_TASK_USER] REFERENCES [TASK]([UUID]) ON DELETE CASCADE), " +
+    "NICKNAME CHAR(36) CONSTRAINT [CONS_TASK_USER] REFERENCES [USER]([NICKNAME]) ON DELETE CASCADE)) ");
 //每次执行前删除一边 validate过期的东东。
   var l_init = true;
 }
