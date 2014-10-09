@@ -4,64 +4,50 @@
 
 var gUid = require('uuid');
 var sqlite3 = require('sqlite3');
-var gdbFile = 'exman.db';
-// if exist exman.db, means the sql ddl have been execute.
+var gdbFile = 'exman.db'; // if exist exman.db, means the sql ddl have been execute.
 var fs = require('fs');
 var dbHelp = require('./dbhelp.js');
+var Q = require('q');
 
-if (!fs.exists(gdbFile))
+if (!fs.existsSync(gdbFile))
 {
-  console.log("no databse file. will create it.");
+  console.log("---no databse file. will create it.---");
   var l_run = [];
   l_run.push( "CREATE TABLE if not exists USER(NICKNAME NVARCHAR2(32) NOT NULL PRIMARY KEY, " +
     " PASS CHAR(32) NOT NULL, REMPASS BOOL, MOBILE NVARCHAR2(20), EMAIL NVARCHAR2(80), IDCARD NVARCHAR2(32), " +
     " UPUSER NVARCHAR2(32), LEVEL INTEGER, GRANT INTEGER  ) WITHOUT ROWID;"   );
-  //l_run.push("CREATE UNIQUE INDEX if not exists  [pk_usernick] ON [USER] ([NICKNAME]);");
 
   l_run.push("CREATE TABLE if not exists TASK(UUID CHAR(32) NOT NULL PRIMARY KEY, UPTASK CHAR(32), PLANSTART DATETIME NOT NULL, " +
     " PLANFINISH DATETIME NOT NULL, FINISH DATETIME, STATE NCHAR(2), OWNER NVARCHAR2(32) NOT NULL, OUGHT NVARCHAR2(6000), " +
     " PRIVATE BOOLEAN, CONTENT NVARCHAR2(6000) ) WITHOUT ROWID;");
-  l_run.push("CREATE INDEX if not exists [idx_task_depart] ON [TASK] ([DEPART] ASC);");
   l_run.push("CREATE INDEX if not exists [idx_task_state] ON [TASK] ([STATE] ASC);");
   l_run.push("CREATE INDEX if not exists [idx_task_owner] ON [TASK] ([OWNER] ASC);");
   l_run.push("CREATE INDEX if not exists [idx_task_start] ON [TASK] ([PLANFINISH] DESC);");
 
-  l_run.push("CREATE TABLE if not exists WORKLOG(UUID CHAR(32) NOT NULL PRIMARY KEY, UPTASK CHAR(32), START DATETIME NOT NULL,  " +
-    " OWNER NVARCHAR2(32) NOT NULL, PRIVATE BOOLEAN, LEVEL INTEGER, CONTENT NVARCHAR2(6000) ) ,MEMPOINT NVARCHAR2(20)" +
-    " MEMEN BOOLEAN, MEMTIMER DATETIME, WITHOUT ROWID;");
-  l_run.push("CREATE INDEX if not exists [idx_work_start] ON [WORK] ([START] DESC);");
-  l_run.push("CREATE INDEX if not exists [idx_work_owner] ON [WORK] ([OWNER] ASC);");
-  l_run.push("CREATE INDEX if not exists [idx_work_state] ON [WORK] ([STATE] ASC);");
-/* 按照1,2,4,7,15,60来提醒学习。 */
-
-
+  l_run.push("CREATE TABLE if not exists WORKLOG(UUID CHAR(32) NOT NULL PRIMARY KEY, UPTASK CHAR(32), CREATETIME DATETIME NOT NULL,  " +
+    " LASTMODIFY DATETIME, OWNER NVARCHAR2(32) NOT NULL, PRIVATE BOOLEAN, LEVEL INTEGER, CONTENT NVARCHAR2(6000) ,MEMPOINT NVARCHAR2(20), " +
+    " MEMEN BOOLEAN, MEMTIMER DATETIME, STATE NCHAR(2)) WITHOUT ROWID;");
+  l_run.push("CREATE INDEX if not exists [idx_work_start] ON [WORKLOG] ([LASTMODIFY] DESC);");
+  l_run.push("CREATE INDEX if not exists [idx_work_owner] ON [WORKLOG] ([OWNER] ASC);");
+  l_run.push("CREATE INDEX if not exists [idx_work_state] ON [WORKLOG] ([STATE] ASC);");
+  /* 按照1,2,4,7,15,60来提醒学习。 */
   /*
   我的任务： plan和doing的，owner、ought有我的。列表。已完成不再列出。 点击task，列出下面的所有worklog(level权限。)
   新建任务。（可以是根），选人的时候，只能选择myman。
-
   任务全览。回头搞。
-
   日志查询。查询状态、内容。按照owner。和level查询。leve能够查询同等级的。
-
   user管理。，myman选项，自动列出自己的所有员工。user查询，查看他的task。和worklog（根据权限。）
-
   */
-
-
-  l_run.push( "CREATE TABLE if not exists TASK_USER(TASK_UUID CHAR(36) CONSTRAINT [CONS_TASK_USER] REFERENCES [TASK]([UUID]) ON DELETE CASCADE), " +
-    "NICKNAME CHAR(36) CONSTRAINT [CONS_TASK_USER] REFERENCES [USER]([NICKNAME]) ON DELETE CASCADE)) ");
-//每次执行前删除一边 validate过期的东东。
   var l_init = true;
 }
+
 var gdb = new sqlite3.Database(gdbFile);
 
 if (l_init) {
   gdb.serialize(function() {
     for (var i in l_run) {
       gdb.run(l_run[i], function (err, row) {
-        if (err) {
-          console.log("run Error: " + err.message + " " + l_run[i]);
-        }
+        if (err)  console.log("run Error: " + err.message + " " + l_run[i]);
       });
     }
   });
@@ -70,10 +56,10 @@ if (l_init) {
 var reConnect = function(){
   if (!gdb)  gdb = new sqlite3.Database(gdbFile);  // 时间长了可能会自动断掉?
 };
+
 function getDateTime(aTime, aOnlyDate){
-  // 向后一天，用 new Date( new Date() - 0 + 1*86400000)
-  // 向后一小时，用 new Date( new Date() - 0 + 1*3600000)
-  var l_date = new Array(aTime.getFullYear(), aTime.getMonth() < 9 ? '0' + (aTime.getMonth() + 1) : aTime.getMonth(), aTime.getDate() < 10 ? '0' + aTime.getDate() : aTime.getDate());
+  // 向后一天，用 new Date( new Date() - 0 + 1*86400000) // 向后一小时，用 new Date( new Date() - 0 + 1*3600000)
+  var l_date = new Array(aTime.getFullYear(), aTime.getMonth() < 9 ? '0' + (aTime.getMonth() + 1) : (aTime.getMonth()+1), aTime.getDate() < 10 ? '0' + aTime.getDate() : aTime.getDate());
   var l_time = new Array(aTime.getHours() < 10 ? '0' + aTime.getHours() : aTime.getHours(), aTime.getMinutes() < 10 ? '0' + aTime.getMinutes() : aTime.getMinutes(), aTime.getSeconds() < 10 ? '0' + aTime.getSeconds() : aTime.getSeconds());
   if (aOnlyDate)
     return( l_date.join('-')) ; // '2014-01-02'
@@ -81,13 +67,18 @@ function getDateTime(aTime, aOnlyDate){
     return( l_date.join('-') + ' ' + l_time.join(':')); // '2014-01-02 09:33:33'
 }
 
+var exQ ={};
+exQ.runSql = Q.denodeify(gdb.run);
+// runSql('')
+
 function runSql(aSql, aCallback){
-  console.log("db.runsql " + aSql);
+  console.log("db.js runsql " + aSql);
   gdb.run(aSql, function (err, row){
-    if (err) { console.log("runSql Error: " + err.message);  }
+    if (err) console.log("runSql Error: " + err.message);
     aCallback(err, row);
   } );
 };
+
 function comSave(aTarget, aTable, aCallback) {
   try {
     ls_sql = dbHelp.genSave(aTarget, aTable);
@@ -345,7 +336,7 @@ exports.runSql = runSql;
 exports.comAllBy = comAllBy;
 exports.close = gdb.close;
 exports.directDb = gdb;
-
+exports.Q = exQ;
 
 
 /*

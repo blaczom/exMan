@@ -59,6 +59,7 @@ exports.genSave = function (aObj, aTable) {
   }
   return ls_sql;
 }
+
 exports.genModel = function()
 {
   var DB = require('./db');
