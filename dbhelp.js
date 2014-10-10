@@ -13,8 +13,20 @@
  *
  */
 
-
-exports.genSave = function (aObj, aTable) {
+var checkOption = function(aOption, aCol){
+  // 检查aCol的选项。
+  if (aOption) {
+    if (aOption.hasOwnProperty("include")){
+      if (aOption["include"].indexOf(aCol + ',') >= 0) return true;
+    };
+    if (aOption.hasOwnProperty("exclude")){
+      if (aOption["exclude"].indexOf(aCol + ',') >= 0) return false;
+    };
+    return true;
+  }
+  else return true;
+}
+exports.genSave = function (aObj, aTable, aOption) {    // aOption: include:"col1,col2,"
   if (!aObj._exState) {
     console.log(aObj + " not a db object.");
     return ""
@@ -24,7 +36,7 @@ exports.genSave = function (aObj, aTable) {
   var l_vals = [];
   for (var i in aObj) {
     // 列名， i， 值 aObj[i]. 全部转化为string。
-    if (!(i[0] == '_')) {
+    if (!(i[0] == '_') && checkOption(aOption, aObj[i])) {
       console.log(typeof(aObj[i]));
       switch (typeof(aObj[i])) {
         case "string":

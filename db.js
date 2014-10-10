@@ -88,11 +88,6 @@ var allSql = function(aSql, aCallback){
   });
 }
 
-var exQ ={}; // exQ.runSql('xxxx sql').then(funcSuccess(row), funcErr(err)).fail(function(err){console.error(err);});
-var t1 = gdb.all
-exQ.runSql = Q.denodeify(gdb["run"]);
-exQ.allSql = Q.denodeify(t1);
-
 var funcErr = function(err) { logInfo('-- funcErr --' + err.toString()) }
 
 function comSave(aTarget, aTable, aCallback) {
@@ -136,211 +131,186 @@ function comAllBy(aCol, aTable, aWhere,  aCallback) {
   }
 };
 
-function USER(){
-  USER.prototype.new = function() {
-    return {
-      NICKNAME : "",
-      PASS : "",
-      REMPASS : true,
-      MOBILE : "",
-      EMAIL : "",
-      IDCARD : "" ,
-      UPMAN : "",
-      LEVEL : 0,
-      GRANT : 0,
-      _exState : "new" // new , clean, dirty.
-    }
-  };
-  USER.prototype.save = function (aUser, aCallback){
-    comSave(aUser, 'USER', aCallback);
-  };
-  USER.prototype.delete = function(aUUID, aCallback){
-    gdb.run("delete from USER where UUID = '?'", aUUID, function (err, row) {
-      if (err) {  console.log("delete user Error: " + err.message);   }
-      aCallback(err, row);
-    });
-  };
-  USER.prototype.getBy = function (aWhere, aCallback) {
-    comAllBy("*", 'USER', aWhere, aCallback);
-  };
-  USER.prototype.getByNickName = function (aNick, aCallback) {
-    USER.prototype.getBy(" where NICKNAME='" + aNick  + "'", aCallback);
-  }
-  USER.prototype.getByUUID = function (aUUID, aCallback) {
-    USER.prototype.getBy(" where UUID='" + aUUID  + "'", aCallback);
-  }
-  USER.prototype.validPass = function (aNick, aMd5, aCallback){
-    USER.prototype.getByNickName(aNick, function(aErr, aRtn){
-      if (aRtn.length>0){
-        if (aRtn[0].PASS == aMd5) {
-          aCallback(aErr, true);
-          return;
-        }
-      }
-      aCallback("fail", false);
-    });
-  }
-  USER.prototype.setAutoLogin = function(aNick, aAuto, aCallback){
-    runSql("update User set REMPASS='" + aAuto + "' where NICKNAME='" + aNick + "'", aCallback );
-  };
-  USER.prototype.getMyTask = function(aNick, aCallback){
-  };
-  USER.prototype.getAllTask = function(){
-  };
+var USER = function() {
+  this.NICKNAME = '';
+  this.PASS = '';
+  this.REMPASS = '';
+  this.MOBILE = '';
+  this.EMAIL = '';
+  this.IDCARD = '';
+  this.UPUSER = '';
+  this.LEVEL = '';
+  this.GRANT = '';
+  this.SYNC = '';
+  this._exState = "new",  // new , clean, dirty.
+  this._exDataSet = {}    // 扩展用。日后可以用于前台的数据更新判断. new buffer, old buffer.
+}
 
+USER.prototype.save = function (aUser, aCallback){
+  comSave(aUser, 'USER', aCallback);
+};
+USER.prototype.delete = function(aUUID, aCallback){
+  gdb.run("delete from USER where UUID = '?'", aUUID, function (err, row) {
+    if (err) {  console.log("delete user Error: " + err.message);   }
+    aCallback(err, row);
+  });
+};
+USER.prototype.getBy = function (aWhere, aCallback) {
+  comAllBy("*", 'USER', aWhere, aCallback);
+};
+USER.prototype.getByNickName = function (aNick, aCallback) {
+  USER.prototype.getBy(" where NICKNAME='" + aNick  + "'", aCallback);
+}
+USER.prototype.getByUUID = function (aUUID, aCallback) {
+  USER.prototype.getBy(" where UUID='" + aUUID  + "'", aCallback);
+}
+USER.prototype.validPass = function (aNick, aMd5, aCallback){
+  USER.prototype.getByNickName(aNick, function(aErr, aRtn){
+    if (aRtn.length>0){
+      if (aRtn[0].PASS == aMd5) {
+        aCallback(aErr, true);
+        return;
+      }
+    }
+    aCallback("fail", false);
+  });
+}
+USER.prototype.setAutoLogin = function(aNick, aAuto, aCallback){
+  runSql("update User set REMPASS='" + aAuto + "' where NICKNAME='" + aNick + "'", aCallback );
 };
 
-function TASK() {
-  TASK.prototype.new = function () {
-    var l_fmtDatetime = getDateTime(new Date());
-    return {
-      UUID: gUid.v1(),
-      UPTASK: "",
-      START: l_fmtDatetime,
-      FINISH: l_fmtDatetime,
-      STATE: '',  // 'plan', 'do', 'ok', 'fail'
-      OWNER: '',
-      LEVEL: '',  // LEVEL: 0,
-      PRIVATE: '',  // false
-      CONTENT: '',
-      _exState: "new" // new , clean, dirty.
-    }
-  };
-  TASK.prototype.save = function (aTask, aCallback) {
-    comSave(aTask, 'TASK', aCallback);
-  };
-  TASK.prototype.delete = function(aUUID, aCallBack){
+var TASK = function() {
+  this.UUID = '';
+  this.UPTASK = '';
+  this.PLANSTART = '';
+  this.PLANFINISH = '';
+  this.FINISH = '';
+  this.STATE = '';
+  this.OWNER = '';
+  this.OUGHT = '';
+  this.PRIVATE = '';
+  this.CONTENT = '';
+  this.SYNC = '';
+  this._exState='';
+}
+TASK.prototype.save = function (aTask, aCallback) {
+  comSave(aTask, 'TASK', aCallback);
+};
+TASK.prototype.delete = function(aUUID, aCallBack){
 
-    gdb.run("delete from TASK where UUID = ?", aUUID, function (err, row) {
-      if (err) {  console.log("delete task Error: " + err.message);   }
-      aCallBack(err, row);
-    });
-  }
-  TASK.prototype.getBy = function (aWhere, aCallback) {
-    comAllBy("*", 'TASK', aWhere, aCallback);
-  };
-  TASK.prototype.getByUUID = function (aUUID, aCallback) {
-    TASK.prototype.getBy(" where UUID='" + aUUID + "'", aCallback);
-  };
-  TASK.prototype.getChildren = function (rootTask, aCallback) {
-    var statckCallback = [];
-    gdb.all("SELECT * FROM Task where UPTASK='" + rootTask.UUID + "'", function(err, row){
-      rootTask.subTask = [];
-      if (row.length > 0) {
-        nextTask(rootTask.subTask, row, 0, aCallback); // 就调用一次over。
-      }
-      else
-      { aCallback(null,rootTask); }
-    });
-    function nextTask(aParent, aRow, aI, aCallFin)  // aRow, 是一个数组。aI作为索引。 alen作为结束判断。
-    {
-      /*console.log('nextTask running ... aParent , aRow, ai');
-      console.log(aParent);
-      console.log(aRow);
-      console.log(aI);
-      console.log('--------------'); */
-      if (aI < aRow.length) {
-        aRow[aI].subTask = [];
-        aParent.push(aRow[aI]);
-        gdb.all("SELECT * FROM Task where UPTASK='" + aRow[aI].UUID + "'", function (err, row) {
-          if (row.length > 0) {
-            // console.log('有孩子的对象：');      console.log(aRow[aI]);
-            statckCallback.push({a:aParent, b:aRow, c:(aI+1), d:aCallback });
-            nextTask(aRow[aI].subTask, row, 0, aCallback);
-          }
-          else {
-            //  console.log('没孩子的对象：');  console.log(aRow[aI]);
-            nextTask(aParent, aRow, ++aI, aCallback);
-          }
-        })
-      }
-      else {
-        if (rootTask.subTask === aParent) {
-          aCallFin(null, rootTask);  // 循环到最上层，就可以直接返回。
+  gdb.run("delete from TASK where UUID = ?", aUUID, function (err, row) {
+    if (err) {  console.log("delete task Error: " + err.message);   }
+    aCallBack(err, row);
+  });
+}
+TASK.prototype.getBy = function (aWhere, aCallback) {
+  comAllBy("*", 'TASK', aWhere, aCallback);
+};
+TASK.prototype.getByUUID = function (aUUID, aCallback) {
+  TASK.prototype.getBy(" where UUID='" + aUUID + "'", aCallback);
+};
+TASK.prototype.getChildren = function (rootTask, aCallback) {
+  var statckCallback = [];
+  gdb.all("SELECT * FROM Task where UPTASK='" + rootTask.UUID + "'", function(err, row){
+    rootTask.subTask = [];
+    if (row.length > 0) {
+      nextTask(rootTask.subTask, row, 0, aCallback); // 就调用一次over。
+    }
+    else
+    { aCallback(null,rootTask); }
+  });
+  function nextTask(aParent, aRow, aI, aCallFin)  // aRow, 是一个数组。aI作为索引。 alen作为结束判断。
+  {
+    /*console.log('nextTask running ... aParent , aRow, ai');
+    console.log(aParent);
+    console.log(aRow);
+    console.log(aI);
+    console.log('--------------'); */
+    if (aI < aRow.length) {
+      aRow[aI].subTask = [];
+      aParent.push(aRow[aI]);
+      gdb.all("SELECT * FROM Task where UPTASK='" + aRow[aI].UUID + "'", function (err, row) {
+        if (row.length > 0) {
+          // console.log('有孩子的对象：');      console.log(aRow[aI]);
+          statckCallback.push({a:aParent, b:aRow, c:(aI+1), d:aCallback });
+          nextTask(aRow[aI].subTask, row, 0, aCallback);
         }
         else {
-          // 调用上层的next来继续。next(aParent, aRow, ++aI, aCallback);
-          var tmp = statckCallback.pop(); // ({a:aParent, b:aRow, c:++aI, d:aCallback });
-          nextTask(tmp.a, tmp.b, tmp.c, tmp.d);
+          //  console.log('没孩子的对象：');  console.log(aRow[aI]);
+          nextTask(aParent, aRow, ++aI, aCallback);
         }
+      })
+    }
+    else {
+      if (rootTask.subTask === aParent) {
+        aCallFin(null, rootTask);  // 循环到最上层，就可以直接返回。
       }
-    };
-  };
-  TASK.prototype.assignUser = function(aUUID, aUserNick, aCallBack){
-    gdb.run("insert into TASK_MAN values('?', '?')", aUUID, aUserNick, function (err, row) {
-      if (err) {  console.log("add man to task Error: " + err.message);   }
-      aCallback(err, row);
-    });
-  };
-
-}
-
-function WORK() {
-  WORK.prototype.new = function () {
-    var l_fmtDatetime = getDateTime(new Date());
-    return {
-      UUID: gUid.v1(),
-      UPTASK: 0,
-      CREATETIME: l_fmtDatetime,
-      UPDATETIME : l_fmtDatetime,
-      STATE: "plan",
-      OWNER: "",
-      PRIVATE: false,
-      MEMEN: false,
-      MEMTIMER: "",
-      CONTENT: "",
-      _exState: "new" // new , clean, dirty.
+      else {
+        // 调用上层的next来继续。next(aParent, aRow, ++aI, aCallback);
+        var tmp = statckCallback.pop(); // ({a:aParent, b:aRow, c:++aI, d:aCallback });
+        nextTask(tmp.a, tmp.b, tmp.c, tmp.d);
+      }
     }
   };
-  WORK.prototype.save = function (aWORK, aCallback) {
-    comSave(aWORK, 'WORK', aCallback);
-  };
-  WORK.prototype.getBy = function (aWhere, aCallback) {
-    comAllBy("*", 'WORK', aWhere, aCallback)
-  };
-  WORK.prototype.getByUUID = function (aUUID, aCallback) {
-    comAllBy("*", "WORK", " where UUID='" + aUUID + "'", aCallback);
-  };
-  WORK.prototype.delete = function(aUUID, aCallBack){
-    gdb.run("delete from WORK where UUID = '?'", aUUID, function (err, row) {
-      if (err) {  console.log("delete WORK Error: " + err.message);   }
-      aCallback(err, row);
-    });
-  }
+};
+TASK.prototype.assignUser = function(aUUID, aUserNick, aCallBack){
+  gdb.run("insert into TASK_MAN values('?', '?')", aUUID, aUserNick, function (err, row) {
+    if (err) {  console.log("add man to task Error: " + err.message);   }
+    aCallback(err, row);
+  });
+};
+
+var WORK = function() {
+  this.UUID = '';
+  this.UPTASK = '';
+  this.CREATETIME = '';
+  this.LASTMODIFY = '';
+  this.OWNER = '';
+  this.PRIVATE = '';
+  this.LEVEL = '';
+  this.CONTENT = '';
+  this.MEMPOINT = '';
+  this.MEMEN = '';
+  this.MEMTIMER = '';
+  this.STATE = '';
+  this.SYNC = '';
+  this._exState='';
+}
+WORK.prototype.save = function (aWORK, aCallback) {
+  comSave(aWORK, 'WORK', aCallback);
+};
+WORK.prototype.getBy = function (aWhere, aCallback) {
+  comAllBy("*", 'WORK', aWhere, aCallback)
+};
+WORK.prototype.getByUUID = function (aUUID, aCallback) {
+  comAllBy("*", "WORK", " where UUID='" + aUUID + "'", aCallback);
+};
+WORK.prototype.delete = function(aUUID, aCallBack){
+  gdb.run("delete from WORK where UUID = '?'", aUUID, function (err, row) {
+    if (err) {  console.log("delete WORK Error: " + err.message);   }
+    aCallback(err, row);
+  });
 }
 
-function MSG() {
-  MSG.prototype.new = function () {
-    var l_fmtDatetime = getDateTime(new Date());
-    return {
-      UUID: gUid.v1(),
-      CREATETIME: l_fmtDatetime,
-      OWNER: "",
-      MSG:"",
-      TARGET:"",
-      OVER:"",
-      VALIDATE:"",
-      _exState: "new" // new , clean, dirty.
-    }
-  };
-  MSG.prototype.save = function (aMsg, aCallback) {
-    comSave(aMsg, 'MSG', aCallback);
-  };
-  MSG.prototype.delete = function(aUUID, aCallBack){
-    gdb.run("delete MSG where UUID = '?'", aUUID, function (err, row) {
-      if (err) {  console.log("delete MSG Error: " + err.message);   }
-      aCallback(err, row);
+var exQ = { // exQ.runSql('xxxx sql').then(funcSuccess(row), funcErr(err)).fail(function(err){console.error(err);});
+  runSql: function (aSql) {
+    logInfo("db.exQ.runsql " + aSql);
+    var deferred = Q.defer();
+    gdb.run(aSql, function (err, row) {
+      if (err) deferred.reject(err) // rejects the promise with `er` as the reason
+      else deferred.resolve(row) // fulfills the promise with `data` as the value
     });
+    return deferred.promise;
+  },
+  allSql: function (aSql) {
+    logInfo("db.exQ.runsql " + aSql);
+    var deferred = Q.defer();
+    gdb.all(aSql, function (err, row) {
+      if (err) deferred.reject(err) // rejects the promise with `er` as the reason
+      else deferred.resolve(row) // fulfills the promise with `data` as the value
+    });
+    return deferred.promise;
   }
-  MSG.prototype.getBy = function (aWhere, aCallback) {
-    comAllBy("*", 'MSG', aWhere, aCallback)
-  };
-  MSG.prototype.getByUUID = function (aUUID, aCallback) {
-    comAllBy("*", 'MSG', " where UUID='" + aUUID + "'", aCallback);
-  };
-  MSG.prototype.getByOwner = function (aNick, aCallback) {
-    comAllBy("*", 'MSG', " where Owner ='" + aNick + "'", aCallback);
-  };
 }
 
 exports.User = function(){  return new USER(); }();

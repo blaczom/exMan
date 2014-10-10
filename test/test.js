@@ -14,9 +14,9 @@
 })
  $  mocha
  */
-DB = require('../db');
+var DB = require('../db');
 var assert = require("assert");
-DbHelp = require('../dbhelp');
+var DbHelp = require('../dbhelp');
 var rtnFunc = function(aErr, aRtn){if (aErr) console.log(aErr); };
 
 describe('test for all', function(){
