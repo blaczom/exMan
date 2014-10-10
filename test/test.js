@@ -45,6 +45,7 @@ describe('test for all', function(){
             assert.equal(uRtn1, uRtn2);
             assert.equal(uRtn1[0].EMAIL, u1.EMAIL);
             assert.equal(uRtn1[0].NICKNAME, u1.NICKNAME);
+            assert.
             DB.close();
           });
         });

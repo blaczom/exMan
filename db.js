@@ -9,27 +9,32 @@ var fs = require('fs');
 var dbHelp = require('./dbhelp.js');
 var Q = require('q');
 
+var logInfo = function()
+{
+  for (var i in arguments)console.log(arguments[i]);
+}
+
 if (!fs.existsSync(gdbFile))
 {
-  console.log("---no databse file. will create it.---");
+  logInfo("---no databse file. will create it.---");
   var l_run = [];
   l_run.push( "CREATE TABLE if not exists USER(NICKNAME NVARCHAR2(32) NOT NULL PRIMARY KEY, " +
     " PASS CHAR(32) NOT NULL, REMPASS BOOL, MOBILE NVARCHAR2(20), EMAIL NVARCHAR2(80), IDCARD NVARCHAR2(32), " +
-    " UPUSER NVARCHAR2(32), LEVEL INTEGER, GRANT INTEGER  ) WITHOUT ROWID;"   );
+    " UPUSER NVARCHAR2(32), LEVEL INTEGER, GRANT INTEGER, SYNC BOOLEAN  ) WITHOUT ROWID;"   );
 
-  l_run.push("CREATE TABLE if not exists TASK(UUID CHAR(32) NOT NULL PRIMARY KEY, UPTASK CHAR(32), PLANSTART DATETIME NOT NULL, " +
-    " PLANFINISH DATETIME NOT NULL, FINISH DATETIME, STATE NCHAR(2), OWNER NVARCHAR2(32) NOT NULL, OUGHT NVARCHAR2(6000), " +
-    " PRIVATE BOOLEAN, CONTENT NVARCHAR2(6000) ) WITHOUT ROWID;");
+  l_run.push("CREATE TABLE if not exists TASK(UUID CHAR(32) NOT NULL PRIMARY KEY, UPTASK CHAR(32), PLANSTART DATETIME, " +
+    " PLANFINISH DATETIME, FINISH DATETIME, STATE NCHAR(2), OWNER NVARCHAR2(32), OUGHT NVARCHAR2(6000), " +
+    " PRIVATE BOOLEAN, CONTENT NVARCHAR2(6000), SYNC BOOLEAN ) WITHOUT ROWID;");
   l_run.push("CREATE INDEX if not exists [idx_task_state] ON [TASK] ([STATE] ASC);");
   l_run.push("CREATE INDEX if not exists [idx_task_owner] ON [TASK] ([OWNER] ASC);");
   l_run.push("CREATE INDEX if not exists [idx_task_start] ON [TASK] ([PLANFINISH] DESC);");
 
-  l_run.push("CREATE TABLE if not exists WORKLOG(UUID CHAR(32) NOT NULL PRIMARY KEY, UPTASK CHAR(32), CREATETIME DATETIME NOT NULL,  " +
-    " LASTMODIFY DATETIME, OWNER NVARCHAR2(32) NOT NULL, PRIVATE BOOLEAN, LEVEL INTEGER, CONTENT NVARCHAR2(6000) ,MEMPOINT NVARCHAR2(20), " +
-    " MEMEN BOOLEAN, MEMTIMER DATETIME, STATE NCHAR(2)) WITHOUT ROWID;");
-  l_run.push("CREATE INDEX if not exists [idx_work_start] ON [WORKLOG] ([LASTMODIFY] DESC);");
-  l_run.push("CREATE INDEX if not exists [idx_work_owner] ON [WORKLOG] ([OWNER] ASC);");
-  l_run.push("CREATE INDEX if not exists [idx_work_state] ON [WORKLOG] ([STATE] ASC);");
+  l_run.push("CREATE TABLE if not exists WORK(UUID CHAR(32) NOT NULL PRIMARY KEY, UPTASK CHAR(32), CREATETIME DATETIME,  " +
+    " LASTMODIFY DATETIME, OWNER NVARCHAR2(32), PRIVATE BOOLEAN, LEVEL INTEGER, CONTENT NVARCHAR2(6000) ,MEMPOINT NVARCHAR2(20), " +
+    " MEMEN BOOLEAN, MEMTIMER DATETIME, STATE NCHAR(2), SYNC BOOLEAN) WITHOUT ROWID;");
+  l_run.push("CREATE INDEX if not exists [idx_work_start] ON [WORK] ([LASTMODIFY] DESC);");
+  l_run.push("CREATE INDEX if not exists [idx_work_owner] ON [WORK] ([OWNER] ASC);");
+  l_run.push("CREATE INDEX if not exists [idx_work_state] ON [WORK] ([STATE] ASC);");
   /* 按照1,2,4,7,15,60来提醒学习。 */
   /*
   我的任务： plan和doing的，owner、ought有我的。列表。已完成不再列出。 点击task，列出下面的所有worklog(level权限。)
@@ -47,7 +52,7 @@ if (l_init) {
   gdb.serialize(function() {
     for (var i in l_run) {
       gdb.run(l_run[i], function (err, row) {
-        if (err)  console.log("run Error: " + err.message + " " + l_run[i]);
+        if (err)  logInfo("run Error: " + err.message + " " + l_run[i]);
       });
     }
   });
@@ -57,7 +62,7 @@ var reConnect = function(){
   if (!gdb)  gdb = new sqlite3.Database(gdbFile);  // 时间长了可能会自动断掉?
 };
 
-function getDateTime(aTime, aOnlyDate){
+var getDateTime = function (aTime, aOnlyDate){
   // 向后一天，用 new Date( new Date() - 0 + 1*86400000) // 向后一小时，用 new Date( new Date() - 0 + 1*3600000)
   var l_date = new Array(aTime.getFullYear(), aTime.getMonth() < 9 ? '0' + (aTime.getMonth() + 1) : (aTime.getMonth()+1), aTime.getDate() < 10 ? '0' + aTime.getDate() : aTime.getDate());
   var l_time = new Array(aTime.getHours() < 10 ? '0' + aTime.getHours() : aTime.getHours(), aTime.getMinutes() < 10 ? '0' + aTime.getMinutes() : aTime.getMinutes(), aTime.getSeconds() < 10 ? '0' + aTime.getSeconds() : aTime.getSeconds());
@@ -67,17 +72,28 @@ function getDateTime(aTime, aOnlyDate){
     return( l_date.join('-') + ' ' + l_time.join(':')); // '2014-01-02 09:33:33'
 }
 
-var exQ ={};
-exQ.runSql = Q.denodeify(gdb.run);
-// runSql('')
-
-function runSql(aSql, aCallback){
-  console.log("db.js runsql " + aSql);
+var runSql = function (aSql, aCallback){
+  logInfo("db.js runsql " + aSql);
   gdb.run(aSql, function (err, row){
-    if (err) console.log("runSql Error: " + err.message);
+    if (err) logInfo("runSql Error: " + err.message);
     aCallback(err, row);
   } );
 };
+
+var allSql = function(aSql, aCallback){
+  logInfo("db.js allSql " + aSql);
+  gdb.all(aSql, function (err, row) {
+    if (err) logInfo(".all Error: " + err.message);
+    aCallback(err, row);
+  });
+}
+
+var exQ ={}; // exQ.runSql('xxxx sql').then(funcSuccess(row), funcErr(err)).fail(function(err){console.error(err);});
+var t1 = gdb.all
+exQ.runSql = Q.denodeify(gdb["run"]);
+exQ.allSql = Q.denodeify(t1);
+
+var funcErr = function(err) { logInfo('-- funcErr --' + err.toString()) }
 
 function comSave(aTarget, aTable, aCallback) {
   try {
@@ -123,7 +139,6 @@ function comAllBy(aCol, aTable, aWhere,  aCallback) {
 function USER(){
   USER.prototype.new = function() {
     return {
-      UUID :  gUid.v1(),
       NICKNAME : "",
       PASS : "",
       REMPASS : true,
@@ -331,12 +346,14 @@ function MSG() {
 exports.User = function(){  return new USER(); }();
 exports.Task = function(){  return new TASK();}();
 exports.Work = function(){  return new WORK();}();
-exports.Msg = function(){  return new MSG();}();
 exports.runSql = runSql;
+exports.allSql = allSql;
+exports.Q = exQ;
+
 exports.comAllBy = comAllBy;
 exports.close = gdb.close;
 exports.directDb = gdb;
-exports.Q = exQ;
+
 
 
 /*
