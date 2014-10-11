@@ -2,7 +2,6 @@
  * Created by donghai on 2014/9/20.
  */
 
-var gUid = require('uuid');
 var sqlite3 = require('sqlite3');
 var gdbFile = 'exman.db'; // if exist exman.db, means the sql ddl have been execute.
 var fs = require('fs');
@@ -145,7 +144,9 @@ var USER = function() {
   this._exState = "new",  // new , clean, dirty.
   this._exDataSet = {}    // 扩展用。日后可以用于前台的数据更新判断. new buffer, old buffer.
 }
-
+USER.prototype.new = function(){
+  return new USER();
+};
 USER.prototype.save = function (aUser, aCallback){
   comSave(aUser, 'USER', aCallback);
 };
@@ -161,9 +162,7 @@ USER.prototype.getBy = function (aWhere, aCallback) {
 USER.prototype.getByNickName = function (aNick, aCallback) {
   USER.prototype.getBy(" where NICKNAME='" + aNick  + "'", aCallback);
 }
-USER.prototype.getByUUID = function (aUUID, aCallback) {
-  USER.prototype.getBy(" where UUID='" + aUUID  + "'", aCallback);
-}
+
 USER.prototype.validPass = function (aNick, aMd5, aCallback){
   USER.prototype.getByNickName(aNick, function(aErr, aRtn){
     if (aRtn.length>0){
@@ -313,7 +312,7 @@ var exQ = { // exQ.runSql('xxxx sql').then(funcSuccess(row), funcErr(err)).fail(
   }
 }
 
-exports.User = function(){  return new USER(); }();
+exports.User = function(){  return new USER();}();
 exports.Task = function(){  return new TASK();}();
 exports.Work = function(){  return new WORK();}();
 exports.runSql = runSql;
@@ -323,8 +322,6 @@ exports.Q = exQ;
 exports.comAllBy = comAllBy;
 exports.close = gdb.close;
 exports.directDb = gdb;
-
-
 
 /*
 module.exports = {

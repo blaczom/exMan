@@ -1,7 +1,4 @@
 2014/10/8
-数据库增加一个depart表
-user、task。增加一个depart的属性。
-
 uuid.replace("-", "")
 
 
@@ -10,6 +7,9 @@ uuid.replace("-", "")
 ----------
 
 
-.
+
+
+
+
 
 
