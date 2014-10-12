@@ -62,3 +62,14 @@ a {
   border-top-right-radius: 0;
   display:block;
 }
+
+.divex-formEdit .fromex-control
+{
+    position: relative;
+    font-size: 16px;
+    height: auto;
+    padding: 5px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}

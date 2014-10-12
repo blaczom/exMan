@@ -46,11 +46,6 @@ function UUID(){
 // When asked what this Object is, lie and return it's value
 UUID.prototype.valueOf = function(){ return this.id; }
 UUID.prototype.toString = function(){ return this.id; }
-
-//
-// INSTANCE SPECIFIC METHODS
-//
-
 UUID.prototype.createUUID = function(){
   //
   // Loose interpretation of the specification DCE 1.1: Remote Procedure Call
@@ -76,14 +71,9 @@ UUID.prototype.createUUID = function(){
     UUID.getIntegerBits(UUID.rand(8191),0,7) +
     UUID.getIntegerBits(UUID.rand(8191),8,15) +
     UUID.getIntegerBits(UUID.rand(8191),0,15); // this last number is two octets long
-  return tl + '-' + tm  + '-' + thv  + '-' + csar + '-' + csl + n;
+  //return tl + '-' + tm  + '-' + thv  + '-' + csar + '-' + csl + n;
+  return tl + tm  + thv  + csar + csl + n;  // 32位。去掉-
 }
-
-
-//
-// GENERAL METHODS (Not instance specific)
-//
-
 
 // Pull out only certain bits from a very large integer, used to get the time
 // code information for the first part of a UUID. Will return zero's if there 

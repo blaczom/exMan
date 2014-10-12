@@ -1,42 +1,71 @@
 <div id="alt_info" ng-show="rtnInfo" class="alert alert-success">
     <span ng-bind="rtnInfo"></span>
 </div>
-<div class="divex list">
-    <button ng-click="taskTest()"> + </button>
-    <h2 class="divex-heading"> 任 务 <button ng-click="taskAdd(null)"> + </button> </h2>
-    <div ng-repeat='taskItem in taskSet'>
-        <span style="width:180px;">{{ taskItem.UUID }}</span>
-        <span style="width:40px;">{{ taskItem.UPTASK }}</span>
-        <span style="width:140px;">{{taskItem.START}}</span>
-        <span style="width:140px;">{{taskItem.FINISH}}</span>
-        <span style="width:40px;">{{taskItem.STATE}}</span>
-        <span style="width:40px;">{{taskItem.OWNER}}</span>
-        <span style="width:40px;">{{taskItem.LEVEL}}</span>
-        <span style="width:40px;">{{taskItem.PRIVATE}}</span>
-        <span style="width:150px;">{{taskItem.CONTENT.substr(0,20) }}</span>
-        <button ng-click="taskEdit($index)"> 目 </button>
-        <button ng-click="taskAdd($index)"> + </button>
+
+    <h2 class="divex-heading"> 任 务 <button ng-click="taskAdd(null)"> + </button></h2>
+
+
+    <input ng-model="seekFlag" id="txtSeekFlag" name="txtSeekFlag" type="checkbox"/> 内容
+    <input ng-disabled="!seekFlag" ng-model="seekContent" id="txtSeekContent" name="txtSeekContent" type="text" placeholder="内容" />
+    <input ng-model="seekStatFlag" id="txtSeekStatFlag" name="txtSeekStatFlag" type="checkbox"/> 状态
+    <select ng-model="task.STATE" multiple ng-options="m for m in planState"> </select>
+    <button ng-click="taskGet()"> 查找 </button>
+
+<button ng-click="taskTest()"> 测试按钮 </button>
+<div class="divex-list">
+    <div class="divex-listHeader">
+        <span style="width:30px;">   序号  </span>
+        <span ng-show="showDebug" style="width:300px;"> uuid </span>
+        <span style="width:250px;"> 内容 </span>
+        <span ng-show="showDebug" style="width:40px;"> 父任务 </span>
+        <span style="width:140px;">计划开始</span>
+        <span style="width:140px;">计划结束</span>
+        <span ng-show="showDebug" style="width:140px;">结束时间</span>
+        <span style="width:40px;">状态</span>
+        <span style="width:60px;">所有者</span>
+        <span style="width:60px;">承担者</span>
+        <span style="width:40px;">私有</span>
     </div>
+    <div class="divex-listContent" ng-repeat='taskItem in taskSet' >
+        <span style="width:30px;">    {{$index}}  </span>
+        <span ng-show="showDebug" style="width:300px;">{{ taskItem.UUID }}</span>
+        <span style="width:250px;">{{taskItem.CONTENT.substr(0,20) }}</span>
+        <span ng-show="showDebug" style="width:40px;">{{ taskItem.UPTASK }}</span>
+        <span style="width:140px;">{{taskItem.PLANSTART}}</span>
+        <span style="width:140px;">{{taskItem.PLANFINISH}}</span>
+        <span ng-show="showDebug" style="width:140px;">{{taskItem.FINISH}}</span>
+        <span style="width:40px;">{{taskItem.STATE}}</span>
+        <span style="width:60px;">{{taskItem.OWNER}}</span>
+        <span style="width:60px;">{{taskItem.OUGHT}}</span>
+        <span style="width:40px;">{{taskItem.PRIVATE}}</span>
+        <button ng-click="taskEdit($index)"> 改 </button>
+        <button ng-click="taskAdd($index)"> 增 </button>
+        <br/>
+    </div>
+    <button ng-click="taskGet()"> 下<span ng-bind="limit"></span>条 </button>
 </div>
 
 <div id="divModal" ng-show="editMode" style="width:100%;height:100%;background-color:#9999CC;position:absolute;top:0;left:0;z-index:10;display:inline;" >
     <div ng-show="rtnInfo" class="alert alert-success">
         <span ng-bind="rtnInfo"></span>
     </div>
-    <div>
+    <div class="divex-formEdit">
         <button ng-click="taskSave()"> 保存 </button>
         <button ng-click="taskCancel()"> 取消 </button>
         <button ng-click="taskDelete()"> 删除 </button>
-        <input ng-model="task.UUID" id="txtUUID" name="txtUUID" type="text" class="fromex-control" placeholder="task id" required autofocus />
+        <br/>
+        <input ng-show="showDebug" ng-model="task.UUID" id="txtUUID" name="txtUUID" type="text" class="fromex-control" placeholder="task id" required autofocus />
         <input ng-model="task.UPTASK" id="txtUPTASK" name="txtUPTASK" type="text" class="fromex-control" placeholder="父任务" required/>
-        <input ng-model="task.START" id="txtSTART" name="txtSTART" type="text" class="fromex-control" placeholder="开始时间" required/>
+        <input ng-model="task.PLANSTART" id="txtPLANSTART" name="txtPLANSTART" type="text" class="fromex-control" placeholder="开始时间" required/>
+        <input ng-model="task.PLANFINISH" id="txtPLANFINISH" name="txtPLANFINISH" type="text" class="fromex-control" placeholder="开始时间" required/>
         <input ng-model="task.FINISH" id="txtFINISH" name="txtFINISH" type="text" class="fromex-control" placeholder="结束时间" required/>
-        <input ng-model="task.STATE" id="txtSTATE" name="txtSTATE" type="text" class="fromex-control" placeholder="任务状态" required/>
+        任务状态：<select ng-model="task.STATE"  ng-options="m for m in planState">
+            <option value="">-- 请选择 --</option>
+        </select>
+
         <input ng-model="task.OWNER" id="txtOWNER" name="txtOWNER" type="text" class="fromex-control" placeholder="所有者" required/>
-        <input ng-model="task.LEVEL" id="txtLEVEL" name="txtLEVEL" type="text" class="fromex-control" placeholder="层次" required/>
-        <input ng-model="task.PRIVATE" id="txtPRIVATE" name="txtPRIVATE" type="checkbox">
+        <input ng-model="task.OUGHT" id="txtOUGHT" name="txtOUGHT" type="text" class="fromex-control" placeholder="承担者（逗号分割）" required/>
+        <input ng-model="task.PRIVATE" id="txtPRIVATE" name="txtPRIVATE" type="checkbox" text = "私有"/>私有 <br/>
         <textarea ng-model="task.CONTENT" class="formex-control" name="txtMsg" id="txtCONTENT" cols="60" rows="6" placeholder="消息主题"  required> </textarea>
     </div>
 </div>
-
-<h2 class="fromex-heading">消息编辑</h2>

@@ -37,19 +37,20 @@ exports.genSave = function (aObj, aTable, aOption) {    // aOption: include:"col
   for (var i in aObj) {
     // 列名， i， 值 aObj[i]. 全部转化为string。
     if (!(i[0] == '_') && checkOption(aOption, aObj[i])) {
-      console.log(typeof(aObj[i]));
-      switch (typeof(aObj[i])) {
-        case "string":
+      var lsTmp = (aObj[i]==null) ? "" : aObj[i];
+      switch (typeof(lsTmp)) {
+        case "string": case "boolean":case "object":
           l_cols.push(i);
-          l_vals.push("'" + aObj[i] + "'");
+          l_vals.push("'" + lsTmp + "'");
           break;
-        case "boolean":
+        case "number":
           l_cols.push(i);
-          l_vals.push("'" + aObj[i] + "'");
+          l_vals.push(lsTmp);
           break;
         case "function":
           break;
         default:
+          console.log("--dbhelp.js don't now what it is-" + i + ":" + aObj[i] + ":" + typeof(lsTmp));
           l_cols.push(i);
           l_vals.push(aObj[i].toString());
           break;
@@ -72,23 +73,27 @@ exports.genSave = function (aObj, aTable, aOption) {    // aOption: include:"col
   return ls_sql;
 }
 
-exports.genModel = function()
+exports.genModel = function(aOpt)
 {
   var DB = require('./db');
+  if (aOpt)
+    var ls_pre = "", ls_sep = ":", ls_end = "'',";
+  else
+    var ls_pre = "this.", ls_sep = "=", ls_end = "'';";
   DB.directDb.get("select * from WORK ", function(err,rtn) {
     console.log("--------------Work-----------");
     for (var i in rtn) {
-      console.log("this." + i + " = "+ rtn[i]  +" ;");  // 没错误顺便输出对象的数据库属性。
+      console.log(ls_pre + i +  ls_sep + rtn[i]  + ls_end);  // 没错误顺便输出对象的数据库属性。
     }
     DB.directDb.get("select * from TASK ", function (err, rtn) {
       console.log("--------------Task-----------");
       for (var i in rtn) {
-        console.log("this." + i + " = "+ rtn[i]  +" ;");  // 没错误顺便输出对象的数据库属性。
+        console.log(ls_pre + i +  ls_sep + rtn[i]  + ls_end);  // 没错误顺便输出对象的数据库属性。
       }
       DB.directDb.get("select * from user ", function (err, rtn) {
         console.log("--------------User-----------");
         for (var i in rtn) {
-          console.log("this." + i + " = "+ rtn[i]  +" ;");  // 没错误顺便输出对象的数据库属性。
+          console.log(ls_pre + i +  ls_sep + rtn[i]  + ls_end);  // 没错误顺便输出对象的数据库属性。
         }
       })
     })

@@ -1,61 +1,8 @@
-  var app = angular.module("exman", ['ngRoute', 'exService']);
+  var app = angular.module("exman", ['ngRoute', 'exService', 'exFactory']);
 
-  var objUser = {
-    UUID : "",
-    NICKNAME : "",
-    PASS : "",
-    PASS2: "",
-    PASSMd5: "",
-    REMPASS : true,
-    MOBILE : "",
-    EMAIL : "",
-    IDCARD : "" ,
-    UPMAN : "",
-    LEVEL : 0,
-    GRANT : 0,
-    _exState : "new" // new , clean, dirty.
-  };
-  function objMsg() {
-    this.UUID = "";
-    this.CREATETIME= "";
-    this.OWNER= "";
-    this.MSG= "";
-    this.TARGET= "";
-    this.OVER= "";
-    this.VALIDATE= "";
-    this._exState= "new"; // new , clean, dirty.
-  };
-  function objTask(){
-    this.UUID = "";
-    this.UPTASK = "" ;
-    this.START = "";
-    this.FINISH = "";
-    this.STATE =  "";
-    this.OWNER =  "";
-    this.LEVEL =  0;
-    this.PRIVATE = false;
-    this.CONTENT =  "" ;
-    this._exState = "new"; // new , clean, dirty.
-  }
-  function objWork(){
-    this.UUID = "" ;
-    this.UPTASK = 0 ;
-    this.CREATETIME = "";
-    this.UPDATETIME = "";
-    this.STATE = "" ;
-    this.OWNER = "" ;
-    this.PRIVATE = false ;
-    this.MEMEN = false ;
-    this.MEMTIMER = "" ;
-    this.CONTENT =  "";
-    this._exState = "new"; // new , clean, dirty.
-  }
-
-
-
-  app.controller("ctrlLogin", ['$http', '$scope', '$location', function($http, $scope, $location) {
+  app.controller("ctrlLogin", ['$http', '$scope', '$location', 'exDb', function($http, $scope, $location, exDb) {
     var lp = $scope;
-    lp.user = objUser;
+    lp.user = exDb.currentUser;
     lp.rtnInfo = "";
     lp.userLogin = function () {
       $http.post('/rest',
@@ -68,6 +15,7 @@
           if (data.rtnCode > 0) {
             console.log('goo #/main');
             $location.path('/main');
+            exDb.currentUser = lp.user.NICKNAME;
           }
           else{
             lp.rtnInfo = data.rtnInfo;
@@ -85,15 +33,16 @@
           lp.user.userName = data.ex_parm.username;
           lp.user.userPass = data.ex_parm.userpass;
           lp.user.rememberMe = data.ex_parm.userrem;
+          exDb.currentUser = lp.user.userName;
         }
       })
       .error(function (data, status, headers, config) {
         lp.rtnInfo = JSON.stringify(status);
       });
   }]);
-  app.controller("ctrlRegUser", ['$http', '$scope', function($http, $scope){
+  app.controller("ctrlRegUser", ['$http', '$scope', 'exDb', function($http, $scope, exDb){
     var lp = $scope;
-    lp.user = objUser;
+    lp.user = exDb.currentUser;
     lp.rtnInfo = "";
     lp.userReg = function(){
       $http.post('/rest',
@@ -123,84 +72,30 @@
       });
 
   }]);
-  app.controller("ctrlMsgEdit", ['$http', '$scope', '$routeParams', 'exUtil', function($http, $scope, $routeParams, exUtil){
+  app.controller("ctrlTaskList", ['$http', '$scope', '$routeParams', 'exUtil', 'exDb',
+    function($http, $scope, $routeParams, exUtil, exDb)  {
     var lp = $scope;
-    lp.id = $routeParams.id;
-    lp.rtnInfo = "";
-    lp.msg = new objMsg();
-    if (lp.id.length > 30){  // 有效的id。说明是edit
-      $http.post('/rest',
-        { func: 'msgEditGet', // my message
-          ex_parm: { msgId: lp.id}
-        })
-        .success(function (data, status, headers, config) {    // 得到新的消息
-          //lp.rtnInfo = data.rtnInfo;
-          lp.msg = data.exObj;
-          lp.msg._exState = "clean";
-          lp.rtnInfo = data.rtnInfo;
-        })
-        .error(function (data, status, headers, config) {
-          lp.rtnInfo = JSON.stringify(status);
-        });
-    }
-    else{   // 无效id，说明是要添加
-      lp.msg.UUID = exUtil.uuid();
-      lp.msg.CREATETIME = exUtil.getDateTime(new Date());
-      lp.msg._exState = "new";
-      lp.msg.VALIDATE = lp.msg.CREATETIME;
-      lp.msg.OWNER = objUser.NICKNAME;
-    }
-    lp.msgSave = function(){
-      if (lp.msg._exState == "clean"){ lp.msg._exState = 'dirty' ;}
-      $http.post('/rest',
-      { func: 'msgEditSave', // my message
-        ex_parm: { msgObj: lp.msg }
-      })
-      .success(function (data, status, headers, config) {    // 得到新的消息
-        lp.rtnInfo = data.rtnInfo;
-        lp.msg._exState = 'clean';
-      })
-      .error(function (data, status, headers, config) {
-        lp.rtnInfo = JSON.stringify(status);
-      });
-    }
-  }]);
-  app.controller("ctrlTaskList", ['$http', '$scope', '$routeParams', 'exUtil', function($http, $scope, $routeParams, exUtil)  {
-    var lp = $scope;
-    lp.aType = $routeParams.aType;
-    lp.rtnInfo = "";
-    lp.task = new objTask();
-    lp.curIndex = null;
-    lp.editMode = false;
+    lp.showDebug = false;  // 调试信息打印。
+    lp.seekFlag = false; lp.seekContent = ""; // 是否search任务内容。
+    lp.lastSearchFlag = "orignal"; //  如果search条件改变，那么，下n条的检索也需要改变。 [  "orignal", "content"  ]
+    lp.taskSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
+    lp.curOffset = 0;  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
+    lp.limit = 5;      // 当前查询显示限制。
+    lp.aType = $routeParams.aType;    // 查询的页面参数。暂时没用。随便参数。
 
-    switch (lp.aType)
-    {
-      case "mine":
-      case "ought":
-      default :
-        $http.post('/rest',{ func: 'taskListGet', // my message
-          ex_parm: { taskType: lp.aType}
-        })
-        .success(function (data, status, headers, config) {    // 得到新的消息
-          lp.rtnInfo = data.rtnInfo;
-          lp.taskSet = data.exObj || [];
-          for (var i=0; i<lp.taskSet.length; i++)
-             lp.taskSet[i]._exState = "clean";
-        })
-        .error(function (data, status, headers, config) {
-          lp.rtnInfo = JSON.stringify(status);
-        });
-        break;
-    }
-    lp.taskAdd = function(aIndex){
+    lp.rtnInfo = "";   // 返回提示用户的信息。
+    // lp.task = exDb.taskNew();    // 暂时给遮挡编辑任务页面提供。
+    lp.curIndex = null;     //当前编辑的索引值
+    lp.editMode = false;    // 是否在单记录编辑模式。
+    lp.planState = exDb.planState;  // 选择的task状态内容。
+
+    lp.taskAdd = function(aIndex){   // 增加和编辑。
       console.log("add " + aIndex);
       lp.curIndex = aIndex;
-      lp.task = new objTask();
-      lp.task.UUID = exUtil.uuid();
-      lp.task.START = exUtil.getDateTime(new Date());
-      lp.task.FINISH = lp.task.START;
+      lp.task = exDb.taskNew();
+      lp.task.owner = exDb.currentUser;
       lp.task._exState = 'new';
-      if(aIndex){
+      if(aIndex != null){
         lp.task.UPTASK = lp.taskSet[aIndex].UUID;
       }
       lp.editMode = true;
@@ -216,22 +111,23 @@
       $http.post('/rest',{ func: 'taskEditSave',
         ex_parm: { msgObj: lp.task}
       })
-      .success(function (data, status, headers, config) {    // 得到新的消息
-        lp.rtnInfo = data.rtnInfo;
-        switch (lp.task._exState) {
-          case 'dirty':
-            lp.taskSet[lp.curIndex] = lp.task;
-            break;
-          case 'new':
-            lp.taskSet.push(lp.task)
-            break;
-        }
-        lp.task._exState = "clean";
-        lp.editMode = false;
-      })
-      .error(function (data, status, headers, config) {
+        .success(function (data, status, headers, config) {    // 得到新的消息
+          lp.rtnInfo = data.rtnInfo;
+          switch (lp.task._exState) {
+            case 'dirty':
+              lp.task._exState = "clean";
+              lp.taskSet[lp.curIndex] = lp.task;
+              break;
+            case 'new':
+              lp.task._exState = "clean";
+              lp.taskSet.unshift(lp.task);
+              break;
+          }
+          lp.editMode = false;
+        })
+        .error(function (data, status, headers, config) {
           lp.rtnInfo = JSON.stringify(status);
-      });
+        });
     };
     lp.taskCancel = function(){
       lp.editMode = false;
@@ -240,21 +136,59 @@
       $http.post('/rest',{ func: 'taskEditDelete',
         ex_parm: { msgObj: lp.task}
       })
-      .success(function (data, status, headers, config) {    // 得到新的消息
+        .success(function (data, status, headers, config) {    // 得到新的消息
           lp.rtnInfo = data.rtnInfo;
-          if (lp.rtnCode > 0){
+          if (data.rtnCode > 0){
             for (var i in lp.taskSet){
-              if (lp.taskSet[i].UUID = lp.task.UUID) lp.taskSet.splice(i,1);
-              break;
+              if (lp.taskSet[i].UUID == lp.task.UUID) {
+                if (lp.showDebug) console.log("get it delete " + lp.task.UUID);
+                lp.taskSet.splice(i,1);
+                lp.editMode = false;
+                break;
+              }
             }
-            lp.editMode = false;
           }
-      })
-      .error(function (data, status, headers, config) {
+        })
+        .error(function (data, status, headers, config) {
           lp.rtnInfo = JSON.stringify(status);
-      });
+        });
     };
     lp.taskTest =function(aIndex){lp.rtnInfo = "asdfasdfa"; lp.editMode=true; }
+
+    lp.taskGet = function(){
+      $http.post('/rest',{ func: 'taskListGet', // my message
+        ex_parm: { taskType: lp.aType, limit:lp.limit, offset:lp.curOffset}
+      })
+        .success(function (data, status, headers, config) {    // 得到新的消息
+          lp.rtnInfo = data.rtnInfo;
+          var ltmp1 = (data.exObj || []);
+          if (ltmp1.length > 0){
+            lp.curOffset = lp.curOffset + lp.limit;
+            for (var i=0; i< ltmp1.length; i++)
+              ltmp1._exState = "clean";
+            lp.taskSet = lp.taskSet.concat(ltmp1); // 防止新增加的，再检索出来重复~~
+            var hashKey  = {}, lRet = [];
+            for (var i in lp.taskSet) {
+              var key = lp.taskSet[i].UUID;
+              if (hashKey[key] != 1) { hashKey[key] = 1; lRet.push(lp.taskSet[i]);}
+            }
+            lp.taskSet = lRet;
+            console.log(lRet);
+          }
+        })
+        .error(function (data, status, headers, config) {
+          lp.rtnInfo = JSON.stringify(status);
+        });
+    }
+    switch (lp.aType)
+    {
+      case "mine":
+      case "ought":
+      default :
+        lp.taskGet();  // 默认来一次。
+        break;
+    }
+
   }]);
 
   app.config(['$routeProvider', function($routeProvider) {

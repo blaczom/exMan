@@ -125,10 +125,11 @@ router.post('/', function(req, res) {
       });
       break;
     case 'taskListGet':
+      // ex_parm: { taskType: lp.aType, limit:lp.limit, offset:lp.curOffset}
       var lUser = req.session.loginUser;
       app.db.comAllBy("distinct *", 'task',
-        "where owner = '"+ lUser +  "' or uuid in (select task_id from task_man where man_nick = '" +
-        lUser + "') order by START", function(aErr, aRtn) {
+        "where owner = '"+ lUser +  "' or ought like '%" +
+        lUser + ",%' order by PLANSTART limit " +  lExparm.limit + " offset " +  lExparm.offset, function(aErr, aRtn) {
         if (aErr) res.json(app.rtnErr(aErr));
         else {
           ls_rtn = app.rtnMsg('');  // 检索成功不需要提示信息。
