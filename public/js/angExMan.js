@@ -77,7 +77,7 @@
   app.controller("ctrlTaskList", ['$http', '$scope', '$routeParams', 'exUtil', 'exDb',
     function($http, $scope, $routeParams, exUtil, exDb)  {
     var lp = $scope;
-    lp.showDebug = false;  // 调试信息打印。
+    lp.showDebug = true;  // 调试信息打印。
     lp.seekContentFlag = false; lp.seekContent = ""; // 是否search任务内容。
     lp.seekStateFlag = true; lp.seekState = ['计划','进行']; // 是否search任务状态。
     lp.seekUserFlag = true; lp.seekUser = exDb.getUser();  // 是否按照用户搜索
@@ -85,7 +85,7 @@
     lp.curOffset = 0;  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
     lp.limit = 5;      // 当前查询显示限制。
     lp.aType = $routeParams.aType;    // 查询的页面参数。暂时没用。随便参数。
-
+    lp.selectUserMode = false;
     lp.rtnInfo = "";   // 返回提示用户的信息。
     // lp.task = exDb.taskNew();    // 暂时给遮挡编辑任务页面提供。
     lp.curIndex = null;     //当前编辑的索引值
@@ -96,7 +96,7 @@
       console.log("add " + aIndex);
       lp.curIndex = aIndex;
       lp.task = exDb.taskNew();
-      lp.task.owner = exDb.currentUser;
+      lp.task.OWNER = exDb.getUser();
       lp.task._exState = 'new';
       if(aIndex != null){
         lp.task.UPTASK = lp.taskSet[aIndex].UUID;
@@ -176,6 +176,8 @@
       })
         .success(function (data, status, headers, config) {    // 得到新的消息
           lp.rtnInfo = data.rtnInfo;
+          exDb.setUser(data.rtnUser);
+          if (! lp.seekUser) lp.seekUser = data.rtnUser;
           var ltmp1 = (data.exObj || []);
           if (ltmp1.length > 0){
             lp.curOffset = lp.curOffset + lp.limit;
@@ -195,14 +197,29 @@
           lp.rtnInfo = JSON.stringify(status);
         });
     }
+    lp.selectUser = function(){
+      lp.selectUserMode=true;
+      (lp.allSelectUser = lp.task.OUGHT.split(',')).pop();
+      exDb.getAllUserPromise().then( function (data) {
+        var lrtn = data.exObj;
+        lp.allOtherUser =[];
+        console.log(lrtn);
+        for (var i in lrtn) {  if (lp.task.OUGHT.indexOf(lrtn[i].NICKNAME + ",") < 0 ) lp.allOtherUser.push(lrtn[i].NICKNAME); };
+      }, function (reason) { console.log(reason); lp.allOtherUser = []  });
+    };
+    lp.selectUserDelete = function(){};
+    lp.selectUserAdd = function(){};
+
     switch (lp.aType)
     {
       case "mine":
       case "ought":
       default :
-        lp.taskGet();  // 默认来一次。
+        lp.taskfilter();  // 默认来一次。
         break;
     }
+
+
 
   }]);
 

@@ -61,8 +61,8 @@ $http.post('/rest',
   })
 ---------- 返回的消息格式。
 app.rtnErr = function(aMsg, aErr) {
-  return { "rtnInfo": strMsg, rtnCode: -1, "alertType": 0, error: strErr, exObj = object }
-  return { "rtnInfo": aMsg, rtnCode: 1, "alertType": 0, error:, exObj = object }
+  return { "rtnInfo": strMsg, rtnUser: aUser, rtnCode: -1, "alertType": 0, error: strErr, exObj = object }
+  return { "rtnInfo": aMsg, rtnUser: aUser, rtnCode: 1, "alertType": 0, error:, exObj = object }
 };
 
 

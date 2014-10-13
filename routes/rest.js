@@ -145,6 +145,7 @@ router.post('/', function(req, res) {
         if (aErr) res.json(app.rtnErr(aErr));
         else {
           ls_rtn = app.rtnMsg('');  // 检索成功不需要提示信息。
+          ls_rtn.rtnUser = req.session.loginUser;
           ls_rtn.exObj = aRtn?aRtn:[];  // 返回数组。
           res.json(ls_rtn);
         }
@@ -173,6 +174,16 @@ router.post('/', function(req, res) {
       {
         res.json(app.rtnErr("不能删除别人的任务。."));
       }
+      break;
+    case 'userGetAll':  // lExparm.msgObj
+      app.db.comAllBy(" NICKNAME ", 'user'," order by NICKNAME ", function(aErr, aRtn) {
+          if (aErr) res.json(app.rtnErr(aErr));
+          else {
+            ls_rtn = app.rtnMsg('');  // 检索成功不需要提示信息。
+            ls_rtn.exObj = aRtn?aRtn:[];  // 返回数组。
+            res.json(ls_rtn);
+          }
+        });
       break;
     default :
       res.json(app.rtnErr('不存在该请求：' + JSON.stringify(req.body)));

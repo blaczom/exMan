@@ -3,7 +3,7 @@
  */
 
 angular.module('exFactory', ['exService']).
-  factory('exDb', ['exUtil', function(exUtil){
+  factory('exDb', ['exUtil', '$http', '$q',  function(exUtil, $http, $q){
     var objUser = function(){
       this.NICKNAME = '';
       this.PASS = '';
@@ -48,12 +48,32 @@ angular.module('exFactory', ['exService']).
       this._exState='new';
     }
     var _currentUser = "";
+    var getAllUserName = function(){
+      var deferred = $q.defer();
+      $http.post('/rest',{ func: 'userGetAll', // my message
+        ex_parm: { } })
+        .success(function (data, status, headers, config) {    // 得到新的消息
+          deferred.resolve(data); // ls_rtn.exObj = []  exObj
+          })
+        .error(function (data, status, headers, config) {
+          deferred.reject(error);
+        });
+      return deferred.promise;
+    };
+
     return{
       userNew: function() { return new objUser() },
       workNew: function() { return new objWork() },
       taskNew : function() { return new objTask() },
       planState : ['计划','进行','结束'],
       setUser: function(aUser) {_currentUser = aUser},
-      getUser: function(){return _currentUser}
+      getUser: function(){return _currentUser},
+      getAllUserPromise: function() {  return getAllUserName();
+        /* var promise = getAllUserName();
+        promise.then( function (data) {
+          var lrtn = [];
+          for (var i in data) {   lrtn.push(data[i].NICKNAME)  }
+        }, function (reason) { console.log(reason); return []  }); */
+      }
     }
   }]);
