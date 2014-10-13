@@ -34,8 +34,8 @@ router.post('/', function(req, res) {
   switch (lFunc){
     case 'userPrelogin':
       if(req.cookies.loginUser)  {
-        var lrtn = app.rtnMsg('return rempass');
-        lrtn.ex_parm = {username:req.cookies.loginUser, userpass:req.cookies.loginPass, userrem:req.cookies.remPass };
+        var lrtn = app.rtnMsg('');
+        lrtn.ex_parm = {nickName:req.cookies.loginUser, pass:req.cookies.loginPass, remPass:req.cookies.remPass };
         res.json(lrtn);
       }
       break;
@@ -125,11 +125,23 @@ router.post('/', function(req, res) {
       });
       break;
     case 'taskListGet':
-      // ex_parm: { taskType: lp.aType, limit:lp.limit, offset:lp.curOffset}
-      var lUser = req.session.loginUser;
+      /* ex_parm: { taskType: lp.aType, limit:lp.limit, offset:lp.curOffset, filter:{seekContentFlag : lp.seekContentFlag, seekContent: lp.seekContent,
+      seekStateFlag: lp.seekStateFlag , seekState: lp.seekState, seekUserFlag: lp.seekUserFlag, seekUser: lp.seekUser   }}*/
+      var la_where  = [];
+      if (lExparm.filter.seekContentFlag)   la_where.push(" content like '%" + lExparm.filter.seekContent + "%' ");
+      if (lExparm.filter.seekStateFlag) la_where.push(" state in ('" + lExparm.filter.seekState.join("','") + "') ");
+      if (lExparm.filter.seekUserFlag) {
+        var ls_append = "";
+        if (req.session.loginUser != lExparm.filter.seekUser) // 当前用户就是查询的用户。可以显示私有任务，否则不显示私有任务。
+          ls_append = " and private!='true' " ;
+        la_where.push(" (owner = '" + lExparm.filter.seekUser + "' or ought like '%" + lExparm.filter.seekUser + ",%')" + ls_append );
+      }
+      var ls_where = "";
+      if (la_where.length > 0)
+        ls_where = " where " + la_where.join(" and ");
+      console.log("taskListGet sql where : " + ls_where);
       app.db.comAllBy("distinct *", 'task',
-        "where owner = '"+ lUser +  "' or ought like '%" +
-        lUser + ",%' order by PLANSTART limit " +  lExparm.limit + " offset " +  lExparm.offset, function(aErr, aRtn) {
+        ls_where + " order by PLANSTART limit " +  lExparm.limit + " offset " +  lExparm.offset, function(aErr, aRtn) {
         if (aErr) res.json(app.rtnErr(aErr));
         else {
           ls_rtn = app.rtnMsg('');  // 检索成功不需要提示信息。

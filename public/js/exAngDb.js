@@ -47,12 +47,13 @@ angular.module('exFactory', ['exService']).
       this.SYNC = '';
       this._exState='new';
     }
-    var _currentUser = new objUser();
+    var _currentUser = "";
     return{
       userNew: function() { return new objUser() },
       workNew: function() { return new objWork() },
       taskNew : function() { return new objTask() },
       planState : ['计划','进行','结束'],
-      currentUser: _currentUser
+      setUser: function(aUser) {_currentUser = aUser},
+      getUser: function(){return _currentUser}
     }
   }]);

@@ -2,7 +2,8 @@
 
   app.controller("ctrlLogin", ['$http', '$scope', '$location', 'exDb', function($http, $scope, $location, exDb) {
     var lp = $scope;
-    lp.user = exDb.currentUser;
+    lp.user = exDb.userNew();
+    lp.user.NICKNAME =exDb.getUser();
     lp.rtnInfo = "";
     lp.userLogin = function () {
       $http.post('/rest',
@@ -15,7 +16,7 @@
           if (data.rtnCode > 0) {
             console.log('goo #/main');
             $location.path('/main');
-            exDb.currentUser = lp.user.NICKNAME;
+            exDb.setUser(lp.user.NICKNAME);
           }
           else{
             lp.rtnInfo = data.rtnInfo;
@@ -30,10 +31,10 @@
       .success(function (data, status, headers, config) {
         lp.rtnInfo = data.rtnInfo;
         if (data.rtnCode > 0) {
-          lp.user.userName = data.ex_parm.username;
-          lp.user.userPass = data.ex_parm.userpass;
-          lp.user.rememberMe = data.ex_parm.userrem;
-          exDb.currentUser = lp.user.userName;
+          lp.user.NICKNAME = data.ex_parm.nickName;
+          lp.user.PASS = data.ex_parm.pass;
+          lp.user.REMPASS = (data.ex_parm.remPass=="true"?true:false);
+          exDb.setUser(lp.user.NICKNAME);
         }
       })
       .error(function (data, status, headers, config) {
@@ -42,7 +43,7 @@
   }]);
   app.controller("ctrlRegUser", ['$http', '$scope', 'exDb', function($http, $scope, exDb){
     var lp = $scope;
-    lp.user = exDb.currentUser;
+    lp.user = exDb.userNew();
     lp.rtnInfo = "";
     lp.userReg = function(){
       $http.post('/rest',
@@ -51,6 +52,7 @@
         })
         .success(function (data, status, headers, config) {
             lp.rtnInfo = data.rtnInfo;
+            exDb.setUser(lp.user.NICKNAME);
         })
         .error(function (data, status, headers, config) {
           lp.rtnInfo = JSON.stringify(status);
@@ -76,8 +78,9 @@
     function($http, $scope, $routeParams, exUtil, exDb)  {
     var lp = $scope;
     lp.showDebug = false;  // 调试信息打印。
-    lp.seekFlag = false; lp.seekContent = ""; // 是否search任务内容。
-    lp.lastSearchFlag = "orignal"; //  如果search条件改变，那么，下n条的检索也需要改变。 [  "orignal", "content"  ]
+    lp.seekContentFlag = false; lp.seekContent = ""; // 是否search任务内容。
+    lp.seekStateFlag = true; lp.seekState = ['计划','进行']; // 是否search任务状态。
+    lp.seekUserFlag = true; lp.seekUser = exDb.getUser();  // 是否按照用户搜索
     lp.taskSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
     lp.curOffset = 0;  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
     lp.limit = 5;      // 当前查询显示限制。
@@ -105,6 +108,7 @@
       lp.curIndex = aIndex;
       lp.task = lp.taskSet[aIndex];
       lp.task._exState = 'dirty';
+      lp.task.PRIVATE = (lp.task.PRIVATE=="true" || lp.task.PRIVATE===true)?true:false;
       lp.editMode = true;
     };
     lp.taskSave = function(){
@@ -154,10 +158,21 @@
         });
     };
     lp.taskTest =function(aIndex){lp.rtnInfo = "asdfasdfa"; lp.editMode=true; }
-
+    lp.taskfilter = function(){
+      //参数重置。
+      lp.taskSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
+      lp.curOffset = 0;  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
+      lp.limit = 5;      // 当前查询显示限制。
+      lp.taskGet();
+    };
     lp.taskGet = function(){
       $http.post('/rest',{ func: 'taskListGet', // my message
-        ex_parm: { taskType: lp.aType, limit:lp.limit, offset:lp.curOffset}
+        ex_parm: { taskType: lp.aType, limit:lp.limit, offset:lp.curOffset,
+            filter:{  seekContentFlag : lp.seekContentFlag, seekContent: lp.seekContent,
+              seekStateFlag: lp.seekStateFlag , seekState: lp.seekState,
+              seekUserFlag: lp.seekUserFlag, seekUser: lp.seekUser
+            }
+        }
       })
         .success(function (data, status, headers, config) {    // 得到新的消息
           lp.rtnInfo = data.rtnInfo;

@@ -3,15 +3,25 @@
 </div>
 
     <h2 class="divex-heading"> 任 务 <button ng-click="taskAdd(null)"> + </button></h2>
+    <span>
+    <div>
+    <input ng-model="seekUserFlag" id="txtSeekUserFlag" name="txtSeekUserFlag" type="checkbox"/> 用户
+    <input ng-disabled="!seekUserFlag" ng-model="seekUser" id="txtSeekUser" name="txtSeekUser" type="text" placeholder="内容" />
+        <input ng-model="seekStateFlag" id="txtSeekStateFlag" name="txtSeekStateFlag" type="checkbox"/> 状态
+        <br/>
+    <input ng-model="seekContentFlag" id="txtSeekContentFlag" name="txtSeekContentFlag" type="checkbox"/> 内容
+    <input ng-disabled="!seekContentFlag" ng-model="seekContent" id="txtSeekContent" name="txtSeekContent" type="text" placeholder="内容" />
+        <button ng-click="taskfilter()"> 查找 </button>
+        <br/>
+        &nbsp;
+    </div>
+    </span>
+    <span> <select ng-disabled="!seekStateFlag" ng-model="seekState" multiple ng-options="m for m in planState"></select>
 
+    </span>
+    {{seekState}}
 
-    <input ng-model="seekFlag" id="txtSeekFlag" name="txtSeekFlag" type="checkbox"/> 内容
-    <input ng-disabled="!seekFlag" ng-model="seekContent" id="txtSeekContent" name="txtSeekContent" type="text" placeholder="内容" />
-    <input ng-model="seekStatFlag" id="txtSeekStatFlag" name="txtSeekStatFlag" type="checkbox"/> 状态
-    <select ng-model="task.STATE" multiple ng-options="m for m in planState"> </select>
-    <button ng-click="taskGet()"> 查找 </button>
-
-<button ng-click="taskTest()"> 测试按钮 </button>
+<br/>
 <div class="divex-list">
     <div class="divex-listHeader">
         <span style="width:30px;">   序号  </span>
@@ -55,16 +65,21 @@
         <button ng-click="taskDelete()"> 删除 </button>
         <br/>
         <input ng-show="showDebug" ng-model="task.UUID" id="txtUUID" name="txtUUID" type="text" class="fromex-control" placeholder="task id" required autofocus />
+
         <input ng-model="task.UPTASK" id="txtUPTASK" name="txtUPTASK" type="text" class="fromex-control" placeholder="父任务" required/>
+        <br/>计划开始时间：
         <input ng-model="task.PLANSTART" id="txtPLANSTART" name="txtPLANSTART" type="text" class="fromex-control" placeholder="开始时间" required/>
+        <br/>计划结束时间：
         <input ng-model="task.PLANFINISH" id="txtPLANFINISH" name="txtPLANFINISH" type="text" class="fromex-control" placeholder="开始时间" required/>
+        <br/>实际结束时间
         <input ng-model="task.FINISH" id="txtFINISH" name="txtFINISH" type="text" class="fromex-control" placeholder="结束时间" required/>
-        任务状态：<select ng-model="task.STATE"  ng-options="m for m in planState">
+        <br/>任务状态：<select ng-model="task.STATE"  ng-options="m for m in planState">
             <option value="">-- 请选择 --</option>
         </select>
 
         <input ng-model="task.OWNER" id="txtOWNER" name="txtOWNER" type="text" class="fromex-control" placeholder="所有者" required/>
         <input ng-model="task.OUGHT" id="txtOUGHT" name="txtOUGHT" type="text" class="fromex-control" placeholder="承担者（逗号分割）" required/>
+
         <input ng-model="task.PRIVATE" id="txtPRIVATE" name="txtPRIVATE" type="checkbox" text = "私有"/>私有 <br/>
         <textarea ng-model="task.CONTENT" class="formex-control" name="txtMsg" id="txtCONTENT" cols="60" rows="6" placeholder="消息主题"  required> </textarea>
     </div>
