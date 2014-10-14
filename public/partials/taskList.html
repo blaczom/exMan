@@ -19,10 +19,10 @@
     <span> <select ng-disabled="!seekStateFlag" ng-model="seekState" multiple ng-options="m for m in planState"></select>
 
     </span>
-    {{seekState}}
 
 <br/>
 <div class="divex-list">
+    <hr/>
     <div class="divex-listHeader">
         <span style="width:30px;">   序号  </span>
         <span ng-show="showDebug" style="width:300px;"> uuid </span>
@@ -36,6 +36,7 @@
         <span style="width:60px;">承担者</span>
         <span style="width:40px;">私有</span>
     </div>
+    <hr/>
     <div class="divex-listContent" ng-repeat='taskItem in taskSet' >
         <span style="width:30px;">    {{$index}}  </span>
         <span ng-show="showDebug" style="width:300px;">{{ taskItem.UUID }}</span>
@@ -49,9 +50,11 @@
         <span style="width:60px;">{{taskItem.OUGHT}}</span>
         <span style="width:40px;">{{taskItem.PRIVATE}}</span>
         <button ng-click="taskEdit($index)"> 改 </button>
-        <button ng-click="taskAdd($index)"> 增 </button>
+        <button ng-click="taskAdd($index)"> 子 </button>
+        <button ng-click="workAdd($index)"> 记 </button>
         <br/>
     </div>
+    <hr/>
     <button ng-click="taskGet()"> 下<span ng-bind="limit"></span>条 </button>
 </div>
 
@@ -72,33 +75,31 @@
         <br/>计划结束时间：
         <input ng-model="task.PLANFINISH" id="txtPLANFINISH" name="txtPLANFINISH" type="text" class="fromex-control" placeholder="开始时间" required/>
         <br/>实际结束时间：
-        <input ng-model="task.FINISH" id="txtFINISH" name="txtFINISH" type="text" class="fromex-control" placeholder="结束时间" required/>
+        <input ng-model="task.FINISH" id="txtFINISH" ng-pattern="dateTimePattern"
+               name="txtFINISH" type="text" class="fromex-control" placeholder="结ss束时间" />
         <br/>任务状态：<select ng-model="task.STATE"  ng-options="m for m in planState">
             <option value="">-- 请选择 --</option>
         </select>
         <span ng-show="showDebug"> 所有者： </span>
         <input ng-show="showDebug" ng-model="task.OWNER" id="txtOWNER" name="txtOWNER" type="text" class="fromex-control" placeholder="所有者" required/>
         承担者：
-        <input ng-model="task.OUGHT" id="txtOUGHT" name="txtOUGHT" type="text" class="fromex-control" placeholder="承担者（逗号分割）" required/>
+        <input ng-model="task.OUGHT" ng-disabled="true" id="txtOUGHT" name="txtOUGHT" type="text" class="fromex-control" placeholder="承担者（逗号分割）" required/>
         <button ng-click="selectUser()"> 选择 </button>
         <input ng-model="task.PRIVATE" id="txtPRIVATE" name="txtPRIVATE" type="checkbox" text = "私有"/>私有 <br/>
         <textarea ng-model="task.CONTENT" class="formex-control" name="txtMsg" id="txtCONTENT" cols="60" rows="6" placeholder="消息主题"  required> </textarea>
     </div>
-
-
-
 </div>
-
 
 <div id="divModal2" ng-show="selectUserMode" style="width:100%;height:100%;background-color:#9999CC;position:absolute;top:0;left:0;z-index:20;display:inline;" >
 
     <div class="divex-formEdit">
         <button ng-click="selectUserMode=false"> 取消 </button>
+        <button ng-click="selectUserOk()"> 确定 </button>
         承担者：
         <span> <select ng-model="userSelected" multiple ng-options="m for m in allSelectUser"></select>
         </span>
-        <button ng-click="selectUserDelete()"> <-- </button>
-        <button ng-click="selectUserAdd()"> --> </button>
+        <button ng-click="selectUserMove(false)"> <-- </button>
+        <button ng-click="selectUserMove(true)"> --> </button>
         <span> <select ng-model="userOthers" multiple ng-options="m2 for m2 in allOtherUser"></select>
         </span>
 

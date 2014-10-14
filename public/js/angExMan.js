@@ -77,7 +77,7 @@
   app.controller("ctrlTaskList", ['$http', '$scope', '$routeParams', 'exUtil', 'exDb',
     function($http, $scope, $routeParams, exUtil, exDb)  {
     var lp = $scope;
-    lp.showDebug = true;  // 调试信息打印。
+    lp.showDebug = false;  // 调试信息打印。
     lp.seekContentFlag = false; lp.seekContent = ""; // 是否search任务内容。
     lp.seekStateFlag = true; lp.seekState = ['计划','进行']; // 是否search任务状态。
     lp.seekUserFlag = true; lp.seekUser = exDb.getUser();  // 是否按照用户搜索
@@ -92,6 +92,9 @@
     lp.editMode = false;    // 是否在单记录编辑模式。
     lp.planState = exDb.planState;  // 选择的task状态内容。
 
+    lp.dateTimePattern = /^[0-9]$/ ;
+      // "^[0-9]{4}-(((0[13578]|(10|12))-(0[1-9]|[1-2][0-9]|3[0-1]))|(02-(0[1-9]|[1-2][0-9]))|((0[469]|11)-(0[1-9]|[1-2][0-9]|30)))$";
+    //     "(([1-9]{1})|([0-1][0-9])|([1-2][0-3])):([0-5][0-9])$"
     lp.taskAdd = function(aIndex){   // 增加和编辑。
       console.log("add " + aIndex);
       lp.curIndex = aIndex;
@@ -163,20 +166,23 @@
       lp.taskSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
       lp.curOffset = 0;  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
       lp.limit = 5;      // 当前查询显示限制。
-      lp.taskGet();
+      if  (lp.seekUserFlag && ((lp.seekUser||'').length == 0)) lp.seekUserFlag = false;
+      lp.filterCache = {  seekContentFlag : lp.seekContentFlag, seekContent: lp.seekContent,
+        seekStateFlag: lp.seekStateFlag , seekState: lp.seekState,
+        seekUserFlag: lp.seekUserFlag, seekUser: lp.seekUser
+      }
+      lp.taskGet();   // 应该把状态push进去，否则还是按照原来的逻辑进行get。
     };
     lp.taskGet = function(){
       $http.post('/rest',{ func: 'taskListGet', // my message
         ex_parm: { taskType: lp.aType, limit:lp.limit, offset:lp.curOffset,
-            filter:{  seekContentFlag : lp.seekContentFlag, seekContent: lp.seekContent,
-              seekStateFlag: lp.seekStateFlag , seekState: lp.seekState,
-              seekUserFlag: lp.seekUserFlag, seekUser: lp.seekUser
-            }
+            filter: lp.filterCache
         }
       })
         .success(function (data, status, headers, config) {    // 得到新的消息
           lp.rtnInfo = data.rtnInfo;
           exDb.setUser(data.rtnUser);
+          // 如果是选中了用户，却又是空咱班？
           if (! lp.seekUser) lp.seekUser = data.rtnUser;
           var ltmp1 = (data.exObj || []);
           if (ltmp1.length > 0){
@@ -198,17 +204,35 @@
         });
     }
     lp.selectUser = function(){
-      lp.selectUserMode=true;
       (lp.allSelectUser = lp.task.OUGHT.split(',')).pop();
       exDb.getAllUserPromise().then( function (data) {
         var lrtn = data.exObj;
         lp.allOtherUser =[];
         console.log(lrtn);
         for (var i in lrtn) {  if (lp.task.OUGHT.indexOf(lrtn[i].NICKNAME + ",") < 0 ) lp.allOtherUser.push(lrtn[i].NICKNAME); };
+        lp.selectUserMode=true;
       }, function (reason) { console.log(reason); lp.allOtherUser = []  });
+
     };
-    lp.selectUserDelete = function(){};
-    lp.selectUserAdd = function(){};
+    lp.selectUserMove = function(aInOut){
+      if (aInOut) {
+        for (var i in lp.userSelected){
+          lp.allSelectUser.splice(lp.allSelectUser.indexOf(lp.userSelected[i]), 1);
+          lp.allOtherUser.push(lp.userSelected[i]);
+        }
+      }
+      else{
+        for (var i in lp.userOthers){
+          lp.allOtherUser.splice(lp.allOtherUser.indexOf(lp.userOthers[i]), 1);
+          lp.allSelectUser.push(lp.userOthers[i]);
+        }
+      }
+    };
+    lp.selectUserOk = function(){
+      /// 根据选中的用户进行。
+      lp.task.OUGHT = lp.allSelectUser.join(",") + ",";
+      lp.selectUserMode = false;
+    };
 
     switch (lp.aType)
     {

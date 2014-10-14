@@ -9,7 +9,7 @@ body {
 
 span {
     display:inline-block;
-    border: 1px solid red;
+    border: 0px solid red;
 }
 
 a {
