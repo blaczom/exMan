@@ -1,0 +1,33 @@
+<html><script src="../js/angular1.3.min.js"></script>
+<body ng-app="phonecatApp">
+<div ng-controller='SomeController'>
+    <expander class='expander' expander-title='title'>
+        {{text}}
+    </expander></div>
+</body>  </html>
+<script>
+var phonecatApp = angular.module('phonecatApp', []);
+phonecatApp.directive('expander', function(){
+        return {
+            restrict: 'EA',
+            replace: true,
+            transclude: true,
+            scope: { insidetitle :'@expanderTitle' },
+            template: '<div>' +
+                    '<div class="title" ng-click="toggle()">{{insidetitle}}</div>' +
+                    '<div class="body" ng-show="showMe" ng-transclude></div>' +
+                    '</div>',
+            link: function(scope, element, attrs) {
+                scope.showMe = false;
+                scope.toggle = function toggle() {
+                    scope.showMe = !scope.showMe;
+                }            }        }     });
+phonecatApp.controller("SomeController", function($scope) {
+    $scope.title = 'Click me to expand';
+    $scope.text = 'Hi there folks, I am the content that was hidden but is now shown.';
+});
+
+
+
+
+</script>
