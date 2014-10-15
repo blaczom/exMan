@@ -73,3 +73,16 @@ a {
     -moz-box-sizing: border-box;
     box-sizing: border-box;
 }
+
+input.ng-pristine {
+    background-color: white;
+}
+input.ng-dirty {
+    background-color: lightyellow;
+}
+input.ng-valid {
+    background-color: lightgreen;
+}
+input.ng-invalid {
+    background-color: pink;
+}
