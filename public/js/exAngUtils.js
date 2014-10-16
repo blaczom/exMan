@@ -114,12 +114,29 @@ function getDateTime(aTime, aOnlyDate){
     return( l_date.join('-')) ; // '2014-01-02'
   else
     return( l_date.join('-') + ' ' + l_time.join(':')); // '2014-01-02 09:33:33'
-}
+};
+// uuid = require('./uuid.js')     uuid()
+// module.exports = function(){ return UUID.prototype.createUUID();};
 
 angular.module('exService', []).
   service('exUtil', function(){
       this.uuid = UUID.prototype.createUUID;
       this.getDateTime = getDateTime;
+  })
+  .directive('validDateModel', function() {
+    return {
+      require:"ngModel",
+      link: function (scope, element, attrs, actr) {
+        actr.$parsers.unshift(function (viewValue) {
+          var lstime = new Date(viewValue);
+          console.log(lstime);
+          if ( lstime.getFullYear()>2000 && lstime.getMonth() >=0 && lstime.getDate() >=0    )
+          {   actr.$setValidity('format', true);
+            return viewValue;}
+          else {
+            actr.$setValidity('format', false);
+            return undefined;}
+        });
+      }
+    };
   });
-// uuid = require('./uuid.js')     uuid()
-// module.exports = function(){ return UUID.prototype.createUUID();};

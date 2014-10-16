@@ -1,0 +1,25 @@
+<html><script src="../../js/angular1.3.min.js"></script>
+<script src="../../js/exAngUtils.js"></script>
+<style>
+    input.ng-invalid {
+        border: 1px solid red;
+        background-color: pink;
+    }
+    input.ng-valid {
+        border: 1px solid green;
+        background-color: lightgreen;
+    }
+
+</style>
+<body ng-app="docsTimeDirective">
+<div ng-controller="Controller">
+    Date format: <input ng-model="format" validDateModel> <hr/>
+    {{format}}
+</div>
+
+</body>  </html>
+<script>
+    var ag = angular.module('docsTimeDirective', ['exService']);
+    ag.controller('Controller', ['$scope', function($scope) {   $scope.format = 'M/d/yy h:mm:ss a';
+            }]);
+</script>

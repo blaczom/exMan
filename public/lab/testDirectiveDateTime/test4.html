@@ -1,4 +1,4 @@
-<html><script src="../js/angular1.3.min.js"></script>
+<html><script src="../../js/angular1.3.min.js"></script>
 <style>
     input.ng-invalid {
         border: 1px solid red;
@@ -20,7 +20,7 @@
 <script>
     angular.module('docsTimeDirective', [])
    .controller('Controller', ['$scope', function($scope) {          $scope.format = 'M/d/yy h:mm:ss a';           }])
-  .directive('myCurrentTime', ['$interval', 'dateFilter', function($interval, dateFilter) {
+  .directive('myCurrentTime', function() {
                 function link(scope, element, attrs, actr) {
                     actr.$parsers.unshift(function (viewValue) {
                             var lstime = new Date(viewValue);
@@ -56,6 +56,6 @@
                     require:"ngModel",
                     link: link
                 };
-            }]);
+            });
 
 </script>
