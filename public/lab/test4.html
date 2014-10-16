@@ -1,45 +1,59 @@
 <html><script src="../js/angular1.3.min.js"></script>
+<style>
+    input.ng-invalid {
+        border: 1px solid red;
+        background-color: pink;
+    }
+    input.ng-valid {
+        border: 1px solid green;
+        background-color: lightgreen;
+    }
+
+</style>
 <body ng-app="docsTimeDirective">
 <div ng-controller="Controller">
-    Date format: <input ng-model="format" my-current-time="format"> <hr/>
+    Date format: <input ng-model="format" my-current-time> <hr/>
+    {{format}}
 </div>
 
 </body>  </html>
 <script>
     angular.module('docsTimeDirective', [])
-            .controller('Controller', ['$scope', function($scope) {
-                $scope.format = 'M/d/yy h:mm:ss a';
-            }])
-            .directive('myCurrentTime', ['$interval', 'dateFilter', function($interval, dateFilter) {
+   .controller('Controller', ['$scope', function($scope) {          $scope.format = 'M/d/yy h:mm:ss a';           }])
+  .directive('myCurrentTime', ['$interval', 'dateFilter', function($interval, dateFilter) {
+                function link(scope, element, attrs, actr) {
+                    actr.$parsers.unshift(function (viewValue) {
+                            var lstime = new Date(viewValue);
+                            console.log(lstime);
+                            if ( lstime.getFullYear()>2000 && lstime.getMonth() >=0 && lstime.getDate() >=0    )
+                            {   actr.$setValidity('format', true);
+                                return viewValue;}
+                            else {
+                                actr.$setValidity('format', false);
+                                return undefined;}
+                        });
 
-                function link(scope, element, attrs) {
-                    var format,
-                            timeoutId;
 
-                    function updateTime() {
-                        element.text(dateFilter(new Date(), format));
-                    }
-
-                    scope.$watch(attrs.myCurrentTime, function(value, valueold) {
-                        format = value;
-                        updateTime();
+                    /*scope.$watch(attrs.ngModel, function(value, valueold) {
                         console.log(value + ' -- ' + valueold);
-                    });
-                    /*
-                     attrs.$observe('ngModel',function(value){ format = value;  })
-                     */
+                        try{
+                            var lstime = new Date(value);
+                            console.log(lstime);
+                            actr.$setValidity('datetimeformat', false);
+                            if ( lstime.getFullYear()>2000 && lstime.getMonth() >=0 && lstime.getDate() >=0    )
+                                actr.$setValidity('format', true);
+                            else
+                                actr.$setValidity('format', false);
+                        }
+                        catch (e){
+                            console.log(e.description);
+                            //actr.$setValidity('format', false);
+                        }
 
-                    element.on('$destroy', function() {
-                        $interval.cancel(timeoutId);
-                    });
-
-                    // start the UI update process; save the timeoutId for canceling
-                    timeoutId = $interval(function() {
-                        updateTime(); // update DOM
-                    }, 10000);
+                    });*/
                 }
-
                 return {
+                    require:"ngModel",
                     link: link
                 };
             }]);
