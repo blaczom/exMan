@@ -3,31 +3,110 @@
 <div ng-controller='SomeController'>
     <expander class='expander' expander-title='title'>
         {{text}}
-    </expander></div>
+        {{title}}
+    </expander>
+
+    <div id="bar" sample-directive time-interval=1000 datajson="sample.json"> <!-- Attribute value setting -->
+        scope.firstvalue is {{firstvalue}}<br/>
+        scope.secondvalue is {{secondvalue}}<br/>
+    </div>
+
+    <input type="text" ng-model="start_date" date-format >
+
+</div>
 </body>  </html>
 <script>
 var phonecatApp = angular.module('phonecatApp', []);
+
+phonecatApp.directive('dateDirectMark', function ($timeout) {// Angular Directive
+    return {
+        restrict: 'A', // Attribute only directive
+        scope: {
+            insideDate: '=dateDirect'
+        },
+        link: function (scope, elem, attrs) {
+            console.log('insideDate: ' + scope.insideDate);
+            attrs.$observe('insideDate', function(value) {
+                console.log(' changed value to  : ' + value);
+            });
+        }
+    }
+});
+
+
 phonecatApp.directive('expander', function(){
         return {
             restrict: 'EA',
             replace: true,
             transclude: true,
-            scope: { insidetitle :'@expanderTitle' },
+            scope: { insidetitle :'=expanderTitle' },
             template: '<div>' +
                     '<div class="title" ng-click="toggle()">{{insidetitle}}</div>' +
                     '<div class="body" ng-show="showMe" ng-transclude></div>' +
                     '</div>',
             link: function(scope, element, attrs) {
                 scope.showMe = false;
+                console.log('here link' + scope.showMe);
                 scope.toggle = function toggle() {
                     scope.showMe = !scope.showMe;
+                    scope.insidetitle = scope.insidetitle + " clicked ";
                 }            }        }     });
+
 phonecatApp.controller("SomeController", function($scope) {
     $scope.title = 'Click me to expand';
     $scope.text = 'Hi there folks, I am the content that was hidden but is now shown.';
+    $scope.start_date = '';
 });
 
+phonecatApp.directive('sampleDirective', function ($timeout) {// Angular Directive
+    return {
+        restrict: 'A', // Attribute only directive
+        scope: {
+            timeInterval: '@', // Getting variable values with @, which are not immediately available in
+            datajson: '@'      // link function
+        },
+        link: function (scope, elem, attrs) {
+            console.log(scope.timeInterval);
+            attrs.$observe('timeInterval', function(value) { // getting attribute value only in observe
+                // function from HTML DOM
+                console.log('timeInterval has changed value to ' + value);
+                scope.firstvalue = value;
+            });
+            attrs.$observe('datajson', function(value) {
+                console.log('datajson has changed value to ' + value);
+                scope.secondvalue = value;
+            });
+            console.log('first value ' + scope.firstvalue);
 
+            var t = $timeout( function() { // Use of a timeout function - to show the change of attribute
+                // variables after some time. It is a position on which HTML DOM
+                // presentation can be changed by tracking the angular variables.
+                scope.firstvalue = 'new--' + ' and old--1' ;
+                scope.secondvalue = 'new--' + ' and old--2' ;
+            }, 2000);
+        }
+    }
+});
 
+phonecatApp.directive('dateFormat', ['$filter',function($filter) {
+    var dateFilter = $filter('date');
+    return {
+        require: 'ngModel',
+        link: function(scope, elm, attrs, ctrl) {
+
+            function formatter(value) {
+                return dateFilter(value, 'yyyy-MM-dd'); //format
+            }
+
+            function parser() {
+                return ctrl.$modelValue;
+            }
+
+            ctrl.$formatters.push(formatter);
+            ctrl.$parsers.unshift(parser);
+
+        }
+    };
+}]);
 
 </script>

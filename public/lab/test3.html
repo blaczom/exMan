@@ -1,0 +1,53 @@
+<html><script src="../js/angular1.3.min.js"></script>
+<style>
+    input.ng-invalid {
+        border: 1px solid red;
+        background-color: pink;
+    }
+    input.ng-valid {
+        border: 1px solid green;
+        background-color: lightgreen;
+    }
+
+</style>
+<body ng-app="MyApp" ng-controller="MainCtrl">
+<div>
+    <ol>
+        <li>enter a date, then tab out.</li>
+        <li>input field does not change from `ng-invalid` to `ng-valid`</li>
+    </ol>
+    <div class="well">
+        <form name="form">
+            {{inpDate}}
+            <input type="text" ng-model="inpDate" checkDatetime />
+        </form>
+    </div>
+</div>
+</body>
+</html>
+
+<script>
+    angular.module('MyApp', []).
+            controller('MainCtrl', ['$scope', function($scope) {
+                $scope.inpDate = '2010-1-1 12:30';
+            }]).
+            directive('checkDatetime', function() {
+                return {
+                    require: 'ngModel',
+                    scope: {
+                        insInpDate: '=inpDate'
+                    },
+                    link: function($scope, element, attrs, controller) {
+                        if(!insInpDate) return;
+                        scope.$watch(attrs.ngModel, function(value, valueold) {
+                            console.log(value + ' -- ' + valueold);
+                            if (new Date(ViewValue).getFullYear() > 2000 ){
+                                insInpDate.$setValidity('valid',true);
+                            }else{
+                                insInpDate.$setValidity('valid',false);
+                            }
+                        });
+                    }
+                };
+            });
+        </script>
