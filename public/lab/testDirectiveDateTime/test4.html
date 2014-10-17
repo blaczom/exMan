@@ -12,16 +12,19 @@
 </style>
 <body ng-app="docsTimeDirective">
 <div ng-controller="Controller">
-    Date format: <input ng-model="format" my-current-time> <hr/>
+    Date format: <input ng-model="format" id="inptest" my-current-time> <hr/>
     {{format}}
 </div>
 
 </body>  </html>
 <script>
     angular.module('docsTimeDirective', [])
-   .controller('Controller', ['$scope', function($scope) {          $scope.format = 'M/d/yy h:mm:ss a';           }])
+  .controller('Controller', ['$scope', function($scope) {          $scope.format = 'M/d/yy h:mm:ss a';           }])
   .directive('myCurrentTime', function() {
                 function link(scope, element, attrs, actr) {
+                    console.log('link parsers to datetime ' + element[0].id);
+                    console.log(element);
+                    console.log(attrs);
                     actr.$parsers.unshift(function (viewValue) {
                             var lstime = new Date(viewValue);
                             console.log(lstime);

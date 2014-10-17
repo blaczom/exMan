@@ -123,20 +123,4 @@ angular.module('exService', []).
       this.uuid = UUID.prototype.createUUID;
       this.getDateTime = getDateTime;
   })
-  .directive('validDateModel', function() {
-    return {
-      require:"ngModel",
-      link: function (scope, element, attrs, actr) {
-        actr.$parsers.unshift(function (viewValue) {
-          var lstime = new Date(viewValue);
-          console.log(lstime);
-          if ( lstime.getFullYear()>2000 && lstime.getMonth() >=0 && lstime.getDate() >=0    )
-          {   actr.$setValidity('format', true);
-            return viewValue;}
-          else {
-            actr.$setValidity('format', false);
-            return undefined;}
-        });
-      }
-    };
-  });
+;

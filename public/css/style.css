@@ -1,9 +1,13 @@
 body {
   padding: 5px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-  min-height: 400px;
   background-color: #eee;
 }
+
+
+
+
+
 
 .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
 
@@ -11,6 +15,10 @@ span {
     display:inline-block;
     border: 0px solid red;
 }
+span .mark{
+    background-color: #ffff00;
+}
+
 
 a {
   color: #00B7FF;
@@ -74,15 +82,11 @@ a {
     box-sizing: border-box;
 }
 
-input.ng-pristine {
-    background-color: white;
-}
-input.ng-dirty {
-    background-color: lightyellow;
+input.ng-invalid {
+    border: 1px solid red;
+    background-color: pink;
 }
 input.ng-valid {
+    border: 1px solid green;
     background-color: lightgreen;
-}
-input.ng-invalid {
-    background-color: pink;
 }

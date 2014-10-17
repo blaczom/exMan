@@ -2,7 +2,7 @@
     <span ng-bind="rtnInfo"></span>
 </div>
 
-    <h2 class="divex-heading"> 任 务 <button ng-click="taskAdd(null)"> + </button></h2>
+    <h2 class="divex-heading"> 成就记录 </h2>
     <span>
     <div>
     <input ng-model="seekUserFlag" id="txtSeekUserFlag" name="txtSeekUserFlag" type="checkbox"/> 用户
@@ -11,14 +11,12 @@
         <br/>
     <input ng-model="seekContentFlag" id="txtSeekContentFlag" name="txtSeekContentFlag" type="checkbox"/> 内容
     <input ng-disabled="!seekContentFlag" ng-model="seekContent" id="txtSeekContent" name="txtSeekContent" type="text" placeholder="内容" />
-        <button ng-click="taskfilter()"> 查找 </button>
+        <button ng-click="workfilter()"> 查找 </button>
         <br/>
         &nbsp;
     </div>
     </span>
-    <span> <select ng-disabled="!seekStateFlag" ng-model="seekState" multiple ng-options="m for m in planState"></select>
-
-    </span>
+    <span> <select ng-disabled="!seekStateFlag" ng-model="seekState" multiple ng-options="m for m in planState"></select></span>
 
 <br/>
 <div class="divex-list">
