@@ -170,21 +170,6 @@ USER.prototype.getBy = function (aWhere, aCallback) {
 USER.prototype.getByNickName = function (aNick, aCallback) {
   USER.prototype.getBy(" where NICKNAME='" + aNick  + "'", aCallback);
 }
-
-USER.prototype.validPass = function (aNick, aMd5, aCallback){
-  USER.prototype.getByNickName(aNick, function(aErr, aRtn){
-    if (aRtn.length>0){
-      if (aRtn[0].PASS == aMd5) {
-        aCallback(aErr, true);
-        return;
-      }
-    }
-    aCallback("fail", false);
-  });
-}
-USER.prototype.setAutoLogin = function(aNick, aAuto, aCallback){
-  runSql("update User set REMPASS='" + aAuto + "' where NICKNAME='" + aNick + "'", aCallback );
-};
 }
 var TASK = function() {
   this.UUID = '';
@@ -260,12 +245,6 @@ TASK.prototype.getChildren = function (rootTask, aCallback) {
     }
   };
 };
-TASK.prototype.assignUser = function(aUUID, aUserNick, aCallBack){
-  gdb.run("insert into TASK_MAN values('?', '?')", aUUID, aUserNick, function (err, row) {
-    if (err) {  console.log("add man to task Error: " + err.message);   }
-    aCallback(err, row);
-  });
-};
 }
 var WORK = function() {
   this.UUID = '';
@@ -326,10 +305,10 @@ exports.Work = function(){  return new WORK();}();
 exports.runSql = runSql;
 exports.allSql = allSql;
 exports.Q = exQ;
-
 exports.comAllBy = comAllBy;
 exports.close = gdb.close;
 exports.directDb = gdb;
+exports.getDateTime = getDateTime;
 
 /*
 module.exports = {

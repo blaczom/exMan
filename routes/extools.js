@@ -13,7 +13,7 @@ router.post('/', function(req, res) {
   var ls_sql = req.body['exReq']
   var ls_admin = req.body['exAdmin']
   if (ls_admin == 'publicpass') {
-    app.db.directDb.all(ls_sql, function(aErr, aRtn){
+    app.db.allSql(ls_sql, function(aErr, aRtn){
       if (aErr){
         res.json( { rtnCode:-10, rtnInfo: "查询数据库失败。请通知管理员。" } );
       }

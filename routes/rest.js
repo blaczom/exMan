@@ -18,11 +18,9 @@ router.post('/', function(req, res) {
   /* 除了userLogin, userReg, 以外，其余的功能都需要 ---登录检查，
   */
   console.log("get client rest: " + JSON.stringify(req.body));
-
   var lFunc = req.body['func']; // 'userlogin',req.body['txtUserName'],
   var lExparm = req.body['ex_parm'];
-
-  if ("userPrelogin,userlogin,userReg,".indexOf(lFunc+",") < 0) {
+  if ("userlogin,userReg,".indexOf(lFunc+",") < 0) {
     if (!checkLogin(req,res)) {
       res.json(app.rtnErr('未登录，请先登录。'));
       return
@@ -48,16 +46,8 @@ router.post('/', function(req, res) {
             var md5UserPwd = userPwd ; // crypto.createHash('md5').update(xtmp).digest('hex'); 客户端已经搞定了。
             if (aRtn[0].PASS == md5UserPwd) {
               req.session.loginUser = userName;
-              if (userRem) {
-                res.cookie('loginUser', userName, { maxAge: 3600000 * 7 });
-                res.cookie('loginPass', userPwd, { maxAge: 3600000 * 7 });
-                res.cookie('remPass', true, { maxAge: 3600000 * 7 });
-              }
-              else
-              {
-                res.cookie('loginPass', "", { maxAge: 600000 });
-                res.cookie('remPass', false, { maxAge: 600000 });
-              }
+              req.session.userLevel = aRtn[0].LEVEL;
+              req.session.userGrant = aRtn[0].GRANT;
               res.json(app.rtnMsg('登录成功。'));
             }
             else {
@@ -72,12 +62,11 @@ router.post('/', function(req, res) {
       });
       break;
     }
-    case "userReg": { // lExparm = { txtUserName: lp.user., txtUserPwd: lp.user., authCode:lp.user.authCode   }
-      // ex_parm: {regUser: lp.user}
+    case "userReg": { // lExparm = {regUser: lp.user, authCode:lp.user.authCode   }
       var userName = lExparm.regUser.NICKNAME,
           userPwd = lExparm.regUser.PASS;
           authCod = lExparm.regUser.authCode;
-      var md5UserPwd = crypto.createHash('md5').update(userName + userPwd).digest('hex');
+          md5Pass = lExparm.regUser.md5Pass; //var md5UserPwd = crypto.createHash('md5').update(userName + userPwd).digest('hex');
       app.db.User.getByNickName(userName, function (aErr, aRtn) {
         if (aErr) res.json(app.rtnErr(aErr));
         else {
@@ -91,9 +80,9 @@ router.post('/', function(req, res) {
                 if((aRow||[]).length > 0 ){
                   userAdd = app.db.User.new();
                   userAdd.NICKNAME = userName;
-                  userAdd.PASS = md5UserPwd;
-
-                  aRow[0].LEVEL; aRow[0].GRANT;
+                  userAdd.PASS = md5Pass;
+                  userAdd.LEVEL = aRow[0].LEVEL;
+                  userAdd.GRANT = aRow[0].GRANT;
                   app.db.directDb.serialize(function() {
                     try {
                     app.db.directDb.exec('BEGIN TRANSACTION');
@@ -118,20 +107,12 @@ router.post('/', function(req, res) {
               })
               .fail(function(){
                 res.json(app.rtnMsg('错误：' + arguments))
-            })
-            ;
-
-
-
-
+            })      ;
           }
         }
       });
       break;
     }
-    case "mainList":
-      // get the
-      break;
     case 'taskListGet': {
       /* ex_parm: { taskType: lp.aType, limit:lp.limit, offset:lp.curOffset, filter:{seekContentFlag : lp.seekContentFlag, seekContent: lp.seekContent,
       seekStateFlag: lp.seekStateFlag , seekState: lp.seekState, seekUserFlag: lp.seekUserFlag, seekUser: lp.seekUser   }}*/
@@ -160,7 +141,7 @@ router.post('/', function(req, res) {
       });
       break;
     }
-    case 'taskEditSave':  // lExparm.msgObj
+    case 'taskEditSave':  {// lExparm.msgObj
       lExparm.msgObj.OWNER = req.session.loginUser;
       app.db.Task.save(lExparm.msgObj, function(aErr, aRtn){
         if (aErr) { res.json(app.rtnErr(aErr)) }
@@ -169,6 +150,7 @@ router.post('/', function(req, res) {
         }
       });
       break;
+    }
     case 'taskEditDelete':    {
       if (lExparm.msgObj.OWNER == req.session.loginUser) {
         app.db.Task.delete(lExparm.msgObj.UUID, function (aErr, aRtn) {
@@ -199,23 +181,28 @@ router.post('/', function(req, res) {
     case 'workListGet': {
       /* ex_parm: { taskType: lp.aType, limit:lp.limit, offset:lp.curOffset, filter:{seekContentFlag : lp.seekContentFlag, seekContent: lp.seekContent,
        seekStateFlag: lp.seekStateFlag , seekState: lp.seekState, seekUserFlag: lp.seekUserFlag, seekUser: lp.seekUser   }}*/
+      var ls_memen = " (owner = '" + req.session.loginUser + "' and memen = 'true' and memtimer < '" + app.db.getDateTime(new Date(), true) + "') ";
+
       var la_where  = [];
       if (lExparm.filter.seekContentFlag)   la_where.push(" content like '%" + lExparm.filter.seekContent + "%' ");
       if (lExparm.filter.seekStateFlag) la_where.push(" state in ('" + lExparm.filter.seekState.join("','") + "') ");
-      if (lExparm.filter.seekUserFlag) {
-        var ls_append = "";
-        if (req.session.loginUser != lExparm.filter.seekUser) // 当前用户就是查询的用户。可以显示私有工作，否则不显示私有工作。
-          ls_append = " and private!='true' " ;
-        la_where.push(" (owner = '" + lExparm.filter.seekUser + "')" + ls_append );
+      if (lExparm.filter.seekUserFlag) {  // req.session.userLevel = aRtn[0].LEVEL;
+        if (req.session.loginUser == lExparm.filter.seekUser) // 当前用户就是查询的用户。可以显示私有工作，否则不显示私有工作。
+          la_where.push("( owner = '" + req.session.loginUser + "') ");
+        else
+          la_where.push(" (owner = '" + lExparm.filter.seekUser + "' and private != true and level <= req.session.userGrant)) ");
       }
+      else // 没选则用户，就是要查找所有的用户。
+        la_where.push( "((owner = '" + req.session.loginUser + "') or (owner != '" + req.session.loginUser +
+        "' and private != true and level <= req.session.userGrant))" ) ;
       if (lExparm.filter.seekTaskFlag) {
         la_where.push(" uptask = '" + lExparm.filter.seekTaskUUID + "'"  );
       }
-
       var ls_where = "";
+      ls_where = " where " + ls_memen; // memen是必须选的。
       if (la_where.length > 0)
-        ls_where = " where " + la_where.join(" and ");
-      console.log("taskListGet sql where : " + ls_where);
+        ls_where = ls_where + ' or (' + la_where.join(" and ") + ")";
+      console.log("workListGet sql where : " + ls_where);
       app.db.comAllBy("distinct *", 'work',
           ls_where + " order by memen , CREATETIME limit " +  lExparm.limit + " offset " +  lExparm.offset, function(aErr, aRtn) {
           if (aErr) res.json(app.rtnErr(aErr));
@@ -228,17 +215,7 @@ router.post('/', function(req, res) {
         });
       break;
     }
-
-    case 'workEditDelete':  {  // lExparm.msgObj
-      lExparm.msgObj.OWNER = req.session.loginUser;
-      app.db.Work.save(lExparm.msgObj, function(aErr, aRtn){
-        if (aErr) { res.json(app.rtnErr(aErr)) }
-        else {
-          res.json(app.rtnMsg("更新成功."));
-        }
-      });
-      break;
-    }
+    case 'workEditDelete': {  // lExparm.msgObj
       if (lExparm.msgObj.OWNER == req.session.loginUser) {
         app.db.Work.delete(lExparm.msgObj.UUID, function (aErr, aRtn) {
           if (aErr) {
@@ -252,6 +229,19 @@ router.post('/', function(req, res) {
       else {
         res.json(app.rtnErr("不能删除别人的任务。."));
       }
+      break;
+    }
+    case 'workEditSave':  {  // lExparm.msgObj
+      lExparm.msgObj.OWNER = req.session.loginUser;
+      app.db.Work.save(lExparm.msgObj, function(aErr, aRtn){
+        if (aErr) { res.json(app.rtnErr(aErr)) }
+        else {
+          res.json(app.rtnMsg("更新成功."));
+        }
+      });
+      break;
+    }
+    case "mainList":
       break;
     default :
       res.json(app.rtnErr('不存在该请求：' + JSON.stringify(req.body)));

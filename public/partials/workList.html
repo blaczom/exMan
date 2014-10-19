@@ -17,7 +17,8 @@
         <input ng-model="seekTaskFlag" id="txtSeekTaskFlag" name="txtSeekTaskFlag" type="checkbox"/> 父任务
         <input ng-disabled="true" ng-model="seekTask" id="txtSeekTask" name="txtSeekTask" type="text" placeholder="内容" />
         <br/>
-        <a href="#/taskList/gogo"> 查找任务 </a> <button ng-click="workAdd()"> 增加子记录 </button>
+        <a href="#/taskList/gogo"> 查找任务 </a>
+        <button ng-disabled="!seekTaskUUID" ng-click="workAdd()"> 增加子记录 </button>
     </div>
         <span ng-show="true" ng-model="taskUUID">  </span>
     </span>

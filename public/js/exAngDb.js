@@ -63,6 +63,18 @@ angular.module('exFactory', ['exService', 'LocalStorageModule']).
       return deferred.promise;
     };
 
+    var getDateTime = function(aTime, aOnlyDate){
+      // 向后一天，用 new Date( new Date() - 0 + 1*86400000)
+      // 向后一小时，用 new Date( new Date() - 0 + 1*3600000)
+      var l_date = new Array(aTime.getFullYear(), aTime.getMonth()  < 9 ? '0' + (aTime.getMonth() + 1) : (aTime.getMonth()+1), aTime.getDate() < 10 ? '0' + aTime.getDate() : aTime.getDate());
+      var l_time = new Array(aTime.getHours() < 10 ? '0' + aTime.getHours() : aTime.getHours(), aTime.getMinutes() < 10 ? '0' + aTime.getMinutes() : aTime.getMinutes(), aTime.getSeconds() < 10 ? '0' + aTime.getSeconds() : aTime.getSeconds());
+      if (aOnlyDate)
+        return( l_date.join('-')) ; // '2014-01-02'
+      else
+        return( l_date.join('-') + ' ' + l_time.join(':')); // '2014-01-02 09:33:33'
+    };
+
+
     var _currentUser = (localStorageService.get('localUser') || ""),
       _currentLevel = (localStorageService.get('localLevel') || "0"),
       _useWord = (localStorageService.get('localWord') || ""),
@@ -81,6 +93,7 @@ angular.module('exFactory', ['exService', 'LocalStorageModule']).
           for (var i in data) {   lrtn.push(data[i].NICKNAME)  }
         }, function (reason) { console.log(reason); return []  }); */
       },
+      getDateTime: getDateTime,
       setUser: function(aUser) { _currentUser = aUser;  localStorageService.set('localUser', aUser) },
       getUser: function(){ return _currentUser },
       setLevel: function(aParam) { _currentLevel = aParam; localStorageService.set('localLevel', aParam) },
@@ -88,13 +101,8 @@ angular.module('exFactory', ['exService', 'LocalStorageModule']).
       setWord: function(aParam) { _useWord = aParam; localStorageService.set('localWord', aParam) },
       getWord: function(){return _useWord},
       getRem: function(){return _remWord},
-      setRem: function(aParam) {
-        _remWord = aParam;
-        localStorageService.set('localRem', aParam);
-        if (!aParam){
-          localStorageService.set('localWord', ''); // 。
-        }
-
+      setRem: function(aParam) {  _remWord = aParam;  localStorageService.set('localRem', aParam);
+        if (!aParam){   localStorageService.set('localWord', '');  }
       }
     }
   }]);
