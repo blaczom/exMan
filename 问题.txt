@@ -1,4 +1,21 @@
-﻿plugin / ignore
+﻿
+工作是有级别的。下面的人看不到上面人的任务。
+
+task是没有级别的，所有的人都可以看到所有的任务。
+
+
+根据授权码来插入用户。
+如果删除或者插入失败，就需要回滚。怎么判断更新成功呢？
+
+
+sqlite3的事物。如果不在事务中，commit和rollback都会异常。开始2边事务也会抛出异常。
+var gDB = require('./db');
+gDB.directDb.exec('BEGIN TRANSACTION');gDB.directDb.exec('BEGIN TRANSACTION');
+Error: SQLITE_ERROR: cannot start a transaction within a transaction
+怎么判断在事务中的问题。
+
+
+plugin / ignore
 
 db = require('./db.js')
 User = db.User;

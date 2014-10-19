@@ -4,16 +4,12 @@ body {
   background-color: #eee;
 }
 
-
-
-
-
-
 .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
 
 span {
     display:inline-block;
     border: 0px solid red;
+    vertical-align: top;
 }
 span .mark{
     background-color: #ffff00;

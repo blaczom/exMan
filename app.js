@@ -6,7 +6,6 @@ var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var bodyParser = require('body-parser');
 
-
 var app = express();
 
 // view engine setup
@@ -16,12 +15,10 @@ app.set('view engine', 'ejs');
 // uncomment after placing your favicon in /public
 //app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(logger('dev'));
-
 app.use(cookieParser());
 app.use(session({ secret:'unHapy8',resave:true, saveUninitialized:true}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-
 app.use(express.static(path.join(__dirname, 'public')));
 
 var rest = require('./routes/rest');
@@ -30,8 +27,6 @@ var exTools = require('./routes/extools');
 app.use('/', express.Router().get('/', function(req, res){res.redirect('/partials/index.html')}));
 app.use('/rest', rest);
 app.use('/extools', exTools);
-
-
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -63,7 +58,6 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-
 
 var gDB = require('./db');
 app.db=gDB;

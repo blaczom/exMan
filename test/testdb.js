@@ -10,12 +10,15 @@ var Q = require('q');
 insUser = "insert into user(NICKNAME,PASS) values ( 'xman','') " ;
 insTask = "insert into task(UUID) values ('testtask1') ";
 insWork = "insert into WORK(UUID) values ('testwork1') ";
+insAuth = "insert into CREATEUSER values ('00112233440000000000000000000000', 2, 2) ";
+
 
 var allPromise = Q.all([
-  DB.Q.runSql(insUser), DB.Q.runSql(insTask), DB.Q.runSql(insWork),
+  DB.Q.runSql(insUser), DB.Q.runSql(insTask), DB.Q.runSql(insWork),DB.Q.runSql(insAuth),
   DB.Q.allSql("select * from user where nickname='xman'"),
   DB.Q.allSql("select * from task where uuid='testtask1'"),
-  DB.Q.allSql("select * from work where uuid='testwork1'")
+  DB.Q.allSql("select * from work where uuid='testwork1'"),
+  DB.Q.allSql("select * from CREATEUSER where uuid='00112233440000000000000000000000'")
 ]);
 
 allPromise.then(function(row){

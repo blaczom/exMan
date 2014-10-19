@@ -7,6 +7,8 @@
     <input ng-model="user.NICKNAME" id="txtUserName" name="txtUserName" type="text" class="formex-control" placeholder="用户名" required autofocus />
     <input ng-model="user.PASS" id="txtUserPwd" name="txtUserPwd" type="password" class="formex-control" placeholder="密码" required/>
     <input ng-model="user.PASS2" id="txtUserRePwd"  name="txtUserRePwd" type="password" class="formex-control" placeholder="重复密码" required/>
+    <input ng-model="user.authCode" id="txtUserAuthCode"  name="txtUserAuthCode" type="text" class="formex-control" placeholder="授权码" required/>
+
     <div ng-show="(user.PASS != user.PASS2)"> 2次密码不匹配 </div>
     <button ng-disabled="(user.PASS != user.PASS2)" id="btnSub" class="btn btn-lg btn-primary" type="submit">注  册</button>
     <a class="btn btn-link" href="#/login" role="button">登  录</a>

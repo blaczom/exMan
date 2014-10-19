@@ -1,5 +1,5 @@
 /**
- * Created by donghai on 2014/9/26.
+ * Created by blaczom on 2014/9/26.
  *
  ------------------
  var ls_sql = dbHelp.genSave(aTarget, aTable);

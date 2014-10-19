@@ -16,7 +16,9 @@
     "express-session" : "1.8.2",
     "sqlite3" : "2.2.7",
     "uuid":"1.4.1",
-    "Q":"1.0.x"
+    "q":"1.0.x",
+    "angular-local-storage": "0.1.x",     // client
+    "angular-md5": "0.1.x"                  // client
   }
   
 }

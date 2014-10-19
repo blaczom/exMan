@@ -121,6 +121,6 @@ function getDateTime(aTime, aOnlyDate){
 angular.module('exService', []).
   service('exUtil', function(){
       this.uuid = UUID.prototype.createUUID;
-      this.getDateTime = getDateTime;
+      this.getDateTime = getDateTime;    // 向后一天，用 new Date( new Date() - 0 + 1*86400000)  1小时3600000
   })
 ;

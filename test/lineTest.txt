@@ -1,0 +1,39 @@
+var gDB = require('./db');
+var rtnFunc = function(){ console.log(arguments) };
+
+gDB.allSql("select * from createuser", rtnFunc)
+gDB.allSql("select * from user", rtnFunc)
+insAuth = "insert into CREATEUSER values ('11111', 2, 2) ";
+
+function test(){
+  gDB.directDb.serialize( function() {
+    try {
+      userAdd = gDB.User.new();
+      userAdd.NICKNAME = "dddd";
+      userAdd.PASS = 'ddddd';
+      gDB.directDb.exec('BEGIN TRANSACTION');
+      console.log(1);
+      gDB.directDb.run("insert into CREATEUSER values ('11111', 2, 2) ",rtnFunc);
+      console.log(1.1);
+      gDB.allSql("select * from createuser where uuid = '11111' ", rtnFunc)
+      console.log(1.2);
+      gDB.User.save(userAdd, rtnFunc);
+      console.log(2);
+      gDB.directDb.run("delete from createUser where uuid = '11111'", rtnFunc);
+      console.log(3);
+      gDB.allSql("select * from user where NICKNAME='dddd' ", rtnFunc);
+      console.log(4);
+      gDB.allSql("select * from createuser where uuid = '11111'", rtnFunc);
+      console.log(5);
+      gDB.directDb.run("delete from user where NICKNAME='dddd' ", rtnFunc);
+      console.log(6);
+      gDB.directDb.exec('commit');
+      console.log(7);
+    }
+    catch  (e) {
+      gDB.directDb.exec('rollback');
+      console.log(10);
+      console.log(e);
+    }
+  })
+}

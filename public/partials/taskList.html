@@ -40,7 +40,7 @@
     <div class="divex-listContent" ng-repeat='taskItem in taskSet' >
         <span style="width:30px;">    {{$index}}  </span>
         <span ng-show="showDebug" style="width:300px;">{{ taskItem.UUID }}</span>
-        <span style="width:250px;">{{taskItem.CONTENT.substr(0,20) }}</span>
+        <span style="width:250px;">{{taskItem.CONTENT.substr(0,15) }}</span>
         <span ng-show="showDebug" style="width:40px;">{{ taskItem.UPTASK }}</span>
         <span style="width:140px;">{{taskItem.PLANSTART}}</span>
         <span style="width:140px;">{{taskItem.PLANFINISH}}</span>
@@ -50,8 +50,8 @@
         <span style="width:60px;">{{taskItem.OUGHT}}</span>
         <span style="width:40px;">{{taskItem.PRIVATE}}</span>
         <button ng-click="taskEdit($index)"> 改 </button>
-        <button ng-click="taskAdd($index)"> 子 </button>
-        <button ng-click="workAdd($index)"> 记 </button>
+        <button ng-click="taskAdd($index)"> 子</button>
+        <button ng-click="subWorkList($index)"> 工作 </button>
         <br/>
     </div>
     <hr/>

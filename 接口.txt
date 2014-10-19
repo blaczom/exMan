@@ -66,4 +66,4 @@ app.rtnErr = function(aMsg, aErr) {
 };
 
 
-
+https://github.com/blueimp/JavaScript-MD5

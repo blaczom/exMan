@@ -2,8 +2,10 @@
  * Created by blaczom@gmail.com on 2014/10/8.
  */
 
-angular.module('exFactory', ['exService']).
-  factory('exDb', ['exUtil', '$http', '$q',  function(exUtil, $http, $q){
+angular.module('exFactory', ['exService', 'LocalStorageModule']).
+  config(['localStorageServiceProvider', function(localStorageServiceProvider){
+    localStorageServiceProvider.setPrefix('exPrefix');}]). // .setStorageCookieDomain('example.com');  // .setStorageType('sessionStorage');
+  factory('exDb', ['exUtil', '$http', '$q', 'localStorageService',  function(exUtil, $http, $q, localStorageService){
     var objUser = function(){
       this.NICKNAME = '';
       this.PASS = '';
@@ -47,7 +49,7 @@ angular.module('exFactory', ['exService']).
       this.SYNC = '';
       this._exState='new';
     }
-    var _currentUser = "";
+
     var getAllUserName = function(){
       var deferred = $q.defer();
       $http.post('/rest',{ func: 'userGetAll', // my message
@@ -61,19 +63,38 @@ angular.module('exFactory', ['exService']).
       return deferred.promise;
     };
 
+    var _currentUser = (localStorageService.get('localUser') || ""),
+      _currentLevel = (localStorageService.get('localLevel') || "0"),
+      _useWord = (localStorageService.get('localWord') || ""),
+      _remWord = (localStorageService.get('localRem') || "");
+
     return{
       userNew: function() { return new objUser() },
       workNew: function() { return new objWork() },
       taskNew : function() { return new objTask() },
       planState : ['计划','进行','结束'],
-      setUser: function(aUser) {_currentUser = aUser},
-      getUser: function(){return _currentUser},
+      memPoint : '1,2,4,7,15',
       getAllUserPromise: function() {  return getAllUserName();
         /* var promise = getAllUserName();
         promise.then( function (data) {
           var lrtn = [];
           for (var i in data) {   lrtn.push(data[i].NICKNAME)  }
         }, function (reason) { console.log(reason); return []  }); */
+      },
+      setUser: function(aUser) { _currentUser = aUser;  localStorageService.set('localUser', aUser) },
+      getUser: function(){ return _currentUser },
+      setLevel: function(aParam) { _currentLevel = aParam; localStorageService.set('localLevel', aParam) },
+      getLevel: function(){return _currentLevel},
+      setWord: function(aParam) { _useWord = aParam; localStorageService.set('localWord', aParam) },
+      getWord: function(){return _useWord},
+      getRem: function(){return _remWord},
+      setRem: function(aParam) {
+        _remWord = aParam;
+        localStorageService.set('localRem', aParam);
+        if (!aParam){
+          localStorageService.set('localWord', ''); // 。
+        }
+
       }
     }
   }]);

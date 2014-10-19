@@ -34,7 +34,15 @@ if (!fs.existsSync(gdbFile))
   l_run.push("CREATE INDEX if not exists [idx_work_start] ON [WORK] ([LASTMODIFY] DESC);");
   l_run.push("CREATE INDEX if not exists [idx_work_owner] ON [WORK] ([OWNER] ASC);");
   l_run.push("CREATE INDEX if not exists [idx_work_state] ON [WORK] ([STATE] ASC);");
-  /* 按照1,2,4,7,15,60来提醒学习。 */
+  /* 按照1,2,4,7,15,60来提醒学习。 MEMPOINT 下一个的提醒： 1，2，4，5，15，60。  " +
+   " MEMEN BOOLEAN 显示是否是记忆的需求，去掉就不再提示。MEMTIMER DATETIME:  2014-2-2 如果用户点击完了，记忆完毕：删除掉当前的记忆point，增加一个新的提醒日期
+   memen == true and memtimer < now。这是触发的一个条件。然后记忆后，pop提取mempoint的下一个节点数字。生成新的日期，写入到memtimer。
+
+   */
+
+
+  l_run.push("CREATE TABLE if not exists CREATEUSER(UUID CHAR(32) NOT NULL PRIMARY KEY, LEVEL INTEGER, GRANT INTEGER) WITHOUT ROWID;");
+
   /*
   我的任务： plan和doing的，owner、ought有我的。列表。已完成不再列出。 点击task，列出下面的所有worklog(level权限。)
   新建任务。（可以是根），选人的时候，只能选择myman。
@@ -143,7 +151,7 @@ var USER = function() {
   this.SYNC = '';
   this._exState = "new",  // new , clean, dirty.
   this._exDataSet = {}    // 扩展用。日后可以用于前台的数据更新判断. new buffer, old buffer.
-}
+
 USER.prototype.new = function(){
   return new USER();
 };
@@ -177,7 +185,7 @@ USER.prototype.validPass = function (aNick, aMd5, aCallback){
 USER.prototype.setAutoLogin = function(aNick, aAuto, aCallback){
   runSql("update User set REMPASS='" + aAuto + "' where NICKNAME='" + aNick + "'", aCallback );
 };
-
+}
 var TASK = function() {
   this.UUID = '';
   this.UPTASK = '';
@@ -191,7 +199,7 @@ var TASK = function() {
   this.CONTENT = '';
   this.SYNC = '';
   this._exState='';
-}
+
 TASK.prototype.save = function (aTask, aCallback) {
   comSave(aTask, 'TASK', aCallback);
 };
@@ -258,7 +266,7 @@ TASK.prototype.assignUser = function(aUUID, aUserNick, aCallBack){
     aCallback(err, row);
   });
 };
-
+}
 var WORK = function() {
   this.UUID = '';
   this.UPTASK = '';
@@ -274,7 +282,7 @@ var WORK = function() {
   this.STATE = '';
   this.SYNC = '';
   this._exState='';
-}
+
 WORK.prototype.save = function (aWORK, aCallback) {
   comSave(aWORK, 'WORK', aCallback);
 };
@@ -290,7 +298,7 @@ WORK.prototype.delete = function(aUUID, aCallBack){
     aCallback(err, row);
   });
 }
-
+}
 var exQ = { // exQ.runSql('xxxx sql').then(funcSuccess(row), funcErr(err)).fail(function(err){console.error(err);});
   runSql: function (aSql) {
     logInfo("db.exQ.runsql " + aSql);
