@@ -53,6 +53,51 @@
         });
     };
   }]);
+  app.controller("ctrlChangUser", ['$http','$scope','exDb','md5',function($http, $scope, exDb,md5){
+    var lp = $scope;
+    lp.rtnInfo = "";
+    $http.post('/rest',{ func: 'userGet', // my message
+      ex_parm: { userName : exDb.getUser()   }
+    })
+      .success(function (data, status, headers, config) {    // 得到新的消息
+        lp.rtnInfo = data.rtnInfo;
+        if ((data.exObj || []).length > 0) {
+          lp.user = data.exObj[0];
+          lp.user.oldPass = "";
+          lp.user.PASS = "";
+          lp.user.PASS2 = "";
+//          $scope.$apply();
+          console.log(lp.user);
+        }
+        else lp.rtnInfo="没找到当前用户。";
+      })
+      .error(function (data, status, headers, config) {
+        lp.rtnInfo = JSON.stringify(status);
+      });
+
+    lp.userChange = function(){
+
+      var l_user = angular.copy(lp.user);
+      if ((l_user.PASS||'').length > 0)
+        l_user.md5Pass = md5.createHash(l_user.NICKNAME + l_user.PASS);
+      else
+        l_user.md5Pass = md5.createHash(l_user.NICKNAME + l_user.oldPass);
+      l_user.oldPass = md5.createHash(l_user.NICKNAME + l_user.oldPass);
+
+      $http.post('/rest',
+        { func: 'userChange',
+          //ex_parm: { txtUserName: lp.user.NICKNAME, txtUserPwd: lp.user.PASS, authCode:lp.user.authCode   }
+          ex_parm: {regUser: l_user}
+        })
+        .success(function (data, status, headers, config) {
+          lp.rtnInfo = data.rtnInfo;
+
+        })
+        .error(function (data, status, headers, config) {
+          lp.rtnInfo = JSON.stringify(status);
+        });
+    };
+  }]);
   app.controller("ctrlMain", ['$http', '$scope', function($http, $scope){
     var lp = $scope;
     lp.rtnInfo = "";
@@ -400,6 +445,7 @@
       $routeProvider.       // main.html <--------
         when('/', { templateUrl: '/partials/login.html', controller: "ctrlLogin" } ).
         when('/reg', { templateUrl: '/partials/reg.html', controller: "ctrlRegUser" }).
+        when('/chang', { templateUrl: '/partials/userChange.html', controller: "ctrlChangUser" }).
         when('/main', {templateUrl: '/partials/main.html',   controller: "ctrlMain"}).
         when('/msgEdit/:id', {templateUrl: '/partials/msgEdit.html',   controller: "ctrlMsgEdit"}).
         when('/taskList/:aType', {templateUrl: '/partials/taskList.html',   controller: "ctrlTaskList"}).

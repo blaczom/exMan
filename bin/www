@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 var debug = require('debug')('myapp');
-app = require('../app');  // 全局变量。用来给别的模块服务。
-
+app = require('../app');  // 全局变量。用来给别的模块服务?。var gDB = require('./db');
 app.set('port', process.env.PORT || 80);
 
 var server = app.listen(app.get('port'), function() {

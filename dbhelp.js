@@ -65,7 +65,10 @@ exports.genSave = function (aObj, aTable, aOption) {    // aOption: include:"col
     case "dirty": // update table set col1=val, col2="", where uuid = "";
       var lt = [];
       for (i = 0 ; i < l_cols.length; i ++) lt.push(l_cols[i] + "=" + l_vals[i] );
-      ls_sql = "update " + aTable + ' set ' + lt.join(',') + " where uuid = '" + aObj['UUID'] +"'";
+      if ('USER,'.indexOf(aTable.toUpperCase()) >= 0 )
+        ls_sql = "update " + aTable + ' set ' + lt.join(',') + " where NICKNAME = '" + aObj['NICKNAME'] +"'";
+      else
+        ls_sql = "update " + aTable + ' set ' + lt.join(',') + " where uuid = '" + aObj['UUID'] +"'";
       break;
     default : // do nothing.
       ls_sql = "";

@@ -3,7 +3,8 @@
  * 查询数据库的内容。
  */
 var express = require('express'),
-  router = express.Router()
+  router = express.Router(),
+  appDb =  require('../db');
 
 router.get('/', function(req, res) {
   res.render('extools', {layout:false});
@@ -13,7 +14,7 @@ router.post('/', function(req, res) {
   var ls_sql = req.body['exReq']
   var ls_admin = req.body['exAdmin']
   if (ls_admin == 'publicpass') {
-    app.db.allSql(ls_sql, function(aErr, aRtn){
+    appDb.allSql(ls_sql, function(aErr, aRtn){
       if (aErr){
         res.json( { rtnCode:-10, rtnInfo: "查询数据库失败。请通知管理员。" } );
       }

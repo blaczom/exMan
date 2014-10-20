@@ -17,8 +17,8 @@
     "sqlite3" : "2.2.7",
     "uuid":"1.4.1",
     "q":"1.0.x",
-    "angular-local-storage": "0.1.x",     // client
-    "angular-md5": "0.1.x"                  // client
+    "angular-local-storage": "0.1.x",
+    "angular-md5": "0.1.x"
   }
   
 }

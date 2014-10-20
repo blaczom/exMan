@@ -1,11 +1,10 @@
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
-var logger = require('morgan');
+//var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var bodyParser = require('body-parser');
-
 var app = express();
 
 // view engine setup
@@ -14,7 +13,7 @@ app.set('view engine', 'ejs');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(__dirname + '/public/favicon.ico'));
-app.use(logger('dev'));
+//app.use(logger('dev'));
 app.use(cookieParser());
 app.use(session({ secret:'unHapy8',resave:true, saveUninitialized:true}));
 app.use(bodyParser.json());
@@ -58,9 +57,6 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-
-var gDB = require('./db');
-app.db=gDB;
 
 app.rtnErr = function(aMsg, aErr) {
   var strErr, strMsg;

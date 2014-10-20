@@ -302,6 +302,9 @@ var exQ = { // exQ.runSql('xxxx sql').then(funcSuccess(row), funcErr(err)).fail(
 exports.User = function(){  return new USER();}();
 exports.Task = function(){  return new TASK();}();
 exports.Work = function(){  return new WORK();}();
+exports.setDirty = function(aParm) { aParm._exState = 'dirty' };
+exports.setNew = function(aParm) { aParm._exState = 'new' };
+exports.setClean = function(aParm) { aParm._exState = 'clean' };
 exports.runSql = runSql;
 exports.allSql = allSql;
 exports.Q = exQ;

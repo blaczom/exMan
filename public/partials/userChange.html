@@ -1,0 +1,18 @@
+<div id="alt_info" ng-show="rtnInfo" class="alert alert-success">
+    {{rtnInfo}}
+</div>
+
+<form ng-submit="userChange()" class="formex" role="form" method="post" novalidate>
+    <h2 class="formex-heading"> 用户信息 </h2>
+    <input ng-disabled="true" ng-model="user.NICKNAME" id="txtUserName" name="txtUserName" type="text" class="formex-control" placeholder="用户名" required  />
+    <input ng-model="user.oldPass" id="txtOldPwd" name="txtOldPwd" type="password" class="formex-control" placeholder="旧密码" required/>
+    <input ng-model="user.PASS" id="txtUserPwd" name="txtUserPwd" type="password" class="formex-control" placeholder="新密码" />
+    <input ng-model="user.PASS2" id="txtUserRePwd"  name="txtUserRePwd" type="password" class="formex-control" placeholder="重复新密码" />
+    <input ng-model="user.MOBILE" id="txtMobile" name="txtMobile" type="text" class="formex-control" placeholder="手机" required  />
+    <input ng-model="user.EMAIL" id="txtEmail" name="txtEmail" type="email" class="formex-control" placeholder="Email" required  />
+    <input ng-model="user.IDCARD" id="txtIdCard" name="txtIdCard" type="text" class="formex-control" placeholder="证号" required  />
+
+    <div ng-show="user.PASS !== user.PASS2"> 2次密码不匹配 </div>
+    <button ng-disabled="user.PASS !== user.PASS2" id="btnSub" class="btn btn-lg btn-primary" type="submit">保 存</button>
+    <a class="btn btn-link" href="#/login" role="button">登  录</a>
+</form>
