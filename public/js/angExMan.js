@@ -583,7 +583,7 @@
             for (var i=0; i< ltmp1.length; i++) {
               ltmp1[i]._exState = "clean";
               ltmp1[i].preFix = String(i + lp.curOffset);
-              ltmp1[i].classShow = "head";
+              ltmp1[i].classShow = "prefixHead";
             }
             lp.taskSet = lp.taskSet.concat(ltmp1); // 防止新增加的，再检索出来重复~~
             var hashKey  = {}, lRet = [];

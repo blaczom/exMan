@@ -14,8 +14,11 @@ span {
 span .mark{
     background-color: #ffff00;
 }
-span .head{
-    background-color: #0090ff;
+
+.prefixHead{
+    background-color: #9fffff;
+    pad:1px;
+    margin: 1px;
 }
 
 a {
@@ -30,12 +33,10 @@ a {
   max-width: 600px;
   padding: 5px;
   margin: 0 auto;
-  background-color: #ff0000;
 }
 .formex .formex-heading,
 .formex .checkbox {
   margin-bottom: 5px;
-  background-color: #ffff00;
     display:block;
 }
 .formex .checkbox {
