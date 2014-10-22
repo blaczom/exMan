@@ -138,6 +138,8 @@ function comAllBy(aCol, aTable, aWhere,  aCallback) {
   }
 };
 
+// 数据库字段必须。。。大写。。。否则dbhelp不生成。
+
 var USER = function() {
   this.NICKNAME = '';
   this.PASS = '';

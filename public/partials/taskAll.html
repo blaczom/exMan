@@ -2,7 +2,7 @@
     <span ng-bind="rtnInfo"></span>
 </div>
 
-    <h2 class="divex-heading"> 任 务 <button ng-click="taskAdd(null)"> + </button></h2>
+    <h2 class="divex-heading"> 任务梯次 </h2>
     <span>
     <div>
     <input ng-model="seekUserFlag" id="txtSeekUserFlag" name="txtSeekUserFlag" type="checkbox"/> 用户
@@ -26,7 +26,7 @@
     <div class="divex-listHeader">
         <span style="width:30px;">   序号  </span>
         <span ng-show="showDebug" style="width:300px;"> uuid </span>
-        <span style="width:250px;"> 内容 </span>
+        <span style="width:150px;"> 内容 </span>
         <span ng-show="showDebug" style="width:40px;"> 父任务 </span>
         <span style="width:140px;">计划开始</span>
         <span style="width:140px;">计划结束</span>
@@ -35,12 +35,14 @@
         <span style="width:60px;">所有者</span>
         <span style="width:60px;">承担者</span>
         <span style="width:40px;">私有</span>
+        <span style="width:40px;">完成情况</span>
     </div>
     <hr/>
     <div class="divex-listContent" ng-repeat='taskItem in taskSet' >
-        <span style="width:30px;">    {{$index}}  </span>
-        <span ng-show="showDebug" style="width:300px;">{{ taskItem.UUID }}</span>
-        <span style="width:250px;">{{taskItem.CONTENT.substr(0,15) }}</span>
+        <span ng-class="taskItem.classShow">
+        <span>   {{ taskItem.preFix }} </span>
+        <span ng-show="showDebug" style="width:200px;">{{ taskItem.UUID }}</span>
+        <span style="width:150px;">{{taskItem.CONTENT.substr(0,15) }}</span>
         <span ng-show="showDebug" style="width:40px;">{{ taskItem.UPTASK }}</span>
         <span style="width:140px;">{{taskItem.PLANSTART.substr(0,16)}}</span>
         <span style="width:140px;">{{taskItem.PLANFINISH.substr(0,16)}}</span>
@@ -49,9 +51,12 @@
         <span style="width:60px;">{{taskItem.OWNER}}</span>
         <span style="width:60px;">{{taskItem.OUGHT}}</span>
         <span style="width:40px;">{{taskItem.PRIVATE}}</span>
+        <span style="width:40px;">{{taskItem.subTask}}</span>
+        <button ng-click="taskExpend($index)"> 展 </button>
         <button ng-click="taskEdit($index)"> 改 </button>
         <button ng-click="taskAdd($index)"> +子</button>
         <button ng-click="subWorkList($index)"> 工作 </button>
+        </span>
         <br/>
     </div>
     <hr/>

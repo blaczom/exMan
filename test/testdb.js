@@ -6,12 +6,11 @@ DB = require('../db');
 DbHelp = require('../dbhelp');
 fs = require('fs');
 var Q = require('q');
-
+/*
 insUser = "insert into user(NICKNAME,PASS) values ( 'xman','') " ;
 insTask = "insert into task(UUID) values ('testtask1') ";
 insWork = "insert into WORK(UUID) values ('testwork1') ";
 insAuth = "insert into CREATEUSER values ('00112233440000000000000000000000', 2, 2) ";
-
 
 var allPromise = Q.all([
   DB.Q.runSql(insUser), DB.Q.runSql(insTask), DB.Q.runSql(insWork),DB.Q.runSql(insAuth),
@@ -27,6 +26,41 @@ allPromise.then(function(row){
     }
   }
   ,console.error) ;
+*/
+var stackSubQ = []
+DB.Q.allSql("select * from task where uptask=''")
+  .then(function(row1){
+    for (var i in row1) { // 对返回的所有数据集进行处理。
+      stackSubQ.push( DB.Q.allSql("select count(*) as COUNT, state as STATE from task where uptask='" + row1[i].UUID + "' group by STATE") )
+    }
+    Q.all(stackSubQ).then(function(row2){
+      var l_a = [0,0,0], l_rtn = row2;
+      console.log(row2);
+      for (var i in row2) {
+        if (row2[i].length > 0 ){
+          for (var ii in row2[i]) {
+            var l_rtn = row2[i][ii]
+            switch (l_rtn.STATE) {
+              case '结束':
+                l_a[2] = l_rtn.COUNT;
+                break;
+              case '进行':
+                l_a[1] = l_rtn.COUNT;
+                break;
+              case '计划':
+                l_a[0] = l_rtn.COUNT;
+                break;
+            }
+          }
+          row1[i].subTask = l_a.join('|');
+          console.log(row1[i]);
+        }
+        else   row1[i].subTask = "nochild";
+      }
+    })
+  }).fail(console.error);
+
+
 /*
   // 用于根据数据库生成对象的属性。
 allPromise.then(

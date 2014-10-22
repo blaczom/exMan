@@ -5,6 +5,7 @@ var express = require('express'),
   router = express.Router(),
   crypto = require('crypto'),
   appDb =  require('../db');
+  var Q = require('q');
 
 router.get('/', function(req, res) {
   res.send('没有此功能。');
@@ -14,6 +15,50 @@ function checkLogin(req, res){
   // if(req.cookies.loginUser)  { req.session.loginUser = req.cookies.loginUser; }
   if (req.session.loginUser) return true; else return false;  // 只信任服务器端的数据。
 }
+
+function getSubList(aSql, aWithSub, aCallback){
+  appDb.allSql(aSql, function(aErr, aRtn) {
+    if (aErr) aCallback(aErr);
+    else {
+      var l_exObj = aRtn?aRtn:[];
+      if (aWithSub) {
+        var stackSubQ = []
+        for (var i in l_exObj) { // 对返回的所有数据集进行处理。
+          stackSubQ.push( appDb.Q.allSql("select count(*) as SUBCOUNT, state as SUBSTATE from task where uptask='" + l_exObj[i].UUID + "' group by STATE") )
+        }
+        Q.all(stackSubQ).then(function(row2){
+          var l_a = [0,0,0]
+          for (var i in row2) {
+            if (row2[i].length > 0 ){
+              for (var ii in row2[i]) {
+                var l_rtn = row2[i][ii]
+                switch (l_rtn.SUBSTATE) {
+                  case '结束':
+                    l_a[2] = l_rtn.SUBCOUNT;
+                    break;
+                  case '进行':
+                    l_a[1] = l_rtn.SUBCOUNT;
+                    break;
+                  case '计划':
+                    l_a[0] = l_rtn.SUBCOUNT;
+                    break;
+                }
+              }
+              l_exObj[i].subTask = l_a.join('|');
+            }
+            else   l_exObj[i].subTask = "nosub";
+          }
+          aCallback(null, l_exObj);
+        }, function(){ console.log(arguments);   aCallback('查询失败',null)});
+      }
+      else
+      {
+        aCallback(null, l_exObj);
+      }
+    }
+  });
+}
+
 
 router.post('/', function(req, res) {
   /* 除了userLogin, userReg, 以外，其余的功能都需要 ---登录检查，
@@ -150,17 +195,21 @@ router.post('/', function(req, res) {
           ls_append = " and private!='true' " ;
         la_where.push(" (owner = '" + lExparm.filter.seekUser + "' or ought like '%" + lExparm.filter.seekUser + ",%')" + ls_append );
       }
+      if (lExparm.filter.seekTop)       /////////////////// 梯次任务列表
+        la_where.push(" uptask = '' ");
+
       var ls_where = "";
       if (la_where.length > 0)
         ls_where = " where " + la_where.join(" and ");
       console.log("taskListGet sql where : " + ls_where);
-      appDb.comAllBy("distinct *", 'task',
-        ls_where + " order by PLANSTART limit " +  lExparm.limit + " offset " +  lExparm.offset, function(aErr, aRtn) {
+
+      getSubList("select distinct * from task " + ls_where + " order by PLANSTART limit " +
+        lExparm.limit + " offset " +  lExparm.offset, lExparm.filter.seekTop,  function(aErr, aRtn) {
         if (aErr) res.json(app.rtnErr(aErr));
         else {
           ls_rtn = app.rtnMsg('');  // 检索成功不需要提示信息。
           ls_rtn.rtnUser = req.session.loginUser;
-          ls_rtn.exObj = aRtn?aRtn:[];  // 返回数组。
+          ls_rtn.exObj = aRtn;
           res.json(ls_rtn);
         }
       });
@@ -249,6 +298,18 @@ router.post('/', function(req, res) {
             res.json(ls_rtn);
           }
         });
+      break;
+    }
+    case 'taskAllGet':{
+      getSubList("select * from task  where uptask='" + lExparm.taskUUID + "' order by PLANSTART ", true,  function(aErr, aRtn) {
+        if (aErr) res.json(app.rtnErr(aErr));
+        else {
+          ls_rtn = app.rtnMsg('');  // 检索成功不需要提示信息。
+          ls_rtn.rtnUser = req.session.loginUser;
+          ls_rtn.exObj = aRtn;
+          res.json(ls_rtn);
+        }
+      });
       break;
     }
     case 'workEditDelete': {  // lExparm.msgObj

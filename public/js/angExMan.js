@@ -440,7 +440,206 @@
           break;
       }
     }]);
+  app.controller("ctrlTaskAll",['$http','$scope','$routeParams','$location','exDb',function($http,$scope,$routeParams,$location,exDb){
+    var lp = $scope;
+    lp.showDebug = false;  // 调试信息打印。
+    lp.seekContentFlag = false; lp.seekContent = ""; // 是否search任务内容。
+    lp.seekStateFlag = true; lp.seekState = ['计划','进行']; // 是否search任务状态。
+    lp.seekUserFlag = true; lp.seekUser = exDb.getUser();  // 是否按照用户搜索
+    lp.taskSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
+    lp.curOffset = 0;  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
+    lp.limit = 5;      // 当前查询显示限制。
+    lp.aType = $routeParams.aType;    // 查询的页面参数。暂时没用。随便参数。
+    lp.selectUserMode = false;
+    lp.rtnInfo = "";   // 返回提示用户的信息。   // lp.task = exDb.taskNew();    // 暂时给遮挡编辑任务页面提供。
+    lp.curIndex = null;     //当前编辑的索引值
+    lp.editMode = false;    // 是否在单记录编辑模式。
+    lp.planState = exDb.planState;  // 选择的task状态内容。
+    lp.haveClicked = "";
+    lp.taskEditMask = function(aShow){
+      if (aShow) { lp.rtnInfo = ''}
+      lp.editMode = aShow;
+    }
+    lp.taskAdd = function(aIndex){   // 增加和编辑。
+      console.log("add " + aIndex);
+      lp.curIndex = aIndex;
+      lp.task = exDb.taskNew();
+      lp.task.OWNER = exDb.getUser();
+      lp.task.STATE = '计划';
+      lp.task._exState = 'new';
+      if(aIndex != null){
+        lp.task.UPTASK = lp.taskSet[aIndex].UUID;
+      }
+      lp.taskEditMask(true);
+    };
+    lp.subWorkList = function(aIndex) {   // 列出他的子任务。
+      $location.path('/workList/list').search({pid:lp.taskSet[aIndex].UUID, pcon:lp.taskSet[aIndex].CONTENT.substr(0,15) });
+    }
+    lp.taskEdit = function(aIndex){
+      console.log("edit " + aIndex);
+      lp.curIndex = aIndex;
+      lp.task = lp.taskSet[aIndex];
+      lp.pristineTask = angular.copy(lp.taskSet[aIndex]);
+      lp.task._exState = 'dirty';
+      lp.task.PRIVATE = (lp.task.PRIVATE=="true" || lp.task.PRIVATE===true)?true:false;
+      lp.taskEditMask(true);
+    };
+    lp.taskExpend = function(aIndex){
+      lp.curIndex = aIndex;
+      var l_uuid = lp.taskSet[aIndex].UUID, l_preFix = lp.taskSet[aIndex].preFix;
 
+      if (lp.haveClicked.indexOf(l_uuid + ",") >= 0 ) return ;
+
+      $http.post('/rest',{ func: 'taskAllGet', // my message
+        ex_parm: { taskUUID:    l_uuid }
+      })
+        .success(function (data, status, headers, config) {    // 得到新的消息
+          lp.haveClicked = lp.haveClicked + l_uuid + ",";
+          lp.rtnInfo = data.rtnInfo;
+          var ltmp1 = (data.exObj || []);
+          if (ltmp1.length > 0){
+            for (var i=0; i< ltmp1.length; i++) {
+              ltmp1[i]._exState = "clean";
+              ltmp1[i].preFix = "...." + l_preFix + "-" + String(i);
+            }
+            //lp.taskSet = lp.taskSet.concat(ltmp1); // 防止新增加的，再检索出来重复~~
+            [].splice.apply(lp.taskSet, [aIndex + 1, 0].concat(ltmp1))
+          }
+          else{ // 没有数据了。不用干活。
+          }
+        })
+        .error(function (data, status, headers, config) {
+          lp.rtnInfo = JSON.stringify(status);
+        });
+    };
+    lp.taskSave = function(){
+      if (lp.task.STATE == exDb.planState[2] && (lp.task.FINISH||'').length==0) lp.task.FINISH = exDb.getDateTime(new Date());
+      $http.post('/rest',{ func: 'taskEditSave',
+        ex_parm: { msgObj: lp.task}
+      })
+        .success(function (data, status, headers, config) {    // 得到新的消息
+          lp.rtnInfo = data.rtnInfo;
+          switch (lp.task._exState) {
+            case 'dirty':
+              lp.task._exState = "clean";
+              lp.taskSet[lp.curIndex] = lp.task;
+              break;
+            case 'new':
+              lp.task._exState = "clean";
+              lp.taskSet.unshift(lp.task);
+              break;
+          }
+          lp.taskEditMask(false);
+        })
+        .error(function (data, status, headers, config) {
+          lp.rtnInfo = JSON.stringify(status);
+        });
+    };
+    lp.taskCancel = function(){
+      lp.taskEditMask(false);
+      if (lp.curIndex >= 0  && lp.task._exState!="new") lp.taskSet[lp.curIndex] = lp.pristineTask;
+    };
+    lp.taskDelete = function(){
+      $http.post('/rest',{ func: 'taskEditDelete',ex_parm: { msgObj: lp.task}  })
+        .success(function (data, status, headers, config) {    // 得到新的消息
+          lp.rtnInfo = data.rtnInfo;
+          if (data.rtnCode > 0){
+            for (var i in lp.taskSet){
+              if (lp.taskSet[i].UUID == lp.task.UUID) {
+                if (lp.showDebug) console.log("get it delete " + lp.task.UUID);
+                lp.taskSet.splice(i,1);
+                lp.taskEditMask(false);
+                break;
+              }
+            }
+          }
+        })
+        .error(function (data, status, headers, config) {
+          lp.rtnInfo = JSON.stringify(status);
+        });
+    };
+    lp.taskfilter = function(){
+      //参数重置。
+      lp.taskSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
+      lp.curOffset = 0;  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
+      lp.limit = 5;      // 当前查询显示限制。
+      if  (lp.seekUserFlag && ((lp.seekUser||'').length == 0)) lp.seekUserFlag = false;
+      lp.filterCache = {  seekContentFlag : lp.seekContentFlag, seekContent: lp.seekContent,
+        seekStateFlag: lp.seekStateFlag , seekState: lp.seekState,
+        seekUserFlag: lp.seekUserFlag, seekUser: lp.seekUser, seekTop: true, seekUUID: ""
+      }
+      lp.taskGet();   // 应该把状态push进去，否则还是按照原来的逻辑进行get。
+    };
+    lp.taskGet = function(){
+      $http.post('/rest',{ func: 'taskListGet', // my message
+        ex_parm: { taskType: lp.aType, limit:lp.limit, offset:lp.curOffset,
+          filter: lp.filterCache
+        }
+      })
+        .success(function (data, status, headers, config) {    // 得到新的消息
+          lp.rtnInfo = data.rtnInfo;
+          var ltmp1 = (data.exObj || []);
+          if (ltmp1.length > 0){
+            for (var i=0; i< ltmp1.length; i++) {
+              ltmp1[i]._exState = "clean";
+              ltmp1[i].preFix = String(i + lp.curOffset);
+              ltmp1[i].classShow = "head";
+            }
+            lp.taskSet = lp.taskSet.concat(ltmp1); // 防止新增加的，再检索出来重复~~
+            var hashKey  = {}, lRet = [];
+            for (var i in lp.taskSet) {
+              var key = lp.taskSet[i].UUID;
+              if (hashKey[key] != 1) { hashKey[key] = 1; lRet.push(lp.taskSet[i]);}
+            }
+            lp.taskSet = lRet;
+            lp.curOffset = lp.curOffset + lp.limit;
+          }
+          else{ // 没有数据了。关闭按钮。
+
+          }
+        })
+        .error(function (data, status, headers, config) {
+          lp.rtnInfo = JSON.stringify(status);
+        });
+    }
+    lp.selectUser = function(){
+      (lp.allSelectUser = lp.task.OUGHT.split(',')).pop();
+      exDb.getAllUserPromise().then( function (data) {
+        var lrtn = data.exObj;
+        lp.allOtherUser =[];
+        console.log(lrtn);
+        for (var i in lrtn) {  if (lp.task.OUGHT.indexOf(lrtn[i].NICKNAME + ",") < 0 ) lp.allOtherUser.push(lrtn[i].NICKNAME); };
+        lp.selectUserMode=true;
+      }, function (reason) { console.log(reason); lp.allOtherUser = []  });
+
+    };
+    lp.selectUserMove = function(aInOut){
+      if (aInOut) {
+        for (var i in lp.userSelected){
+          lp.allSelectUser.splice(lp.allSelectUser.indexOf(lp.userSelected[i]), 1);
+          lp.allOtherUser.push(lp.userSelected[i]);
+        }
+      }
+      else{
+        for (var i in lp.userOthers){
+          lp.allOtherUser.splice(lp.allOtherUser.indexOf(lp.userOthers[i]), 1);
+          lp.allSelectUser.push(lp.userOthers[i]);
+        }
+      }
+    };
+    lp.selectUserOk = function(){
+      /// 根据选中的用户进行。
+      lp.task.OUGHT = lp.allSelectUser.join(",") + ",";
+      lp.selectUserMode = false;
+    };
+    switch (lp.aType)
+    {
+      case "main":
+      default :
+        lp.taskfilter();  // 默认来一次。
+        break;
+    }
+  }]);
   app.config(['$routeProvider', function($routeProvider) {
       $routeProvider.       // main.html <--------
         when('/', { templateUrl: '/partials/login.html', controller: "ctrlLogin" } ).
@@ -450,6 +649,7 @@
         when('/msgEdit/:id', {templateUrl: '/partials/msgEdit.html',   controller: "ctrlMsgEdit"}).
         when('/taskList/:aType', {templateUrl: '/partials/taskList.html',   controller: "ctrlTaskList"}).
         when('/workList/:aType', {templateUrl: '/partials/workList.html', controller: "ctrlWorkList"}).
+        when('/taskAll/:aType', {templateUrl: '/partials/taskAll.html', controller: "ctrlTaskAll"}).
         ///workList/xx?xxx=1&dd=2  -> {xxx: "1", dd: "2", aType: "xx"}
         otherwise({redirectTo: '/'});
     }]);
@@ -474,9 +674,7 @@
   })
 
   app.config(['localStorageServiceProvider', function(localStorageServiceProvider){
-      localStorageServiceProvider.setPrefix('exPrefix');
-      // localStorageServiceProvider.setStorageCookieDomain('example.com');
-      // localStorageServiceProvider.setStorageType('sessionStorage');
+      localStorageServiceProvider.setPrefix('exPrefix');  // .setStorageCookieDomain('example.com');    // .setStorageType('sessionStorage');
     }]);
 
 

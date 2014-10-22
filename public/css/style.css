@@ -14,7 +14,9 @@ span {
 span .mark{
     background-color: #ffff00;
 }
-
+span .head{
+    background-color: #0090ff;
+}
 
 a {
   color: #00B7FF;
