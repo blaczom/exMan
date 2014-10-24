@@ -673,9 +673,6 @@
     };
   })
 
-  app.config(['localStorageServiceProvider', function(localStorageServiceProvider){
-      localStorageServiceProvider.setPrefix('exPrefix');  // .setStorageCookieDomain('example.com');    // .setStorageType('sessionStorage');
-    }]);
 
 
      /*config(['depProvider', function(depProvider){

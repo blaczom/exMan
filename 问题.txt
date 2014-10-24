@@ -1,4 +1,33 @@
-﻿
+﻿(div)
+
+index ...--------------------------------
+<div id = exPage>          ----------
+  <div id = indexHead>
+    <div id = headNav>
+      <span class = headNav>
+  <div id = indexCont>     -- ng-view here with controller
+    <div id = contInfo>
+      <span class = contInfo>
+    <div id = contSearch>
+      <span class = contSearch>
+    <div id = contTitle>
+      <span class = contTitle>
+    <div id = contCont>
+      <span class = contCont>
+  <div id = indexFoot>
+      <span class = indexFoot>
+----------------------------------------------
+div modal page ----------------
+<div id = modalInfo>
+  <span class = modalInfo>
+<div id = modalCont >
+   <span class = modalCont>
+
+
+
+
+
+
 工作是有级别的。下面的人看不到上面人的任务。
 
 task是没有级别的，所有的人都可以看到所有的任务。

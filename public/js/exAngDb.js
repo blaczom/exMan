@@ -2,10 +2,14 @@
  * Created by blaczom@gmail.com on 2014/10/8.
  */
 
-angular.module('exFactory', ['exService', 'LocalStorageModule']).
-  config(['localStorageServiceProvider', function(localStorageServiceProvider){
-    localStorageServiceProvider.setPrefix('exPrefix');}]). // .setStorageCookieDomain('example.com');  // .setStorageType('sessionStorage');
-  factory('exDb', ['exUtil', '$http', '$q', 'localStorageService',  function(exUtil, $http, $q, localStorageService){
+angular.module('exFactory', ['exService']).
+  factory('exDb', ['exUtil', '$http', '$q', function(exUtil, $http, $q){
+    if(window.localStorage){
+    }else{
+      alert('This browser does NOT support localStorage');
+    }
+    var localStorageService = window.localStorage;
+
     var objUser = function(){
       this.NICKNAME = '';
       this.PASS = '';
@@ -74,11 +78,10 @@ angular.module('exFactory', ['exService', 'LocalStorageModule']).
         return( l_date.join('-') + ' ' + l_time.join(':')); // '2014-01-02 09:33:33'
     };
 
-
-    var _currentUser = (localStorageService.get('localUser') || ""),
-      _currentLevel = (localStorageService.get('localLevel') || "0"),
-      _useWord = (localStorageService.get('localWord') || ""),
-      _remWord = (localStorageService.get('localRem') || "");
+    var _currentUser = (localStorageService.getItem('exManlocalUser') || ""),
+      _currentLevel = (localStorageService.getItem('exManlocalLevel') || "0"),
+      _useWord = (localStorageService.getItem('exManlocalWord') || ""),
+      _remWord = (localStorageService.getItem('exManlocalRem') || "");
 
     return{
       userNew: function() { return new objUser() },
@@ -94,15 +97,15 @@ angular.module('exFactory', ['exService', 'LocalStorageModule']).
         }, function (reason) { console.log(reason); return []  }); */
       },
       getDateTime: getDateTime,
-      setUser: function(aUser) { _currentUser = aUser;  localStorageService.set('localUser', aUser) },
+      setUser: function(aUser) { _currentUser = aUser;  localStorageService.setItem('exManlocalUser', aUser) },
       getUser: function(){ return _currentUser },
-      setLevel: function(aParam) { _currentLevel = aParam; localStorageService.set('localLevel', aParam) },
+      setLevel: function(aParam) { _currentLevel = aParam; localStorageService.setItem('exManlocalLevel', aParam) },
       getLevel: function(){return _currentLevel},
-      setWord: function(aParam) { _useWord = aParam; localStorageService.set('localWord', aParam) },
+      setWord: function(aParam) { _useWord = aParam; localStorageService.setItem('exManlocalWord', aParam) },
       getWord: function(){return _useWord},
       getRem: function(){return _remWord},
-      setRem: function(aParam) {  _remWord = aParam;  localStorageService.set('localRem', aParam);
-        if (!aParam){   localStorageService.set('localWord', '');  }
+      setRem: function(aParam) {  _remWord = aParam;  localStorageService.setItem('exManlocalRem', aParam);
+        if (!aParam){   localStorageService.setItem('exManlocalWord', '');  }
       }
     }
   }]);
