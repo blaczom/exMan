@@ -28,8 +28,8 @@ function checkLogin(req, res){
   if (req.session.loginUser) return true; else return false;  // 只信任服务器端的数据。
 }
 
-function getSubList(aSql, aWithSub, aCallback){
-  appDb.allSql(aSql, function(aErr, aRtn) {
+function getSubList(aSql, aParam, aWithSub, aCallback){  // 得到指定的任务下面的任务数量。
+  appDb.allSql(aSql, aParam, function(aErr, aRtn) {
     if (aErr) aCallback(aErr);
     else {
       var l_exObj = aRtn?aRtn:[];
@@ -199,15 +199,21 @@ router.post('/', function(req, res) {
       break;
     }
     case 'taskListGet': {
-      /* ex_parm: { taskType: lp.aType, limit:lp.limit, offset:lp.curOffset, filter:{seekContentFlag : lp.seekContentFlag, seekContent: lp.seekContent,
-      seekStateFlag: lp.seekStateFlag , seekState: lp.seekState, seekUserFlag: lp.seekUserFlag, seekUser: lp.seekUser   }}*/
-      var la_where  = [];
-      if (lExparm.filter.seekContentFlag)   la_where.push(" content like '%" + lExparm.filter.seekContent + "%' ");
+      var la_where  = [], la_param=[];
+      if (lExparm.filter.seekContentFlag)  {
+        la_where.push(" content like '%'||?||'%' ");   // 这个语法要命。。。
+        la_param.push(lExparm.filter.seekContent);
+      }
       if (lExparm.filter.seekStateFlag) la_where.push(" state in ('" + lExparm.filter.seekState.join("','") + "') ");
+      /*if (lExparm.filter.seekStateFlag) {
+        la_where.push(" state in ? ");
+        la_param.push(lExparm.filter.seekState);
+      }*/
+
       if (lExparm.filter.seekUserFlag) {
         var ls_append = "";
         if (req.session.loginUser != lExparm.filter.seekUser) // 当前用户就是查询的用户。可以显示私有任务，否则不显示私有任务。
-          ls_append = " and private!='true' " ;
+          ls_append = " and private!=1 " ;
         la_where.push(" (owner = '" + lExparm.filter.seekUser + "' or ought like '%" + lExparm.filter.seekUser + ",%')" + ls_append );
       }
       if (lExparm.filter.seekTop)       /////////////////// 梯次任务列表
@@ -216,10 +222,10 @@ router.post('/', function(req, res) {
       var ls_where = "";
       if (la_where.length > 0)
         ls_where = " where " + la_where.join(" and ");
-      console.log("taskListGet sql where : " + ls_where);
-
+      console.log("taskListGet sql where with param : " + ls_where);
+      console.log(la_param);
       getSubList("select distinct * from task " + ls_where + " order by PLANSTART limit " +
-        lExparm.limit + " offset " +  lExparm.offset, lExparm.filter.seekTop,  function(aErr, aRtn) {
+        lExparm.locate.limit + " offset " +  lExparm.locate.curOffset, la_param, lExparm.filter.seekTop, function(aErr, aRtn) {
         if (aErr) res.json(rtnErr(aErr));
         else {
           ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
@@ -257,7 +263,7 @@ router.post('/', function(req, res) {
       break;
     }
     case 'userGetAll':  { // lExparm.msgObj
-      appDb.comAllBy(" NICKNAME ", 'user'," order by NICKNAME ", function(aErr, aRtn) {
+      appDb.comAllBy(" select NICKNAME from user  order by NICKNAME ", [], function(aErr, aRtn) {
         if (aErr) res.json(rtnErr(aErr));
         else {
           ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
@@ -268,7 +274,7 @@ router.post('/', function(req, res) {
       break;
     }
     case 'userGet':  { // lExparm.msgObj
-      appDb.allSql("select * from user where NICKNAME ='" + lExparm.userName + "'", function(aErr, aRtn) {
+      appDb.allSql("select * from user where NICKNAME = ? " , lExparm.userName ,  function(aErr, aRtn) {
         if (aErr) res.json(rtnErr(aErr));
         else {
           ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
@@ -281,20 +287,23 @@ router.post('/', function(req, res) {
     case 'workListGet': {
       /* ex_parm: { taskType: lp.aType, limit:lp.limit, offset:lp.curOffset, filter:{seekContentFlag : lp.seekContentFlag, seekContent: lp.seekContent,
        seekStateFlag: lp.seekStateFlag , seekState: lp.seekState, seekUserFlag: lp.seekUserFlag, seekUser: lp.seekUser   }}*/
-      var ls_memen = " (owner = '" + req.session.loginUser + "' and memen = 'true' and memtimer < '" + appDb.getDateTime(new Date(), true) + "') ";
+      var ls_memen = " (owner = '" + req.session.loginUser + "' and memen = 1 and memtimer < '" + appDb.getDateTime(new Date(), true) + "') ";
 
-      var la_where  = [];
-      if (lExparm.filter.seekContentFlag)   la_where.push(" content like '%" + lExparm.filter.seekContent + "%' ");
+      var la_where  = [], la_param = [];
+      if (lExparm.filter.seekContentFlag)  {
+        la_where.push(" content like '%'||?||'%' ");   // 这个语法要命。。。
+        la_param.push(lExparm.filter.seekContent);
+      }
       if (lExparm.filter.seekStateFlag) la_where.push(" state in ('" + lExparm.filter.seekState.join("','") + "') ");
       if (lExparm.filter.seekUserFlag) {  // req.session.userLevel = aRtn[0].LEVEL;
         if (req.session.loginUser == lExparm.filter.seekUser) // 当前用户就是查询的用户。可以显示私有工作，否则不显示私有工作。
           la_where.push("( owner = '" + req.session.loginUser + "') ");
         else
-          la_where.push(" (owner = '" + lExparm.filter.seekUser + "' and private != true and level <= req.session.userGrant)) ");
+          la_where.push(" (owner = '" + lExparm.filter.seekUser + "' and private != 1 and level <= " + req.session.userGrant + ")) ");
       }
       else // 没选则用户，就是要查找所有的用户。
         la_where.push( "((owner = '" + req.session.loginUser + "') or (owner != '" + req.session.loginUser +
-        "' and private != true and level <= req.session.userGrant))" ) ;
+        "' and private != 1 and level <= " + req.session.userGrant + "))" ) ;
       if (lExparm.filter.seekTaskFlag) {
         la_where.push(" uptask = '" + lExparm.filter.seekTaskUUID + "'"  );
       }
@@ -302,9 +311,8 @@ router.post('/', function(req, res) {
       ls_where = " where " + ls_memen; // memen是必须选的。
       if (la_where.length > 0)
         ls_where = ls_where + ' or (' + la_where.join(" and ") + ")";
-      console.log("workListGet sql where : " + ls_where);
-      appDb.comAllBy("distinct *", 'work',
-          ls_where + " order by memen , CREATETIME limit " +  lExparm.limit + " offset " +  lExparm.offset, function(aErr, aRtn) {
+      appDb.comAllBy("select distinct * from work "+ ls_where +
+        " order by memen , CREATETIME limit " +  lExparm.locate.limit + " offset " +  lExparm.locate.curOffset, la_param, function(aErr, aRtn) {
           if (aErr) res.json(rtnErr(aErr));
           else {
             ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
@@ -316,7 +324,7 @@ router.post('/', function(req, res) {
       break;
     }
     case 'taskAllGet':{
-      getSubList("select * from task  where uptask='" + lExparm.taskUUID + "' order by PLANSTART ", true,  function(aErr, aRtn) {
+      getSubList("select * from task  where uptask=? order by PLANSTART ", lExparm.taskUUID, true,  function(aErr, aRtn) {
         if (aErr) res.json(rtnErr(aErr));
         else {
           ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。

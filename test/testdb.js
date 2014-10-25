@@ -81,4 +81,14 @@ allPromise.then(
     fs.appendFileSync('jsMode.js', lsFile);
   },
   console.error );
+
 */
+
+/*
+
+ DB.Q.allSql("select * from user").then(function(row1){grtn=row1});
+ grtn[0]
+ grtn[0].EMAIL = "it's for single quote:' andalso doubel quote:'' ok."
+
+ DB.Q.allSql("update user set EMAIL = ? where NICKNAME=?", [grtn[0].EMAIL, grtn[0].NICKNAME]).then(function(row1){console.error});
+ */

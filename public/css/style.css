@@ -21,9 +21,11 @@ span {
 }
 
 
-/* 功能导航 */
-.headNav span :hover{
-    background-color:pink;
+.linkButton, .headNavItem {
+ background-color:greenyellow ;
+}
+.linkButton :hover , .headNavItem :hover{
+    background-color:darkgreen;
 }
 
 h3 { margin: 1px; padding: 1px;}
@@ -49,10 +51,15 @@ input.ng-valid {
 }
 
 .prefixHead{
-    background-color: #9fffff;
+    background-color: #00ffff;
     pad:1px;
     margin: 1px;
 }
+
+.subExpand span{
+    background-color: #9fffff;
+}
+
 
 
 /********************/

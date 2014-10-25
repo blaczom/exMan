@@ -8,6 +8,8 @@ var fs = require('fs');
 var dbHelp = require('./dbhelp.js');
 var Q = require('q');
 
+var _debugDb = true;
+
 var logInfo = function()
 {
   for (var i in arguments)console.log(arguments[i]);
@@ -18,7 +20,7 @@ if (!fs.existsSync(gdbFile))
   logInfo("---no databse file. will create it.---");
   var l_run = [];
   l_run.push( "CREATE TABLE if not exists USER(NICKNAME NVARCHAR2(32) NOT NULL PRIMARY KEY, " +
-    " PASS CHAR(32) NOT NULL, REMPASS BOOL, MOBILE NVARCHAR2(20), EMAIL NVARCHAR2(80), IDCARD NVARCHAR2(32), " +
+    " PASS CHAR(32) NOT NULL, REMPASS BOOLEAN, MOBILE NVARCHAR2(20), EMAIL NVARCHAR2(80), IDCARD NVARCHAR2(32), " +
     " UPUSER NVARCHAR2(32), LEVEL INTEGER, GRANT INTEGER, SYNC BOOLEAN  ) WITHOUT ROWID;"   );
 
   l_run.push("CREATE TABLE if not exists TASK(UUID CHAR(32) NOT NULL PRIMARY KEY, UPTASK CHAR(32), PLANSTART DATETIME, " +
@@ -37,9 +39,7 @@ if (!fs.existsSync(gdbFile))
   /* 按照1,2,4,7,15,60来提醒学习。 MEMPOINT 下一个的提醒： 1，2，4，5，15，60。  " +
    " MEMEN BOOLEAN 显示是否是记忆的需求，去掉就不再提示。MEMTIMER DATETIME:  2014-2-2 如果用户点击完了，记忆完毕：删除掉当前的记忆point，增加一个新的提醒日期
    memen == true and memtimer < now。这是触发的一个条件。然后记忆后，pop提取mempoint的下一个节点数字。生成新的日期，写入到memtimer。
-
    */
-
 
   l_run.push("CREATE TABLE if not exists CREATEUSER(UUID CHAR(32) NOT NULL PRIMARY KEY, LEVEL INTEGER, GRANT INTEGER) WITHOUT ROWID;");
 
@@ -79,28 +79,30 @@ var getDateTime = function (aTime, aOnlyDate){
     return( l_date.join('-') + ' ' + l_time.join(':')); // '2014-01-02 09:33:33'
 }
 
-var runSql = function (aSql, aCallback){
-  logInfo("db.js runsql " + aSql);
-  gdb.run(aSql, function (err, row){
+var runSql = function (aSql, aParam,  aCallback){
+  if (_debugDb) logInfo("db.js runsql with param " + aSql);
+  if (_debugDb) logInfo(aParam);
+  gdb.run(aSql, aParam, function (err, row){
     if (err) logInfo("runSql Error: " + err.message);
     aCallback(err, row);
   } );
 };
 
-var allSql = function(aSql, aCallback){
-  logInfo("db.js allSql " + aSql);
-  gdb.all(aSql, function (err, row) {
-    if (err) logInfo(".all Error: " + err.message);
-    aCallback(err, row);
-  });
+var allSql = function(){
+  if (_debugDb) logInfo("db.js allSql ");
+  if (_debugDb) logInfo(arguments);
+  gdb.all.apply(gdb, arguments);
 }
 
 var funcErr = function(err) { logInfo('-- funcErr --' + err.toString()) }
 
 function comSave(aTarget, aTable, aCallback) {
   try {
-    ls_sql = dbHelp.genSave(aTarget, aTable);
-    gdb.run(ls_sql, function (err, row) {
+    // ls_sql = dbHelp.genSave(aTarget, aTable);  保存对象到数据库中。
+    l_gen = dbHelp.genSave(aTarget, aTable);  // 返回一个数组，sql和后续参数。
+    if (_debugDb) logInfo("com save run here with param: ")
+    if (_debugDb) console.log(l_gen);
+    gdb.run(l_gen[0], l_gen[1], function (err, row) {
       if (err) {
         console.log("save Error: " + err.message);
       }
@@ -115,13 +117,14 @@ function comSave(aTarget, aTable, aCallback) {
     aCallback(err, err);
   }
 };
-function comAllBy(aCol, aTable, aWhere,  aCallback) {
+function comAllBy(aSql, aParam, aCallback) {          // 更新为sql +　参数。
   try {
-    var ls_sql = "SELECT " + aCol + " FROM  " + aTable + ' ' + aWhere;
-    console.log("comAllBy " + ls_sql);
-    gdb.all(ls_sql, function (err, row) {
+    var ls_sql = aSql;
+    if (_debugDb) console.log("run comAllBy with param, -> " + aSql + '');
+    if (_debugDb) console.log(aParam);
+    gdb.all(ls_sql, aParam, function (err, row) {
       if (err) {
-        console.log(aTable + ".all Error: " + err.message);
+        console.log(err.message);
       }
       else {
         if(row){
@@ -166,13 +169,10 @@ USER.prototype.delete = function(aUUID, aCallback){
     aCallback(err, row);
   });
 };
-USER.prototype.getBy = function (aWhere, aCallback) {
-  comAllBy("*", 'USER', aWhere, aCallback);
-};
 USER.prototype.getByNickName = function (aNick, aCallback) {
-  USER.prototype.getBy(" where NICKNAME='" + aNick  + "'", aCallback);
+  allSql("select * from user where NICKNAME= ?" , aNick, aCallback);
 }
-}
+};
 var TASK = function() {
   this.UUID = '';
   this.UPTASK = '';
@@ -191,21 +191,17 @@ TASK.prototype.save = function (aTask, aCallback) {
   comSave(aTask, 'TASK', aCallback);
 };
 TASK.prototype.delete = function(aUUID, aCallBack){
-
   gdb.run("delete from TASK where UUID = ?", aUUID, function (err, row) {
     if (err) {  console.log("delete task Error: " + err.message);   }
     aCallBack(err, row);
   });
 }
-TASK.prototype.getBy = function (aWhere, aCallback) {
-  comAllBy("*", 'TASK', aWhere, aCallback);
-};
 TASK.prototype.getByUUID = function (aUUID, aCallback) {
-  TASK.prototype.getBy(" where UUID='" + aUUID + "'", aCallback);
+  allSql("select * from task where UUID=?", aUUID ,aCallback);
 };
 TASK.prototype.getChildren = function (rootTask, aCallback) {
   var statckCallback = [];
-  gdb.all("SELECT * FROM Task where UPTASK='" + rootTask.UUID + "'", function(err, row){
+  allSql("SELECT * FROM Task where UPTASK=?",rootTask.UUID,function(err, row){
     rootTask.subTask = [];
     if (row.length > 0) {
       nextTask(rootTask.subTask, row, 0, aCallback); // 就调用一次over。
@@ -215,11 +211,6 @@ TASK.prototype.getChildren = function (rootTask, aCallback) {
   });
   function nextTask(aParent, aRow, aI, aCallFin)  // aRow, 是一个数组。aI作为索引。 alen作为结束判断。
   {
-    /*console.log('nextTask running ... aParent , aRow, ai');
-    console.log(aParent);
-    console.log(aRow);
-    console.log(aI);
-    console.log('--------------'); */
     if (aI < aRow.length) {
       aRow[aI].subTask = [];
       aParent.push(aRow[aI]);
@@ -267,33 +258,29 @@ var WORK = function() {
 WORK.prototype.save = function (aWORK, aCallback) {
   comSave(aWORK, 'WORK', aCallback);
 };
-WORK.prototype.getBy = function (aWhere, aCallback) {
-  comAllBy("*", 'WORK', aWhere, aCallback)
-};
 WORK.prototype.getByUUID = function (aUUID, aCallback) {
-  comAllBy("*", "WORK", " where UUID='" + aUUID + "'", aCallback);
+  allSql("select * from work where UUID=?", aUUID, aCallback);
 };
-WORK.prototype.delete = function(aUUID, aCallBack){
-  gdb.run("delete from WORK where UUID = '?'", aUUID, function (err, row) {
-    if (err) {  console.log("delete WORK Error: " + err.message);   }
-    aCallback(err, row);
-  });
+WORK.prototype.delete = function(aUUID, aCallback){
+  gdb.run("delete from WORK where UUID = ?", aUUID, aCallback);
 }
 }
 var exQ = { // exQ.runSql('xxxx sql').then(funcSuccess(row), funcErr(err)).fail(function(err){console.error(err);});
-  runSql: function (aSql) {
-    logInfo("db.exQ.runsql " + aSql);
+  runSql: function (aSql, aParam) {
+    if (_debugDb) logInfo("db.exQ.runsql " + aSql);
+    if (_debugDb) logInfo(aParam);
     var deferred = Q.defer();
-    gdb.run(aSql, function (err, row) {
+    gdb.run(aSql, aParam, function (err, row) {
       if (err) deferred.reject(err) // rejects the promise with `er` as the reason
       else deferred.resolve(row) // fulfills the promise with `data` as the value
     });
     return deferred.promise;
   },
-  allSql: function (aSql) {
-    logInfo("db.exQ.runsql " + aSql);
+  allSql: function (aSql, aParam) {
+    if (_debugDb) logInfo("db.exQ.runsql " + aSql);
+    if (_debugDb) logInfo(aParam);
     var deferred = Q.defer();
-    gdb.all(aSql, function (err, row) {
+    gdb.all(aSql, aParam, function (err, row) {
       if (err) deferred.reject(err) // rejects the promise with `er` as the reason
       else deferred.resolve(row) // fulfills the promise with `data` as the value
     });

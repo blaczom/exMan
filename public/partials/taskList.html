@@ -1,4 +1,3 @@
-<div>
 <div class="content" ng-show="editMode=='list'">
     <div class="contentHead" ng-show="rtnInfo">
         <span class="markInfo" ng-bind="rtnInfo"></span>
@@ -9,24 +8,23 @@
         <div class="contentBodySearch">
             <span class='contentBodySearchItem'>
                 <div>
-                    <input ng-model="seekUserFlag" id="txtSeekUserFlag" name="txtSeekUserFlag" type="checkbox"/> 用户
-                    <input ng-disabled="!seekUserFlag" ng-model="seekUser" id="txtSeekUser" name="txtSeekUser" type="text" placeholder="内容" />
-                    <input ng-model="seekStateFlag" id="txtSeekStateFlag" name="txtSeekStateFlag" type="checkbox"/> 状态
+                    <input ng-model="seek.seekUserFlag" id="txtSeekUserFlag" name="txtSeekUserFlag" type="checkbox"/> 用户
+                    <input ng-disabled="!seek.seekUserFlag" ng-model="seek.seekUser" id="txtSeekUser" name="txtSeekUser" type="text" placeholder="内容" />
+                    <input ng-model="seek.seekStateFlag" id="txtSeekStateFlag" name="txtSeekStateFlag" type="checkbox"/> 状态
                     <br/>
-                    <input ng-model="seekContentFlag" id="txtSeekContentFlag" name="txtSeekContentFlag" type="checkbox"/> 内容
-                    <input ng-disabled="!seekContentFlag" ng-model="seekContent" id="txtSeekContent" name="txtSeekContent" type="text" placeholder="内容" />
+                    <input ng-model="seek.seekContentFlag" id="txtSeekContentFlag" name="txtSeekContentFlag" type="checkbox"/> 内容
+                    <input ng-disabled="!seek.seekContentFlag" ng-model="seek.seekContent" id="txtSeekContent" name="txtSeekContent" type="text" placeholder="内容" />
                     <button ng-click="taskfilter()"> 查找 </button>
                     <br/>
                     &nbsp;
                 </div>
             </span>
-            <span class='contentBodySearchItem'> <select ng-disabled="!seekStateFlag" ng-model="seekState" multiple ng-options="m for m in planState"></select>
+            <span class='contentBodySearchItem'> <select ng-disabled="!seek.seekStateFlag" ng-model="seek.seekState" multiple ng-options="m for m in planState"></select>
             </span>
         </div>
     </div>
     <hr/>
     <div class="contentBodyTitle">
-
         <span style="width:30px;">   序号  </span>
         <span>
         <span ng-show="showDebug" style="width:300px;"> uuid </span>
@@ -68,8 +66,7 @@
     </div>
     <hr style="border : 1px dashed blue;" />
      <div class="contentFoot">
-         <button ng-disabled="noData" ng-click="taskGet()"> 下<span ng-bind="limit"></span>条 </button>
+         <button ng-disabled="noData" ng-click="taskGet()"> 下<span ng-bind="locate.limit"></span>条 </button>
      </div>
 </div>
 <div ng-include="'incTaskEdit.html'" ></div>
-</div>

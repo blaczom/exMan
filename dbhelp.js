@@ -33,7 +33,7 @@ exports.genSave = function (aObj, aTable) {    // aOption: include:"col1,col2,"
   }
 
   var l_cols = [];
-  var l_vals = [];
+  var l_vals = [], l_quest4vals=[], l_pristine = [];
   for (var i in aObj) {
     // 列名， i， 值 aObj[i]. 全部转化为string。
     var l_first = i[0];
@@ -43,29 +43,38 @@ exports.genSave = function (aObj, aTable) {    // aOption: include:"col1,col2,"
         case "string": case "boolean":case "object":
           l_cols.push(i);
           l_vals.push("'" + lsTmp + "'");
+          l_quest4vals.push("?");
+          l_pristine.push(lsTmp);
           break;
         case "number":
           l_cols.push(i);
           l_vals.push(lsTmp);
+          l_quest4vals.push('?');
+          l_pristine.push(lsTmp);
           break;
         case "function":
           break;
         default:
           console.log("--dbhelp.js don't now what it is-" + i + ":" + aObj[i] + ":" + typeof(lsTmp));
+          process.exit(-100);
           l_cols.push(i);
           l_vals.push(aObj[i].toString());
+          l_quest4vals.push('?');
+          l_pristine.push(lsTmp);
           break;
       }
     }
   }
   var l_sql="";
   switch (aObj._exState) {
-    case "new": // insert into table(col1, col2, ) values (val1, val2, );
-      ls_sql = "insert into " + aTable + '(' + l_cols.join(',') + ") values ( " + l_vals.join(',') + ')';
+    case "new": // db.run("INSERT INTO foo() VALUES (?)", [1,2,3], function() {
+//      ls_sql = "insert into " + aTable + '(' + l_cols.join(',') + ") values ( " + l_vals.join(',') + ')';
+      ls_sql = "insert into " + aTable + '(' + l_cols.join(',') + ") values ( " + l_quest4vals.join(',') + ')';
       break;
     case "dirty": // update table set col1=val, col2="", where uuid = "";
       var lt = [];
-      for (i = 0 ; i < l_cols.length; i ++) lt.push(l_cols[i] + "=" + l_vals[i] );
+//      for (i = 0 ; i < l_cols.length; i ++) lt.push(l_cols[i] + "=" + l_vals[i] );
+      for (i = 0 ; i < l_cols.length; i ++) lt.push(l_cols[i] + "=" + l_quest4vals[i] );
       if ('USER,'.indexOf(aTable.toUpperCase()) >= 0 )
         ls_sql = "update " + aTable + ' set ' + lt.join(',') + " where NICKNAME = '" + aObj['NICKNAME'] +"'";
       else
@@ -74,8 +83,8 @@ exports.genSave = function (aObj, aTable) {    // aOption: include:"col1,col2,"
     default : // do nothing.
       ls_sql = "";
   }
-  return ls_sql;
-}
+  return [ls_sql, l_pristine];   // 返回一个数组。前面是语句，后面是参数。f
+};
 
 exports.genModel = function(aOpt)
 {

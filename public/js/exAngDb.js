@@ -77,7 +77,7 @@ angular.module('exFactory', ['exService', 'angular-md5']).
       workNew: function() { return new objWork() },
       taskNew : function() { return new objTask() },
       planState : ['计划','进行','结束'],
-      memPoint : '1,2,4,7,15',
+      memPoint : '1,1,2,4,7,15',
       getDateTime: getDateTime,
       setUser: function(aUser) { _currentUser = aUser;  localStorageService.setItem('exManlocalUser', aUser) },
       getUser: function(){ return _currentUser },
@@ -85,12 +85,12 @@ angular.module('exFactory', ['exService', 'angular-md5']).
       getLevel: function(){return _currentLevel},
       setWord: function(aParam) { _useWord = aParam; localStorageService.setItem('exManlocalWord', aParam) },
       getWord: function(){return _useWord},
-      getRem: function(){return (_remWord=="true" || _remWord===true)?true:false; },
+      getRem: function(){return (_remWord=="true" || _remWord==true)?true:false; },
       setRem: function(aParam) {  _remWord = aParam;  localStorageService.setItem('exManlocalRem', aParam);
         if (!aParam){   localStorageService.setItem('exManlocalWord', '');  }
       },
       setPlat: function(aParam) { _runPlatform = aParam; localStorageService.setItem('exManPlatform', aParam) },
-      getPlat: function(){return (_runPlatform=="true" || _runPlatform===true)?true:false; },
+      getPlat: function(){return (_runPlatform=="true" || _runPlatform==true)?true:false; },
       checkRtn: function(aRtn) {
         if (aRtn.rtnCode == 0) {
           switch (aRtn.appendOper) {

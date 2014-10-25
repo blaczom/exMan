@@ -1,29 +1,30 @@
-<div id="alt_info" ng-show="rtnInfo" class="alert alert-success">
-    <span ng-bind="rtnInfo"></span>
-</div>
-
-    <h2 class="divex-heading"> 任务梯次 </h2>
-    <span>
-    <div>
-    <input ng-model="seekUserFlag" id="txtSeekUserFlag" name="txtSeekUserFlag" type="checkbox"/> 用户
-    <input ng-disabled="!seekUserFlag" ng-model="seekUser" id="txtSeekUser" name="txtSeekUser" type="text" placeholder="内容" />
-        <input ng-model="seekStateFlag" id="txtSeekStateFlag" name="txtSeekStateFlag" type="checkbox"/> 状态
-        <br/>
-    <input ng-model="seekContentFlag" id="txtSeekContentFlag" name="txtSeekContentFlag" type="checkbox"/> 内容
-    <input ng-disabled="!seekContentFlag" ng-model="seekContent" id="txtSeekContent" name="txtSeekContent" type="text" placeholder="内容" />
-        <button ng-click="taskfilter()"> 查找 </button>
-        <br/>
-        &nbsp;
+<div class="content" ng-show="editMode=='list'">
+    <div class="contentHead" ng-show="rtnInfo">
+        <span class="markInfo" ng-bind="rtnInfo"></span>
     </div>
-    </span>
-    <span> <select ng-disabled="!seekStateFlag" ng-model="seekState" multiple ng-options="m for m in planState"></select>
 
-    </span>
-
-<br/>
-<div class="divex-list">
+    <h3 class="divex-heading"> 任务梯次 </h3>
+    <div class='contentBody'>
+        <div class="contentBodySearch">
+            <span class='contentBodySearchItem'>
+                <div>
+                    <input ng-model="seek.seekUserFlag" id="txtSeekUserFlag" name="txtSeekUserFlag" type="checkbox"/> 用户
+                    <input ng-disabled="!seek.seekUserFlag" ng-model="seek.seekUser" id="txtSeekUser" name="txtSeekUser" type="text" placeholder="内容" />
+                    <input ng-model="seek.seekStateFlag" id="txtSeekStateFlag" name="txtSeekStateFlag" type="checkbox"/> 状态
+                    <br/>
+                    <input ng-model="seek.seekContentFlag" id="txtSeekContentFlag" name="txtSeekContentFlag" type="checkbox"/> 内容
+                    <input ng-disabled="!seek.seekContentFlag" ng-model="seek.seekContent" id="txtSeekContent" name="txtSeekContent" type="text" placeholder="内容" />
+                    <button ng-click="taskfilter()"> 查找 </button>
+                    <br/>
+                    &nbsp;
+                </div>
+            </span>
+            <span class='contentBodySearchItem'> <select ng-disabled="!seek.seekStateFlag" ng-model="seek.seekState" multiple ng-options="m for m in planState"></select>
+            </span>
+        </div>
+    </div>
     <hr/>
-    <div class="divex-listHeader">
+    <div class="contentBodyTitle">
         <span style="width:30px;">   序号  </span>
         <span ng-show="showDebug" style="width:300px;"> uuid </span>
         <span style="width:150px;"> 内容 </span>
@@ -38,9 +39,9 @@
         <span style="width:40px;">完成情况</span>
     </div>
     <hr/>
-    <div class="divex-listContent" ng-repeat='taskItem in taskSet' >
-        <span ng-class="taskItem.classShow">
+    <div class="contentBodyContent" ng-repeat='taskItem in taskSet' >
         <span>   {{ taskItem.preFix }} </span>
+        <span ng-class="taskItem.classShow">
         <span ng-show="showDebug" style="width:200px;">{{ taskItem.UUID }}</span>
         <span style="width:150px;">{{taskItem.CONTENT.substr(0,15) }}</span>
         <span ng-show="showDebug" style="width:40px;">{{ taskItem.UPTASK }}</span>
@@ -49,7 +50,7 @@
         <span ng-show="showDebug" style="width:140px;">{{taskItem.FINISH}}</span>
         <span style="width:40px;">{{taskItem.STATE}}</span>
         <span style="width:60px;">{{taskItem.OWNER}}</span>
-        <span style="width:60px;">{{taskItem.OUGHT}}</span>
+        <span style="width:60px;">{{taskItem.OUGHT.substr(0,8)}}</span>
         <span style="width:40px;">{{taskItem.PRIVATE}}</span>
         <span style="width:40px;">{{taskItem.subTask}}</span>
         <button ng-click="taskExpend($index)"> 展 </button>
@@ -59,7 +60,9 @@
         </span>
         <br/>
     </div>
-    <hr/>
-    <button ng-click="taskGet()"> 下<span ng-bind="limit"></span>条 </button>
+    <hr style="border : 1px dashed blue;" />
+    <div class="contentFoot">
+        <button ng-disabled="noData" ng-click="taskGet()"> 下<span ng-bind="locate.limit"></span>条 </button>
+    </div>
 </div>
 <div ng-include="'incTaskEdit.html'" ></div>

@@ -1,34 +1,36 @@
-<div id="alt_info" ng-show="rtnInfo" class="alert alert-success">
-    <span ng-bind="rtnInfo"></span>
-</div>
-
-    <h2 class="divex-heading"> 工作记录 </h2>
-        <span>
-    <span>
-    <div>
-    <input ng-model="seekUserFlag" id="txtSeekUserFlag" name="txtSeekUserFlag" type="checkbox"/> 用户
-    <input ng-disabled="!seekUserFlag" ng-model="seekUser" id="txtSeekUser" name="txtSeekUser" type="text" placeholder="内容" />
-        <button ng-click="workfilter()"> 条件查找 </button>
-        <br/>
-    <input ng-model="seekContentFlag" id="txtSeekContentFlag" name="txtSeekContentFlag" type="checkbox"/> 内容
-    <input ng-disabled="!seekContentFlag" ng-model="seekContent" id="txtSeekContent" name="txtSeekContent" type="text" placeholder="内容" />
-
-        <br/>
-        <input ng-model="seekTaskFlag" id="txtSeekTaskFlag" name="txtSeekTaskFlag" type="checkbox"/> 父任务
-        <input ng-disabled="true" ng-model="seekTask" id="txtSeekTask" name="txtSeekTask" type="text" placeholder="内容" />
-        <br/>
-        <a href="#/taskList/gogo"> 查找任务 </a>
-        <button ng-disabled="!seekTaskUUID" ng-click="workAdd()"> 增加子记录 </button>
+<div class="content" ng-show="editMode=='list'">
+    <div class="contentHead" ng-show="rtnInfo">
+        <span class="markInfo" ng-bind="rtnInfo"></span>
     </div>
-        <span ng-show="true" ng-model="taskUUID">  </span>
-    </span>
-    <span ><input ng-model="seekStateFlag" id="txtSeekStateFlag" name="txtSeekStateFlag" type="checkbox"/> 状态 </span>
-    <span><select ng-disabled="!seekStateFlag" ng-model="seekState" multiple ng-options="m for m in planState"></select></span>
-</span>
-<br/>
-<div class="divex-list">
+    <h3 class="divex-heading"> 工作记录 </h3>
+
+    <div class='contentBody'>
+        <div class="contentBodySearch">
+            <span class='contentBodySearchItem'>
+                <span>
+                    <div>
+                        <input ng-model="seek.seekUserFlag" id="txtSeekUserFlag" name="txtSeekUserFlag" type="checkbox"/> 用户
+                        <input ng-disabled="!seek.seekUserFlag" ng-model="seek.seekUser" id="txtSeekUser" name="txtSeekUser" type="text" placeholder="内容" />
+                        <br/>
+                        <input ng-model="seek.seekContentFlag" id="txtSeekContentFlag" name="txtSeekContentFlag" type="checkbox"/> 内容
+                        <input ng-disabled="!seek.seekContentFlag" ng-model="seek.seekContent" id="txtSeekContent" name="txtSeekContent" type="text" placeholder="内容" />
+                        <br/>
+                        <input ng-model="seek.seekTaskFlag" id="txtSeekTaskFlag" name="txtSeekTaskFlag" type="checkbox"/> 父任务
+                        <input ng-disabled="true" ng-model="seek.seekTask" id="txtSeekTask" name="txtSeekTask" type="text" placeholder="内容" />
+                        <br/>
+                        <span class="linkButton"><a href="#/taskList/gogo" > 查找任务 </a> </span>
+                        <button ng-disabled="!seek.seekTaskUUID" ng-click="workAdd()"> 增加子记录 </button>
+                        <button ng-click="workfilter()"> 条件查找 </button>
+                    </div>
+
+                </span>
+                <span ><input ng-model="seek.seekStateFlag" id="txtSeekStateFlag" name="txtSeekStateFlag" type="checkbox"/> 状态 </span>
+                <span><select ng-disabled="!seek.seekStateFlag" ng-model="seek.seekState" multiple ng-options="m for m in planState"></select></span>
+            </span>
+        </div>
+    </div>
     <hr/>
-    <div class="divex-listHeader">
+    <div class="contentBodyTitle">
         <span style="width:30px;">   序号  </span>
         <span ng-show="showDebug" style="width:300px;"> uuid </span>
         <span style="width:200px;"> 内容 </span>
@@ -39,13 +41,12 @@
         <span style="width:60px;">所有者</span>
         <span style="width:40px;">私有</span>
         <span style="width:40px;">权限</span>
-        <span style="width:40px;">记忆点</span>
+        <span style="width:40px;">记忆间隔</span>
         <span style="width:40px;">加强记忆</span>
         <span style="width:40px;">提醒闹钟</span>
-
     </div>
     <hr/>
-    <div class="divex-listContent" ng-repeat='workItem in workSet' >
+    <div class="contentBodyContent" ng-repeat='workItem in workSet' >
         <span style="width:30px;">    {{$index}}  </span>
         <span ng-show="showDebug" style="width:300px;">{{ workItem.UUID }}</span>
         <span style="width:200px;">{{workItem.CONTENT.substr(0,20) }}</span>
@@ -54,57 +55,50 @@
         <span style="width:100px;">{{workItem.LASTMODIFY}}</span>
         <span style="width:40px;">{{workItem.STATE}}</span>
         <span style="width:60px;">{{workItem.OWNER}}</span>
-        <span style="width:40px;">{{workItem.PRIVATE}}</span>
+        <input style="width:40px;" ng-disabled="1" ng-checked="workItem.PRIVATE?true:false" type="checkbox"/>
         <span style="width:40px;">{{workItem.LEVEL}}</span>
-        <span style="width:40px;">{{workItem.MEMPOINT}}</span>
-        <span style="width:40px;">{{workItem.MEMEN}}</span>
+        <span style="width:40px;">{{workItem.MEMPOINT.substr(0,6)}}</span>
+        <input style="width:40px;" ng-disabled="1" ng-checked="workItem.MEMEN?true:false" type="checkbox"/>
         <span style="width:40px;">{{workItem.MEMTIMER}}</span>
-
         <button ng-click="workEdit($index)"> 改 </button>
         <button ng-click="workAdd($index)"> 增 </button>
         <br/>
     </div>
-    <hr/>
-    <button ng-click="workGet()"> 下<span ng-bind="limit"></span>条 </button>
+    <hr style="border : 1px dashed blue;" />
+    <button ng-click="workGet()"> 下<span ng-bind="locate.limit"></span>条 </button>
 </div>
 
-<div id="divModal" ng-show="editMode" style="width:100%;height:100%;background-color:#9999CC;position:absolute;top:0;left:0;z-index:10;display:inline;" >
-    <div ng-show="rtnInfo" class="alert alert-success">
-        <span ng-bind="rtnInfo"></span>
-    </div>
-    <div class="divex-formEdit">
+<div class="divModal" ng-show="editMode=='edit'" style="width:100%;height:100%;background-color:#9999CC;position:absolute;top:0;left:0;z-index:10;display:inline;" >
+    <div class="modalContent">
         <form name="editForm" id="editForm" novalidate>
-        <button ng-click="workSave()"> 保存 </button>
-        <button ng-click="workCancel()"> 取消 </button>
-        <button ng-click="workDelete()"> 删除 </button>
-        <br/>
-
-        <input ng-show="showDebug" ng-model="work.UUID" id="txtUUID" name="txtUUID" type="text" class="fromex-control" placeholder="task id"  autofocus />
-
-        <input ng-model="work.UPTASK" id="txtUPTASK" name="txtUPTASK" type="text" class="fromex-control" placeholder="父任务" />
-        <br/>创建时间：
-        <input ng-model="work.CREATETIME" valid-date-model id="txtCREATETIME" name="txtCREATETIME" type="text" class="fromex-control" placeholder="YYYY-MM-DD HH:MM" />
-        <br/>最后编辑时间：
-        <input ng-model="work.LASTMODIFY"  id="txtLASTMODIFY" name="txtLASTMODIFY" type="text" class="fromex-control" placeholder="YYYY-MM-DD HH:MM" valid-date-model/>
-        <br/>工作状态：<select ng-model="work.STATE"  ng-options="m for m in planState">
+            <button ng-click="workSave()"> 保存 </button>
+            <button ng-click="workCancel()"> 取消 </button>
+            <button ng-click="workDelete()"> 删除 </button>
+            <hr/>
+            <input ng-show="showDebug" ng-model="work.UUID" id="txtUUID" name="txtUUID" type="text" class="fromex-control" placeholder="task id"  />
+            <input ng-show="showDebug" ng-model="work.UPTASK" id="txtUPTASK" name="txtUPTASK" type="text" class="fromex-control" placeholder="父任务" />
+            创建时间：
+            <input ng-model="work.CREATETIME" valid-date-model id="txtCREATETIME" name="txtCREATETIME" type="text" class="fromex-control" placeholder="YYYY-MM-DD HH:MM" />
+            工作状态：<select ng-model="work.STATE"  ng-options="m for m in planState">
             <option value="">-- 请选择 --</option>
-        </select>
-        <span > 所有者： </span>
-        <input ng-model="work.OWNER" id="txtOWNER" name="txtOWNER" type="text" class="fromex-control" placeholder="所有者" />
-        <span > 阅读权限： </span>
-        <input ng-model="work.LEVEL" id="txtLEVEL" name="txtLEVEL" type="text" class="fromex-control" placeholder="阅读权限"  autofocus />
-
-        <input ng-model="work.PRIVATE" id="txtPRIVATE" name="txtPRIVATE" type="checkbox" text = "私有"/>私有 <br/>
-        <input ng-model="work.MEMEN" ng-click="memCheck()" id="txtMEMEN" name="txtMEMEN" type="checkbox" text = "记忆"/> 加强记忆
-        记忆点: <input ng-disabled="true" ng-model="work.MEMPOINT" id="txtMEMPOINT" name="txtMEMPOINT" type="text" text = "记忆"/>
-        下次提醒: <input ng-disabled="true" ng-model="work.MEMTIMER" id="txtMEMTIMER" name="txtMEMTIMER" type="text" text = "记忆"/>
-        <button ng-click="workMem()"> 本次记忆完成 </button>
+            </select>
+            <br/>最后编辑：
+            <input ng-model="work.LASTMODIFY"  id="txtLASTMODIFY" name="txtLASTMODIFY" type="text" class="fromex-control" placeholder="YYYY-MM-DD HH:MM" valid-date-model/>
+            <span  > 所有者： </span>
+            <input style="width:80px;" ng-model="work.OWNER" id="txtOWNER" name="txtOWNER" type="text" class="fromex-control" placeholder="所有者" />
+            <br/>
+            <span > 阅读权限： </span>
+            <input style="width:50px;" ng-model="work.LEVEL" id="txtLEVEL" name="txtLEVEL" type="text" class="fromex-control" placeholder="阅读权限"   />
+            <input ng-model="work.PRIVATE" id="txtPRIVATE" name="txtPRIVATE" type="checkbox" text = "私有"/>私有
+            <input ng-model="work.MEMEN" ng-click="memCheck()" id="txtMEMEN" name="txtMEMEN" type="checkbox" text = "记忆"/> 加强记忆
+            <button ng-click="workMem()"> 本次记忆完成 </button>
+            <br/>记忆间隔: <input style="width:80px;" ng-disabled="true" ng-model="work.MEMPOINT" id="txtMEMPOINT" name="txtMEMPOINT" type="text" text = "记忆"/>
+            下次提醒: <input style="width:80px;" ng-model="work.MEMTIMER" id="txtMEMTIMER" name="txtMEMTIMER" type="text" text = "记忆"/>
             <br/>
             <span > 内容： </span>
-        <textarea ng-model="work.CONTENT" class="formex-control" name="txtMsg" id="txtCONTENT" cols="60" rows="6" placeholder="内容" > </textarea>
+            <textarea ng-model="work.CONTENT" class="formex-control" name="txtMsg" id="txtCONTENT" cols="45" rows="10" placeholder="内容" > </textarea>
         </form>
         <span class="mark" ng-show="editForm.$invalid"> 表单校验失败，请更正红底的输入项目。 </span>
     </div>
 </div>
-
 
