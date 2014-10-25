@@ -1,28 +1,40 @@
-﻿(div)
-
-index ...--------------------------------
-<div id = exPage>          ----------
-  <div id = indexHead>
-    <div id = headNav>
-      <span class = headNav>
-  <div id = indexCont>     -- ng-view here with controller
-    <div id = contInfo>
-      <span class = contInfo>
-    <div id = contSearch>
-      <span class = contSearch>
-    <div id = contTitle>
-      <span class = contTitle>
-    <div id = contCont>
-      <span class = contCont>
-  <div id = indexFoot>
-      <span class = indexFoot>
+﻿index ...--------------------------------
+<div class='exPage'>          ----------
+  <div class='head'>
+      <div class='headNav'>
+        <span class="headNavItem"/>
+      </div>
+  </div>
+  <div class="contentview">  -- ng-view here with controller
+  <div class='content'>
+    <div class='contentHead'>
+      <span class='markInfo' />
+    </div>
+    <div class='contentBody'>
+      <div class="contentBodySearch"
+        <span class ='contentBodySearchItem' />
+      </div>
+      <div class = 'contentBodyTitle'>
+        <span class ="contentBodyTitleItem" />
+      </div>
+      <div class ="contentBodyContent">
+        <span class="contentBodyContentItem">
+      </div>
+    </div>
+    <div class="contentFoot">
+      <span class="contentFootItem" />
+    </div>
+  </div>
+  </div>
+  <div class = "foot">
+      <span class = "footItem">
+  </div>
 ----------------------------------------------
 div modal page ----------------
-<div id = modalInfo>
-  <span class = modalInfo>
-<div id = modalCont >
-   <span class = modalCont>
-
+<div class="divModal">
+    <div class = "modalContent">
+        <form name="editForm">
+        <span class = "markInfo" >
 
 
 

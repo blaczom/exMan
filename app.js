@@ -6,6 +6,7 @@ var favicon = require('serve-favicon');
 var session = require('express-session');
 var bodyParser = require('body-parser');
 var app = express();
+app.set('port',80);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -57,21 +58,5 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-
-app.rtnErr = function(aMsg, aErr) {
-  var strErr, strMsg;
-  ((typeof aMsg) == 'object') ? strMsg = JSON.stringify(aMsg) : strMsg = aMsg;
-  ((typeof aErr) == 'object') ? strErr = JSON.stringify(aErr): strErr = aErr;
-  return { "rtnInfo": strMsg, rtnCode: -1, "alertType": 0, error: strErr, exObj:{} }
-};
-app.rtnMsg = function(aMsg) {
-  return { "rtnInfo": aMsg, rtnCode: 1, "alertType": 0, error: [], exObj:{} }
-};
-
-app.logInfo = function()
-{
-  console.log(arguments);
-};
-
 
 module.exports = app;

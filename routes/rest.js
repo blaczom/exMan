@@ -3,9 +3,21 @@
  */
 var express = require('express'),
   router = express.Router(),
-  crypto = require('crypto'),
+//  crypto = require('crypto'),
   appDb =  require('../db');
   var Q = require('q');
+
+var rtnErr = function(aMsg, aErr) {
+  return { "rtnInfo": JSON.stringify(aMsg), rtnCode: -1, "alertType": 0, error: JSON.stringify(aErr), exObj:{} }
+};
+var rtnMsg = function(aMsg) {
+  return { "rtnInfo": aMsg, rtnCode: 1, "alertType": 0, error: [], exObj:{} }
+};
+
+var logInfo = function()
+{
+  console.log(arguments);
+};
 
 router.get('/', function(req, res) {
   res.send('没有此功能。');
@@ -68,7 +80,10 @@ router.post('/', function(req, res) {
   var lExparm = req.body['ex_parm'];
   if ("userlogin,userReg,".indexOf(lFunc+",") < 0) {
     if (!checkLogin(req,res)) {
-      res.json(app.rtnErr('未登录，请先登录。'));
+      var l_rtn = rtnErr('未登录，请先登录。');
+      l_rtn.rtnCode = 0;
+      l_rtn.appendOper = 'login';   // rtnCode = 0的时候，就是有附加操作的时候。
+      res.json(l_rtn);
       return
     };
   }
@@ -80,7 +95,7 @@ router.post('/', function(req, res) {
            md5Pass = lExparm.regUser.md5Pass; //var md5UserPwd = crypto.createHash('md5').update(userName + userPwd).digest('hex');
 
       appDb.User.getByNickName(userName, function (aErr, aRtn) {
-        if (aErr) res.json(app.rtnErr(aErr));
+        if (aErr) res.json(rtnErr(aErr));
         else {
           if (aRtn.length > 0) {      // 存在了。
             l_user = aRtn[0];
@@ -91,15 +106,15 @@ router.post('/', function(req, res) {
               l_user.IDCARD = lExparm.regUser.IDCARD;
               l_user._exState = 'dirty';
               appDb.User.save(l_user, function (aErr, aRtn) {
-                if (aErr)  res.json(app.rtnErr("创建失败。请通知管理员"));
-                else  res.json(app.rtnMsg("更改成功。" ));
+                if (aErr)  res.json(rtnErr("创建失败。请通知管理员"));
+                else  res.json(rtnMsg("更改成功。" ));
               });
             }
             else
-              res.json(app.rtnMsg('原密码错误。'));
+              res.json(rtnMsg('原密码错误。'));
           }
           else {
-            res.json(app.rtnMsg('imposible error ... 用户不存在了。。。'));
+            res.json(rtnMsg('imposible error ... 用户不存在了。。。'));
           }
         }
 
@@ -109,7 +124,7 @@ router.post('/', function(req, res) {
     case "userlogin": { // lExparm.txtUserName, lExparm.txtUserPwd
       var userName = lExparm.txtUserName,  userPwd = lExparm.txtUserPwd,  userRem = lExparm.remPass;
       appDb.User.getByNickName(userName, function (aErr, aRtn) {
-        if (aErr) res.json(app.rtnErr(aErr));
+        if (aErr) res.json(rtnErr(aErr));
         else {
           if (aRtn.length > 0) {
             var xtmp = userName + userPwd
@@ -118,15 +133,15 @@ router.post('/', function(req, res) {
               req.session.loginUser = userName;
               req.session.userLevel = aRtn[0].LEVEL;
               req.session.userGrant = aRtn[0].GRANT;
-              res.json(app.rtnMsg('登录成功。'));
+              res.json(rtnMsg('登录成功。'));
             }
             else {
-              res.json(app.rtnErr('密码有误'));
+              res.json(rtnErr('密码有误'));
             }
           }
           else
           {
-            res.json(app.rtnErr('用户不存在'));
+            res.json(rtnErr('用户不存在'));
           }
         }
       });
@@ -138,10 +153,10 @@ router.post('/', function(req, res) {
           authCod = lExparm.regUser.authCode;
           md5Pass = lExparm.regUser.md5Pass; //var md5UserPwd = crypto.createHash('md5').update(userName + userPwd).digest('hex');
       appDb.User.getByNickName(userName, function (aErr, aRtn) {
-        if (aErr) res.json(app.rtnErr(aErr));
+        if (aErr) res.json(rtnErr(aErr));
         else {
           if (aRtn.length > 0) {      // 存在了。
-            res.json(app.rtnMsg('用户已经存在。'));
+            res.json(rtnMsg('用户已经存在。'));
           }
           else {
             // 根据授权码判断授权是否可以。然后创建新用户，然后删除授权码，然后提交事物。
@@ -160,11 +175,11 @@ router.post('/', function(req, res) {
                       appDb.User.save(userAdd, function (aErr, aRtn) {
                       if (aErr) {
                         appDb.directDb.exec('rollback');
-                        res.json(app.rtnErr("创建失败。请通知管理员"));
+                        res.json(rtnErr("创建失败。请通知管理员"));
                       }
                       else {
                         appDb.directDb.exec('commit');
-                        res.json(app.rtnMsg("创建成功，请登录" ));
+                        res.json(rtnMsg("创建成功，请登录" ));
                       } });
                     }
                     catch  (e) {
@@ -173,10 +188,10 @@ router.post('/', function(req, res) {
                   });
                 }
                 else
-                  res.json(app.rtnMsg('授权码错误。'));
+                  res.json(rtnMsg('授权码错误。'));
               })
               .fail(function(){
-                res.json(app.rtnMsg('错误：' + arguments))
+                res.json(rtnMsg('错误：' + arguments))
             })      ;
           }
         }
@@ -205,9 +220,9 @@ router.post('/', function(req, res) {
 
       getSubList("select distinct * from task " + ls_where + " order by PLANSTART limit " +
         lExparm.limit + " offset " +  lExparm.offset, lExparm.filter.seekTop,  function(aErr, aRtn) {
-        if (aErr) res.json(app.rtnErr(aErr));
+        if (aErr) res.json(rtnErr(aErr));
         else {
-          ls_rtn = app.rtnMsg('');  // 检索成功不需要提示信息。
+          ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
           ls_rtn.rtnUser = req.session.loginUser;
           ls_rtn.exObj = aRtn;
           res.json(ls_rtn);
@@ -218,9 +233,9 @@ router.post('/', function(req, res) {
     case 'taskEditSave':  {// lExparm.msgObj
       lExparm.msgObj.OWNER = req.session.loginUser;
       appDb.Task.save(lExparm.msgObj, function(aErr, aRtn){
-        if (aErr) { res.json(app.rtnErr(aErr)) }
+        if (aErr) { res.json(rtnErr(aErr)) }
         else {
-          res.json(app.rtnMsg("更新成功."));
+          res.json(rtnMsg("更新成功."));
         }
       });
       break;
@@ -229,23 +244,23 @@ router.post('/', function(req, res) {
       if (lExparm.msgObj.OWNER == req.session.loginUser) {
         appDb.Task.delete(lExparm.msgObj.UUID, function (aErr, aRtn) {
           if (aErr) {
-            res.json(app.rtnErr(aErr))
+            res.json(rtnErr(aErr))
           }
           else {
-            res.json(app.rtnMsg("删除成功."));
+            res.json(rtnMsg("删除成功."));
           }
         });
       }
       else {
-        res.json(app.rtnErr("不能删除别人的任务。."));
+        res.json(rtnErr("不能删除别人的任务。."));
       }
       break;
     }
     case 'userGetAll':  { // lExparm.msgObj
       appDb.comAllBy(" NICKNAME ", 'user'," order by NICKNAME ", function(aErr, aRtn) {
-        if (aErr) res.json(app.rtnErr(aErr));
+        if (aErr) res.json(rtnErr(aErr));
         else {
-          ls_rtn = app.rtnMsg('');  // 检索成功不需要提示信息。
+          ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
           ls_rtn.exObj = aRtn?aRtn:[];  // 返回数组。
           res.json(ls_rtn);
         }
@@ -254,9 +269,9 @@ router.post('/', function(req, res) {
     }
     case 'userGet':  { // lExparm.msgObj
       appDb.allSql("select * from user where NICKNAME ='" + lExparm.userName + "'", function(aErr, aRtn) {
-        if (aErr) res.json(app.rtnErr(aErr));
+        if (aErr) res.json(rtnErr(aErr));
         else {
-          ls_rtn = app.rtnMsg('');  // 检索成功不需要提示信息。
+          ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
           ls_rtn.exObj = aRtn?aRtn:[];  // 返回数组。
           res.json(ls_rtn);
         }
@@ -290,9 +305,9 @@ router.post('/', function(req, res) {
       console.log("workListGet sql where : " + ls_where);
       appDb.comAllBy("distinct *", 'work',
           ls_where + " order by memen , CREATETIME limit " +  lExparm.limit + " offset " +  lExparm.offset, function(aErr, aRtn) {
-          if (aErr) res.json(app.rtnErr(aErr));
+          if (aErr) res.json(rtnErr(aErr));
           else {
-            ls_rtn = app.rtnMsg('');  // 检索成功不需要提示信息。
+            ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
             ls_rtn.rtnUser = req.session.loginUser;
             ls_rtn.exObj = aRtn?aRtn:[];  // 返回数组。
             res.json(ls_rtn);
@@ -302,9 +317,9 @@ router.post('/', function(req, res) {
     }
     case 'taskAllGet':{
       getSubList("select * from task  where uptask='" + lExparm.taskUUID + "' order by PLANSTART ", true,  function(aErr, aRtn) {
-        if (aErr) res.json(app.rtnErr(aErr));
+        if (aErr) res.json(rtnErr(aErr));
         else {
-          ls_rtn = app.rtnMsg('');  // 检索成功不需要提示信息。
+          ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
           ls_rtn.rtnUser = req.session.loginUser;
           ls_rtn.exObj = aRtn;
           res.json(ls_rtn);
@@ -316,24 +331,24 @@ router.post('/', function(req, res) {
       if (lExparm.msgObj.OWNER == req.session.loginUser) {
         appDb.Work.delete(lExparm.msgObj.UUID, function (aErr, aRtn) {
           if (aErr) {
-            res.json(app.rtnErr(aErr))
+            res.json(rtnErr(aErr))
           }
           else {
-            res.json(app.rtnMsg("删除成功."));
+            res.json(rtnMsg("删除成功."));
           }
         });
       }
       else {
-        res.json(app.rtnErr("不能删除别人的任务。."));
+        res.json(rtnErr("不能删除别人的任务。."));
       }
       break;
     }
     case 'workEditSave':  {  // lExparm.msgObj
       lExparm.msgObj.OWNER = req.session.loginUser;
       appDb.Work.save(lExparm.msgObj, function(aErr, aRtn){
-        if (aErr) { res.json(app.rtnErr(aErr)) }
+        if (aErr) { res.json(rtnErr(aErr)) }
         else {
-          res.json(app.rtnMsg("更新成功."));
+          res.json(rtnMsg("更新成功."));
         }
       });
       break;
@@ -341,7 +356,7 @@ router.post('/', function(req, res) {
     case "mainList":
       break;
     default :
-      res.json(app.rtnErr('不存在该请求：' + JSON.stringify(req.body)));
+      res.json(rtnErr('不存在该请求：' + JSON.stringify(req.body)));
       break;
   }
 });

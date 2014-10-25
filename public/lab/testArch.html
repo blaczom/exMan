@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html ng-app="Demo">
+<head>
+    <meta charset=utf-8 />
+    <title>ngResource DEMO</title>
+</head>
+<body>
+<div ng-controller="GeekListCtrl">
+    <ul>
+        <li ng-repeat="geek in geeks">
+            <a href="#" ng-click="show({{geek.id}})">{{geek.name}}</a>
+        </li>
+    </ul>
+    <div ng-show="user">
+        {{user.msg}}
+    </div>
+</div>
+
+<script src="../js/angular.js"></script>
+<script src="../js/angular-resource.js"></script>
+<script type="text/javascript">
+    var Demo = angular.module('Demo', ["ngResource"])
+            .factory('Geek', function ($resource){
+                return $resource("lab/:geekId.json", {}, {
+                    query: {
+                        method: "GET",
+                        params: {geekId: "list"},
+                        isArray: true
+                    }
+                });
+            });
+
+    function GeekListCtrl($scope, Geek){
+        $scope.geeks = Geek.query();
+        $scope.show = function(id){
+            $scope.user = Geek.get({geekId: id});
+        };
+    }
+
+    function GeekDetailCtrl($scope, $routeParams, Geek){
+        $scope.geek = Geek.get({geekId: $routeParams.geekId}, function(geek){
+            console.dir(geek);
+        });
+    }
+</script>
+</body>
+</html>

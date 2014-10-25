@@ -2,8 +2,8 @@
  * Created by blaczom@gmail.com on 2014/10/8.
  */
 
-angular.module('exFactory', ['exService']).
-  factory('exDb', ['exUtil', '$http', '$q', function(exUtil, $http, $q){
+angular.module('exFactory', ['exService', 'angular-md5']).
+  factory('exDb', ['exUtil', '$http', '$q', '$location',function(exUtil, $http, $q,$location){
     if(window.localStorage){
     }else{
       alert('This browser does NOT support localStorage');
@@ -54,19 +54,6 @@ angular.module('exFactory', ['exService']).
       this._exState='new';
     }
 
-    var getAllUserName = function(){
-      var deferred = $q.defer();
-      $http.post('/rest',{ func: 'userGetAll', // my message
-        ex_parm: { } })
-        .success(function (data, status, headers, config) {    // 得到新的消息
-          deferred.resolve(data); // ls_rtn.exObj = []  exObj
-          })
-        .error(function (data, status, headers, config) {
-          deferred.reject(error);
-        });
-      return deferred.promise;
-    };
-
     var getDateTime = function(aTime, aOnlyDate){
       // 向后一天，用 new Date( new Date() - 0 + 1*86400000)
       // 向后一小时，用 new Date( new Date() - 0 + 1*3600000)
@@ -83,19 +70,14 @@ angular.module('exFactory', ['exService']).
       _useWord = (localStorageService.getItem('exManlocalWord') || ""),
       _remWord = (localStorageService.getItem('exManlocalRem') || "");
 
+    var _runPlatform = (localStorageService.getItem('exManPlatform') || "");
+
     return{
       userNew: function() { return new objUser() },
       workNew: function() { return new objWork() },
       taskNew : function() { return new objTask() },
       planState : ['计划','进行','结束'],
       memPoint : '1,2,4,7,15',
-      getAllUserPromise: function() {  return getAllUserName();
-        /* var promise = getAllUserName();
-        promise.then( function (data) {
-          var lrtn = [];
-          for (var i in data) {   lrtn.push(data[i].NICKNAME)  }
-        }, function (reason) { console.log(reason); return []  }); */
-      },
       getDateTime: getDateTime,
       setUser: function(aUser) { _currentUser = aUser;  localStorageService.setItem('exManlocalUser', aUser) },
       getUser: function(){ return _currentUser },
@@ -103,9 +85,23 @@ angular.module('exFactory', ['exService']).
       getLevel: function(){return _currentLevel},
       setWord: function(aParam) { _useWord = aParam; localStorageService.setItem('exManlocalWord', aParam) },
       getWord: function(){return _useWord},
-      getRem: function(){return _remWord},
+      getRem: function(){return (_remWord=="true" || _remWord===true)?true:false; },
       setRem: function(aParam) {  _remWord = aParam;  localStorageService.setItem('exManlocalRem', aParam);
         if (!aParam){   localStorageService.setItem('exManlocalWord', '');  }
+      },
+      setPlat: function(aParam) { _runPlatform = aParam; localStorageService.setItem('exManPlatform', aParam) },
+      getPlat: function(){return (_runPlatform=="true" || _runPlatform===true)?true:false; },
+      checkRtn: function(aRtn) {
+        if (aRtn.rtnCode == 0) {
+          switch (aRtn.appendOper) {
+            case 'login':
+              $location.path('/');
+              return false;
+              break;
+          }
+        }
+        return true;
       }
     }
-  }]);
+  }])
+;

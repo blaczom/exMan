@@ -1,18 +1,51 @@
 body {
   padding: 5px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-  background-color: #eee;
+  font: 14px Cursive;
+  background-color: #67BF7F;
 }
 
-.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+a { text-decoration: NONE; color: black;}
 
 span {
     display:inline-block;
     border: 0px solid red;
     vertical-align: top;
+    color: black;
 }
-span .mark{
-    background-color: #ffff00;
+.contentBodyContentItemPanel{
+    background-color: greenyellow;  margin-bottom: 2px;
+}
+
+.contentBodyContentItem{
+    margin-left: 1px;
+}
+
+
+/* 功能导航 */
+.headNav span :hover{
+    background-color:pink;
+}
+
+h3 { margin: 1px; padding: 1px;}
+
+/* 模态div窗口 */
+.divModal{
+    background-color:#00A06B;
+}
+
+/* 服务器返回的信息提示。高亮 */
+.markInfo{
+    background-color:#F9F400;
+    padding: 2px;
+}
+
+input.ng-invalid {
+    border: 1px solid red;
+    background-color: pink;
+}
+input.ng-valid {
+    border: 1px solid green;
+    background-color: lightgreen;
 }
 
 .prefixHead{
@@ -21,53 +54,49 @@ span .mark{
     margin: 1px;
 }
 
-a {
-  color: #00B7FF;
-}
 
-.navbar-static-top {
-  margin-bottom: 19px;
-}
+/********************/
+
 
 .formex{
-  max-width: 600px;
-  padding: 5px;
-  margin: 0 auto;
+    max-width: 600px;
+    padding: 5px;
+    margin: 0 auto;
 }
 .formex .formex-heading,
 .formex .checkbox {
-  margin-bottom: 5px;
+    margin-bottom: 5px;
     display:block;
 }
 .formex .checkbox {
-  font-weight: normal;
-  display:block;
+    font-weight: normal;
+    display:block;
 }
 .formex .formex-control {
-  position: relative;
-  font-size: 16px;
-  height: auto;
-  padding: 5px;
-  display: block;
-  -webkit-box-sizing: border-box;
-     -moz-box-sizing: border-box;
-          box-sizing: border-box;
+    position: relative;
+    font-size: 16px;
+    height: auto;
+    padding: 5px;
+    display: block;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
 }
 .formex .formex-control:focus {
-  z-index: 2;
+    z-index: 2;
 }
 .formex input[type="text"] {
-  margin-bottom: 5px;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  display:block;
+    margin-bottom: 5px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    display:block;
 }
 
 .formex input[type="password"] {
-  margin-bottom: 5px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  display:block;
+    margin-bottom: 5px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    display:block;
 }
 
 .divex-formEdit .fromex-control
@@ -81,11 +110,4 @@ a {
     box-sizing: border-box;
 }
 
-input.ng-invalid {
-    border: 1px solid red;
-    background-color: pink;
-}
-input.ng-valid {
-    border: 1px solid green;
-    background-color: lightgreen;
-}
+
