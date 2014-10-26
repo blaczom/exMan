@@ -6,10 +6,8 @@ angular.module('exFactory').
 factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
     var gdb =  $window.openDatabase("exManClient", '1.0', 'exman clientdb', 2000000);
     var gDebug = true;
-    var grtn = '';
-    var funcCallBack = function(aTx, aRtn){ grtn = aRtn };  // 实时性不强。
     var initDb = function() {
-        logInfo("--- checking databse file ---");
+        console.log("--- checking databse file ---");
         var l_run = [];
         l_run.push("CREATE TABLE if not exists USER(NICKNAME NVARCHAR2(32) NOT NULL PRIMARY KEY, " +
             " PASS CHAR(32) NOT NULL, REMPASS BOOLEAN, MOBILE NVARCHAR2(20), EMAIL NVARCHAR2(80), IDCARD NVARCHAR2(32), " +
@@ -20,7 +18,6 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
         l_run.push("CREATE INDEX if not exists [idx_task_state] ON [TASK] ([STATE] ASC);");
         l_run.push("CREATE INDEX if not exists [idx_task_owner] ON [TASK] ([OWNER] ASC);");
         l_run.push("CREATE INDEX if not exists [idx_task_start] ON [TASK] ([PLANFINISH] DESC);");
-        l_run.push("update createUser set grant = level + 20000");
         l_run.push("CREATE TABLE if not exists WORK(UUID CHAR(32) NOT NULL PRIMARY KEY, UPTASK CHAR(32), CREATETIME DATETIME,  " +
             " LASTMODIFY DATETIME, OWNER NVARCHAR2(32), PRIVATE BOOLEAN, LEVEL INTEGER, CONTENT NVARCHAR2(6000) ,MEMPOINT NVARCHAR2(20), " +
             " MEMEN BOOLEAN, MEMTIMER DATETIME, STATE NCHAR(2), SYNC BOOLEAN);");
@@ -31,7 +28,9 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
         gdb.transaction(
             function (tx) {
                 for (var i in l_run) {
-                    tx.executeSql(l_run[i]);
+                    tx.executeSql(l_run[i], [],
+                      function(tx,success){},
+                      function(tx,err){ console.log(err.message) } );
                 }
             },
             function (tx, err) {
@@ -43,9 +42,12 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
             }
         );
     };
+    initDb();
+    // result.rows.item
     var runSqlPromise = function (aSql, aParam)  {  // runSql("", []).then(function(aSucc){}, function(aErr){})
         if (gDebug) console.log("exLocal runsql with param: " + aSql);
         if (gDebug) console.log(aParam);
+        if (toString.apply(aParam) !== "[object Array]") aParam= [aParam];
         var deferred = $q.defer();
         gdb.transaction( function(tx) {
             tx.executeSql(aSql, aParam,
@@ -56,8 +58,9 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
         return deferred.promise;
     };
     var runSql = function(aSql, aParam, aCallback) {
-        if (gDebug) logInfo("runsql run here with param: " + aSql);
+        if (gDebug) console.log("runsql run here with param: " + aSql);
         if (gDebug) console.log(aParam);
+        if (toString.apply(aParam) !== "[object Array]") aParam= [aParam];
         gdb.transaction(
             function(tx) {
                 tx.executeSql(aSql, aParam,
@@ -123,7 +126,7 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
     };
     var comSave = function(aTarget, aTable, aCallback) {
         l_gen = genSave(aTarget, aTable);  // 返回一个数组，sql和后续参数。
-        if (gDebug) logInfo("com save run here with param: " + l_gen[0]);
+        if (gDebug) console.log("com save run here with param: " + l_gen[0]);
         if (gDebug) console.log(l_gen[1]);
         gdb.transaction(
             function(tx) {
@@ -160,6 +163,7 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
             runSql("select * from user where NICKNAME= ?" , aNick, aCallback);
         }
     };
+    var gUser = new USER();
     var TASK = function() {
         this.UUID = '';
         this.UPTASK = '';
@@ -185,6 +189,7 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
             runSql("select * from task where UUID=?", aUUID ,aCallback);
         };
     };
+    var gTask = new TASK();
     var WORK = function() {
         this.UUID = '';
         this.UPTASK = '';
@@ -205,6 +210,7 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
         WORK.prototype.getByUUID=function(aUUID,aCallback){runSql("select * from work where UUID=?",aUUID,aCallback); };
         WORK.prototype.delete=function(aUUID, aCallback){runSql("delete from WORK where UUID = ?", aUUID, aCallback); }
     };
+    var gWork = new WORK();
     var rtnErr = function(aMsg, aErr) {
         return { "rtnInfo": JSON.stringify(aMsg), rtnCode: -1, "alertType": 0, error: JSON.stringify(aErr), exObj:{} }
     };
@@ -218,15 +224,16 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
         json : JSON.stringify
     };
     var req = {session : {}};
+    var simuRestCall = function(aUrl, aObject, aCallback) {
+      // { func: 'userlogin',   ex_parm: { txtUserName: aobjUser.NICKNAME,... } }
 
-    var simuRestCall = function(lFunc, lExparm) {
-        //  lFunc = req.body['func'];  lExparm = req.body['ex_parm'];
+        lFunc = aObject['func'];  lExparm = aObject['ex_parm'];
         if ("userlogin,userReg,".indexOf(lFunc + ",") < 0) {
           if (!checkLogin()) {
             var l_rtn = rtnErr('未登录，请先登录。');
             l_rtn.rtnCode = 0;
             l_rtn.appendOper = 'login';   // rtnCode = 0的时候，就是有附加操作的时候。
-              return(res.json(l_rtn));
+            aCallback(res.json(l_rtn));
           }
         }
         switch (lFunc) {
@@ -236,8 +243,8 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
               userPwd = lExparm.regUser.PASS;
             md5Pass = lExparm.regUser.md5Pass; //var md5UserPwd = crypto.createHash('md5').update(userName + userPwd).digest('hex');
 
-            USER.getByNickName(userName, function (aErr, aRtn) {
-              if (aErr) return(res.json(rtnErr(aErr)));
+            gUser.getByNickName(userName, function (aErr, aRtn) {
+              if (aErr) aCallback(res.json(rtnErr(aErr)));
               else {
                 if (aRtn.length > 0) {      // 存在了。
                   l_user = aRtn[0];
@@ -247,16 +254,16 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
                     l_user.EMAIL = lExparm.regUser.EMAIL;
                     l_user.IDCARD = lExparm.regUser.IDCARD;
                     l_user._exState = 'dirty';
-                    USER.save(l_user, function (aErr, aRtn) {
-                      if (aErr)  return(res.json(rtnErr("创建失败。请通知管理员")));
-                      else return(res.json(rtnMsg("更改成功。")));
+                    gUser.save(l_user, function (aErr, aRtn) {
+                      if (aErr)  aCallback(res.json(rtnErr("创建失败。请通知管理员")));
+                      else aCallback(res.json(rtnMsg("更改成功。")));
                     });
                   }
                   else
-                    return(res.json(rtnMsg('原密码错误。')));
+                    aCallback(res.json(rtnMsg('原密码错误。')));
                 }
                 else {
-                  return(res.json(rtnMsg('imposible error ... 用户不存在了。。。')));
+                  aCallback(res.json(rtnMsg('imposible error ... 用户不存在了。。。')));
                 }
               }
 
@@ -266,8 +273,8 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
           case "userlogin":
           { // lExparm.txtUserName, lExparm.txtUserPwd
             var userName = lExparm.txtUserName, userPwd = lExparm.txtUserPwd, userRem = lExparm.remPass;
-            USER.getByNickName(userName, function (aErr, aRtn) {
-              if (aErr) return(res.json(rtnErr(aErr)));
+            gUser.getByNickName(userName, function (aErr, aRtn) {
+              if (aErr) aCallback(res.json(rtnErr(aErr)));
               else {
                 if (aRtn.length > 0) {
                   var xtmp = userName + userPwd
@@ -276,62 +283,57 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
                     req.session.loginUser = userName;
                     req.session.userLevel = aRtn[0].LEVEL;
                     req.session.userGrant = aRtn[0].GRANT;
-                    return(res.json(rtnMsg('登录成功。')));
+                    aCallback(res.json(rtnMsg('登录成功。')));
                   }
                   else {
-                    return(res.json(rtnErr('密码有误')));
+                    aCallback(res.json(rtnErr('密码有误')));
                   }
                 }
                 else {
-                  return(res.json(rtnErr('用户不存在')));
+                  aCallback(res.json(rtnErr('用户不存在')));
                 }
               }
             });
             break;
           }
-          case "userReg":
-          { // lExparm = {regUser: lp.user, authCode:lp.user.authCode   }
+          case "userReg":    {
             var userName = lExparm.regUser.NICKNAME,
-              userPwd = lExparm.regUser.PASS;
-            authCod = lExparm.regUser.authCode;
-            md5Pass = lExparm.regUser.md5Pass; //var md5UserPwd = crypto.createHash('md5').update(userName + userPwd).digest('hex');
-            USER.getByNickName(userName, function (aErr, aRtn) {
-              if (aErr) return(res.json(rtnErr(aErr)));
-              else {
-                if (aRtn.length > 0) {      // 存在了。
-                  return(res.json(rtnMsg('用户已经存在。')));
-                }
+                userPwd = lExparm.regUser.PASS;
+                authCod = lExparm.regUser.authCode;
+                md5Pass = lExparm.regUser.md5Pass;
+            gUser.getByNickName( userName,
+              function (aErr, aRtn) {
+                if (aErr) aCallback(res.json(rtnErr(aErr)));
                 else {
-                  // 根据授权码判断授权是否可以。然后创建新用户，然后删除授权码，然后提交事物。
-                  runSqlPromise("select * from createUser where uuid = '" + authCod + "'")
+                  if (aRtn.length > 0) {      // 存在了。
+                    aCallback(res.json(rtnMsg('用户已经存在。')));
+                  }
+                  else {
+                    /*   单机版去掉了注册码限制。
+                    // 根据授权码判断授权是否可以。然后创建新用户，然后删除授权码，然后提交事物。
+                    runSqlPromise("select * from createUser where uuid = '" + authCod + "'")
                     .then(function (aRow) {
-                      if ((aRow || []).length > 0) {
-                        userAdd = USER.new();
+                      if ((aRow || []).length > 0) {     */
+                        userAdd = gUser.new();
                         userAdd.NICKNAME = userName;
                         userAdd.PASS = md5Pass;
-                        userAdd.LEVEL = aRow[0].LEVEL;
-                        userAdd.GRANT = aRow[0].GRANT;
-                        gdb.transaction( function (tx) {
-                            tx.executeSql("delete from createUser where uuid = '" + authCod + "'");
-                            USER.save(userAdd, function (aErr, aRtn) {
+                        userAdd.LEVEL = 1;
+                        userAdd.GRANT = 10;
+                        //gdb.transaction( function (tx) {
+                            //tx.executeSql("delete from createUser where uuid = '" + authCod + "'");
+                            gUser.save(userAdd, function (aErr, aRtn) {
                               if (aErr) {
-                                return(res.json(rtnErr("创建失败。请通知管理员")));
+                                aCallback(res.json(rtnErr("创建失败。请通知管理员")));
                               }
                               else {
-                                return(res.json(rtnMsg("创建成功，请登录")));
+                                aCallback(res.json(rtnMsg("创建成功，请登录")));
                               }
                             });
-                        });
-                      }
-                      else
-                        return(res.json(rtnMsg('授权码错误。')));
-                    })
-                    .fail(function () {
-                      return(res.json(rtnMsg('错误：' + arguments)))
-                    });
+                        //});}    else      aCallback(res.json(rtnMsg('授权码错误。')));
+                  }
                 }
               }
-            });
+            )
             break;
           }
           case 'taskListGet':
@@ -363,12 +365,12 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
             console.log(la_param);
             getSubList("select distinct * from task " + ls_where + " order by PLANSTART limit " +
               lExparm.locate.limit + " offset " + lExparm.locate.curOffset, la_param, lExparm.filter.seekTop, function (aErr, aRtn) {
-              if (aErr) return(res.json(rtnErr(aErr)));
+              if (aErr) aCallback(res.json(rtnErr(aErr)));
               else {
                 ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
                 ls_rtn.rtnUser = req.session.loginUser;
                 ls_rtn.exObj = aRtn;
-                return(res.json(ls_rtn));
+                aCallback(res.json(ls_rtn));
               }
             });
             break;
@@ -376,12 +378,12 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
           case 'taskEditSave':
           {// lExparm.msgObj
             lExparm.msgObj.OWNER = req.session.loginUser;
-            TASK.save(lExparm.msgObj, function (aErr, aRtn) {
+            gTask.save(lExparm.msgObj, function (aErr, aRtn) {
               if (aErr) {
-                return(res.json(rtnErr(aErr)))
+                aCallback(res.json(rtnErr(aErr)))
               }
               else {
-                return(res.json(rtnMsg("更新成功.")));
+                aCallback(res.json(rtnMsg("更新成功.")));
               }
             });
             break;
@@ -389,28 +391,28 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
           case 'taskEditDelete':
           {
             if (lExparm.msgObj.OWNER == req.session.loginUser) {
-              TASK.delete(lExparm.msgObj.UUID, function (aErr, aRtn) {
+              gTask.delete(lExparm.msgObj.UUID, function (aErr, aRtn) {
                 if (aErr) {
-                  return(res.json(rtnErr(aErr)))
+                  aCallback(res.json(rtnErr(aErr)))
                 }
                 else {
-                  return(res.json(rtnMsg("删除成功.")));
+                  aCallback(res.json(rtnMsg("删除成功.")));
                 }
               });
             }
             else {
-              return(res.json(rtnErr("不能删除别人的任务。.")));
+              aCallback(res.json(rtnErr("不能删除别人的任务。.")));
             }
             break;
           }
           case 'userGetAll':
           { // lExparm.msgObj
             runSql(" select NICKNAME from user  order by NICKNAME ", [], function (aErr, aRtn) {
-              if (aErr) return(res.json(rtnErr(aErr)));
+              if (aErr) aCallback(res.json(rtnErr(aErr)));
               else {
                 ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
                 ls_rtn.exObj = aRtn ? aRtn : [];  // 返回数组。
-                return(res.json(ls_rtn));
+                aCallback(res.json(ls_rtn));
               }
             });
             break;
@@ -418,11 +420,11 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
           case 'userGet':
           { // lExparm.msgObj
             runSql("select * from user where NICKNAME = ? ", lExparm.userName, function (aErr, aRtn) {
-              if (aErr) return(res.json(rtnErr(aErr)));
+              if (aErr) aCallback(res.json(rtnErr(aErr)));
               else {
                 ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
                 ls_rtn.exObj = aRtn ? aRtn : [];  // 返回数组。
-                return(res.json(ls_rtn));
+                aCallback(res.json(ls_rtn));
               }
             });
             break;
@@ -457,12 +459,12 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
               ls_where = ls_where + ' or (' + la_where.join(" and ") + ")";
             runSql("select distinct * from work " + ls_where +
               " order by memen , CREATETIME limit " + lExparm.locate.limit + " offset " + lExparm.locate.curOffset, la_param, function (aErr, aRtn) {
-              if (aErr) return(res.json(rtnErr(aErr)));
+              if (aErr) aCallback(res.json(rtnErr(aErr)));
               else {
                 ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
                 ls_rtn.rtnUser = req.session.loginUser;
                 ls_rtn.exObj = aRtn ? aRtn : [];  // 返回数组。
-                return(res.json(ls_rtn));
+                aCallback(res.json(ls_rtn));
               }
             });
             break;
@@ -470,12 +472,12 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
           case 'taskAllGet':
           {
             getSubList("select * from task  where uptask=? order by PLANSTART ", lExparm.taskUUID, true, function (aErr, aRtn) {
-              if (aErr) return(res.json(rtnErr(aErr)));
+              if (aErr) aCallback(res.json(rtnErr(aErr)));
               else {
                 ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
                 ls_rtn.rtnUser = req.session.loginUser;
                 ls_rtn.exObj = aRtn;
-                return(res.json(ls_rtn));
+                aCallback(res.json(ls_rtn));
               }
             });
             break;
@@ -483,29 +485,29 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
           case 'workEditDelete':
           {  // lExparm.msgObj
             if (lExparm.msgObj.OWNER == req.session.loginUser) {
-              WORK.delete(lExparm.msgObj.UUID, function (aErr, aRtn) {
+              gWork.delete(lExparm.msgObj.UUID, function (aErr, aRtn) {
                 if (aErr) {
-                  return(res.json(rtnErr(aErr)))
+                  aCallback(res.json(rtnErr(aErr)))
                 }
                 else {
-                  return(res.json(rtnMsg("删除成功.")));
+                  aCallback(res.json(rtnMsg("删除成功.")));
                 }
               });
             }
             else {
-              return(res.json(rtnErr("不能删除别人的任务。.")));
+              aCallback(res.json(rtnErr("不能删除别人的任务。.")));
             }
             break;
           }
           case 'workEditSave':
           {  // lExparm.msgObj
             lExparm.msgObj.OWNER = req.session.loginUser;
-            WORK.save(lExparm.msgObj, function (aErr, aRtn) {
+            gWork.save(lExparm.msgObj, function (aErr, aRtn) {
               if (aErr) {
-                return(res.json(rtnErr(aErr)));
+                aCallback(res.json(rtnErr(aErr)));
               }
               else {
-                return(res.json(rtnMsg("更新成功.")));
+                aCallback(res.json(rtnMsg("更新成功.")));
               }
             });
             break;
@@ -513,11 +515,11 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
           case "mainList":
             break;
           default :
-            return(res.json(rtnErr('不存在该请求：' + JSON.stringify(req.body))));
+            aCallback(res.json(rtnErr('不存在该请求：' + JSON.stringify(req.body))));
             break;
         }
-    }
-    ;
+    };
+
 
     return {
       initDb: initDb,
@@ -525,7 +527,8 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
           setDirty : function(aParm) { aParm._exState = 'dirty' },
           setNew : function(aParm) { aParm._exState = 'new' },
           setClean : function(aParm) { aParm._exState = 'clean' }
-      }
+      },
+      simuRestCall: simuRestCall
     }
 
   }]);

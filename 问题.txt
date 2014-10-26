@@ -143,3 +143,25 @@ req.session.destroy();
 function test(avar){ cb = new function(){console.log(this.target)}; cb.target = avar; cb();  }
 
 function test(avar){ function cb(){console.log(this.target)}; cb.target = avar; cb();  }
+
+
+
+  /*config(['depProvider', function(depProvider){
+
+    when('/login', {templateUrl: './partials/login.html',   controller: regUser}).
+    when('/main', {templateUrl: './partials/main.html',   controller: regUser}).
+    when('/task/:phoneId', {templateUrl: './partials/phone-detail.html', controller: PhoneDetailCtrl}).
+    //...
+   }]).
+   factory('serviceId', ['depService', function(depService) {
+   //...
+   }]).
+   directive('directiveName', ['depService', function(depService) {
+   //...
+   }]).
+   filter('filterName', ['depService', function(depService) {
+   // ...
+   }]).
+   run(['depService', function(depService) {
+   //  ...
+   }]).*/

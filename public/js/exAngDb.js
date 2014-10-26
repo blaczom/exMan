@@ -5,6 +5,7 @@
 angular.module('exFactory', ['exService', 'angular-md5']).
   factory('exDb', ['exUtil', '$q', '$location',function(exUtil,$q,$location){
     if(window.localStorage){
+      console.log("check success -- > localStorage support!");
     }else{
       alert('This browser does NOT support localStorage');
     }

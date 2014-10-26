@@ -1,11 +1,18 @@
 /**
  * Created by blaczom@gmail on 2014/10/25.
+ * exAngDb.js -- exClientDb.js -- exAngDb-local.js  顺序不能搞错。
  */
 
 angular.module('exFactory').
-  factory('exQuery', ['$q','md5','exDb', function($q,md5,exDb){
+  factory('exQuery', ['$q','md5','exDb','exLocal',function($q,md5,exDb,exLocal){
     var httpCom = function(aUrl, aObject){
       var deferred = $q.defer();
+      exLocal.simuRestCall(aUrl, aObject, function(aRtn){
+        if (aRtn.rtnCode < 0)
+          deferred.reject(aRtn);
+        else
+          deferred.resolve(aRtn);
+      });
       /*$http.post(aUrl, aObject) // 更改这个地方。变成单机版。
         .success(function (data, status, headers, config) {
           deferred.resolve(data || []);
@@ -13,8 +20,6 @@ angular.module('exFactory').
         .error(function (data, status, headers, config) {
           deferred.reject(status);
         });*/
-
-
       return deferred.promise;
     };
     var userReg = function(aobjUser) {

@@ -609,7 +609,6 @@ app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exQuery',function
       break;
   }
 }]);
-
 app.config(['$routeProvider', function($routeProvider) {
     $routeProvider.       // main.html <--------
       when('/', { templateUrl: '/partials/login.html', controller: "ctrlLogin" } ).
@@ -622,7 +621,6 @@ app.config(['$routeProvider', function($routeProvider) {
       ///workList/xx?xxx=1&dd=2  -> {xxx: "1", dd: "2", aType: "xx"}
       otherwise({redirectTo: '/'});
   }]);
-
 app.directive('validDateModel', function() {
   return {
     require:"ngModel",
@@ -641,27 +639,5 @@ app.directive('validDateModel', function() {
     }
   };
 })
-
-
-
-   /*config(['depProvider', function(depProvider){
-
-    when('/login', {templateUrl: './partials/login.html',   controller: regUser}).
-    when('/main', {templateUrl: './partials/main.html',   controller: regUser}).
-    when('/task/:phoneId', {templateUrl: './partials/phone-detail.html', controller: PhoneDetailCtrl}).
-    //...
-   }]).
-   factory('serviceId', ['depService', function(depService) {
-   //...
-   }]).
-   directive('directiveName', ['depService', function(depService) {
-   //...
-   }]).
-   filter('filterName', ['depService', function(depService) {
-   // ...
-   }]).
-   run(['depService', function(depService) {
-   //  ...
-   }]).*/
 
 

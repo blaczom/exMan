@@ -1,18 +1,41 @@
 /**
  * Created by blaczom@gmail on 2014/10/25.
+ * exAngDb.js -- exClientDb.js -- exAngDbAccess.js  顺序不能搞错。
+ * // 注释掉 http的promise，更改成本地。
+ * // 在index.html中加入对exClientDb.js的引用。
+ *
+ <script src="/js/angular1.3.min.js" type="text/javascript"></script>
+ <script src="/js/angular-route.min.js"></script>
+ <script src="/js/angular-sanitize.min.js"></script>
+ <script src="/js/angular-md5.min.js"></script>
+ <script src="/js/exAngUtils.js" type="text/javascript"></script>
+ <script src="/js/exAngDb.js" type="text/javascript"></script>
+ //// VVVVVV   here !!!
+ <script src="/js/exClientDb.js" type="text/javascript"></script>
+ //// AAAAAA
+ <script src="/js/exAngDbAccess.js" type="text/javascript"></script>
+ <script src="/js/angExMan.js" type="text/javascript"></script>
+ *
  */
 
 angular.module('exFactory').
-  factory('exQuery', ['$http', '$q','md5','exDb', function($http,$q,md5,exDb){
+  // factory('exQuery', ['$http', '$q','md5','exDb', function($http,$q,md5,exDb){
+  factory('exQuery', ['$q','md5','exDb','exLocal',function($q,md5,exDb,exLocal){
     var httpCom = function(aUrl, aObject){
       var deferred = $q.defer();
-      $http.post(aUrl, aObject)
-        .success(function (data, status, headers, config) {
-          deferred.resolve(data || []);
-        })
-        .error(function (data, status, headers, config) {
-          deferred.reject(status);
-        });
+      exLocal.simuRestCall(aUrl, aObject, function(aRtn){
+        if (aRtn.rtnCode < 0)
+          deferred.reject(aRtn);
+        else
+          deferred.resolve(aRtn);
+      });
+      /*$http.post(aUrl, aObject) // 更改这个地方。变成单机版。
+       .success(function (data, status, headers, config) {
+       deferred.resolve(data || []);
+       })
+       .error(function (data, status, headers, config) {
+       deferred.reject(status);
+       });*/
       return deferred.promise;
     };
     var userReg = function(aobjUser) {
