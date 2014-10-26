@@ -1,6 +1,6 @@
 var app = angular.module("exman", ['ngRoute','exFactory','ngSanitize']);
 
-app.controller("ctrlLogin",['$http','$scope','$location','exDb','exQuery',function($http,$scope,$location,exDb,exQuery) {
+app.controller("ctrlLogin",['$scope','$location','exDb','exQuery',function($scope,$location,exDb,exQuery) {
   var lp = $scope;
   lp.user = exDb.userNew();
   lp.user.NICKNAME =exDb.getUser();
@@ -23,7 +23,7 @@ app.controller("ctrlLogin",['$http','$scope','$location','exDb','exQuery',functi
       }, function (error) {  lp.rtnInfo = JSON.stringify(status); });
   };
 }]);
-app.controller("ctrlRegUser", ['$http','$scope','exDb','exQuery',function($http,$scope,exDb,exQuery){
+app.controller("ctrlRegUser", ['$scope','exDb','exQuery',function($scope,exDb,exQuery){
   var lp = $scope;
   lp.user = exDb.userNew();
   lp.user.authCode = "";
@@ -38,7 +38,7 @@ app.controller("ctrlRegUser", ['$http','$scope','exDb','exQuery',function($http,
       });
   };
 }]);
-app.controller("ctrlChangUser", ['$http','$scope','exDb','exQuery',function($http,$scope,exDb,exQuery){
+app.controller("ctrlChangUser", ['$scope','exDb','exQuery',function($scope,exDb,exQuery){
   var lp = $scope;
   lp.rtnInfo = "";
   exQuery.userGetPromise().then( function (data){
@@ -64,7 +64,7 @@ app.controller("ctrlChangUser", ['$http','$scope','exDb','exQuery',function($htt
       });
   };
 }]);
-app.controller("ctrlTaskList",['$http','$scope','$routeParams','$location','exDb','exQuery',function($http,$scope,$routeParams,$location,exDb,exQuery){
+app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exQuery',function($scope,$routeParams,$location,exDb,exQuery){
   var lp = $scope;
   lp.showDebug = false;  // 调试信息打印。
   lp.seek = {seekContentFlag: false, seekContent : "",   // 是否search任务内容。
@@ -247,7 +247,7 @@ app.controller("ctrlTaskList",['$http','$scope','$routeParams','$location','exDb
       break;
   }
 }]);
-app.controller("ctrlTaskAll",['$http','$scope','$routeParams','$location','exDb','exQuery',function($http,$scope,$routeParams,$location,exDb,exQuery){
+app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exQuery',function($scope,$routeParams,$location,exDb,exQuery){
   var lp = $scope;
   lp.showDebug = false;  // 调试信息打印。
   lp.seek = {seekContentFlag: false, seekContent : "",   // 是否search任务内容。
@@ -451,7 +451,7 @@ app.controller("ctrlTaskAll",['$http','$scope','$routeParams','$location','exDb'
       break;
   }
 }]);
-app.controller("ctrlWorkList",['$http','$scope','$routeParams','exDb','exQuery',function($http,$scope,$routeParams,exDb,exQuery){
+app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exQuery',function($scope,$routeParams,exDb,exQuery){
   var lp = $scope;
   lp.showDebug = false;  // 调试信息打印。
   lp.seek = {  seekContentFlag : false,  seekContent : "", // 是否search任务内容。
