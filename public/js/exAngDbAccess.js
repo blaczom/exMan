@@ -26,7 +26,7 @@ angular.module('exFactory').
      ///*
       exLocal.simuRestCall(aUrl, aObject, function(aRtn){
         if (gDebug) { console.log("dbAccess: simulate send back: "); console.log(aRtn, ' type is ', typeof(aRtn)); }
-        if (aRtn.rtnCode < 0)
+        if (aRtn.rtnCode < -10)
           deferred.reject(aRtn);
         else
           deferred.resolve(aRtn);

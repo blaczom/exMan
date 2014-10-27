@@ -10,7 +10,7 @@ angular.module('exFactory', ['exService', 'angular-md5']).
       alert('This browser does NOT support localStorage');
     }
     var localStorageService = window.localStorage;
-
+    var _debug = true;
     var objUser = function(){
       this.NICKNAME = '';
       this.PASS = '';
@@ -102,7 +102,8 @@ angular.module('exFactory', ['exService', 'angular-md5']).
           }
         }
         return true;
-      }
+      },
+      setDebug: function(){ if (_debug) console.log(arguments) }
     }
   }])
 ;
