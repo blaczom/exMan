@@ -5,7 +5,7 @@
 angular.module('exFactory').
 factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
     var gdb =  $window.openDatabase("exManClient", '1.0', 'exman clientdb', 2000000);
-    var gDebug = true;
+    var gDebug = false;
     var initDb = function() {
         console.log("--- checking databse file ---");
         var l_run = [];
@@ -43,6 +43,12 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
         );
     };
     initDb();
+    var trans2Json = function (aData){      // 将websql的返回数据，转化为数组json记录。
+      var la_item = [];
+      for (var i = 0; i < aData.rows.length; i ++ )
+        la_item.push(aData.rows.item(i));
+      return angular.copy(la_item);
+    };
     // result.rows.item
     var runSqlPromise = function (aSql, aParam)  {  // runSql("", []).then(function(aSucc){}, function(aErr){})
         if (gDebug) console.log("exLocal runsql with param: " + aSql);
@@ -51,7 +57,7 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
         var deferred = $q.defer();
         gdb.transaction( function(tx) {
             tx.executeSql(aSql, aParam,
-                function(tx,result) { deferred.resolve(result) },
+                function(tx, aData) { deferred.resolve(trans2Json(aData)) },
                 function(tx, error) { deferred.reject(error.message) }
             )
         });
@@ -63,9 +69,9 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
         if (toString.apply(aParam) !== "[object Array]") aParam= [aParam];
         gdb.transaction(
             function(tx) {
-                tx.executeSql(aSql, aParam,
-                    function(tx, aData){ aCallback(null, aData.rows) },
-                    function(tx, aErr){ aCallback(aErr.message, null) }
+                tx.executeSql(aSql, aParam
+                  ,function(tx, aData){console.log("client run sql ok:", aSql, aData); aCallback(null, trans2Json(aData) ) },
+                   function(tx, aErr){ console.log("client run sql err:", aErr.message); aCallback(aErr.message, null) }
                 );
             }
         );
@@ -78,7 +84,7 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
       var l_cols = [], l_vals = [], l_quest4vals=[],  l_pristine = [];
       for (var i in aObj) {    // 列名， i， 值 aObj[i]. 全部转化为string。
         var l_first = i[0];
-        if (l_first != '_' && l_first == l_first.toUpperCase() ) { // 第一个字母_并且是大写。
+        if (l_first != '_' && l_first!='$' && l_first == l_first.toUpperCase() ) { // 第一个字母_并且是大写。
           var lsTmp = (aObj[i]==null) ? "" : aObj[i];
           switch (typeof(lsTmp)) {
             case "string": case "boolean":case "object":
@@ -131,7 +137,7 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
         gdb.transaction(
             function(tx) {
                 tx.executeSql(l_gen[0], l_gen[1],
-                    function(tx, aData){ aTarget._exState = 'clean'; aCallback(null, aData.rows) },
+                    function(tx, aData){ if (gDebug) console.log("comsave success"); aCallback(null, trans2Json(aData)) },
                     function(tx, aErr){ console.log(aErr.message); aCallback(aErr.message, null) }
                 );
             }
@@ -220,20 +226,68 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
     function checkLogin(){
         if (req.session.loginUser) return true; else return false;  // 只信任服务器端的数据。
     }
+
+    function getSubList(aSql, aParam, aWithSub, aCallback){  // 得到指定的任务下面的任务数量。
+      runSql(aSql, aParam, function(aErr, aRtn) {
+        if (aErr) aCallback(aErr);
+        else {
+          var l_exObj = aRtn?aRtn:[];
+          if (aWithSub) {
+            var stackSubQ = [];
+            for (var i in l_exObj) { // 对返回的所有数据集进行处理。
+              stackSubQ.push( runSqlPromise("select count(*) as SUBCOUNT, state as SUBSTATE from task where uptask='" + l_exObj[i].UUID + "' group by STATE", []) )
+            }
+            $q.all(stackSubQ).then(function(row2){
+              var l_a = [0,0,0];
+              for (var i in row2) {
+                if (row2[i].length > 0 ){
+                  for (var ii in row2[i]) {
+                    var l_rtn = row2[i][ii]
+                    switch (l_rtn.SUBSTATE) {
+                      case '结束':
+                        l_a[2] = l_rtn.SUBCOUNT;
+                        break;
+                      case '进行':
+                        l_a[1] = l_rtn.SUBCOUNT;
+                        break;
+                      case '计划':
+                        l_a[0] = l_rtn.SUBCOUNT;
+                        break;
+                    }
+                  }
+                  l_exObj[i].subTask = l_a.join('|');
+                }
+                else   l_exObj[i].subTask = "nosub";
+              }
+              aCallback(null, l_exObj);
+            }, function(){ console.log(arguments);   aCallback('查询失败',null)});
+          }
+          else
+          {
+            aCallback(null, l_exObj);
+          }
+        }
+      });
+    }
+
+
+
     var res = {
-        json : JSON.stringify
+        json : function(aRtn){ return aRtn ; }  //JSON.stringify
     };
     var req = {session : {}};
     var simuRestCall = function(aUrl, aObject, aCallback) {
+      // 可以这样更改，把 aCallBack 注入到res.json函数中。
       // { func: 'userlogin',   ex_parm: { txtUserName: aobjUser.NICKNAME,... } }
-
         lFunc = aObject['func'];  lExparm = aObject['ex_parm'];
-        if ("userlogin,userReg,".indexOf(lFunc + ",") < 0) {
+        if (gDebug) console.log('simulate REST call ' , lFunc, ' ', lExparm);
+        if ("userlogin,userReg,exTools,".indexOf(lFunc + ",") < 0) {
           if (!checkLogin()) {
             var l_rtn = rtnErr('未登录，请先登录。');
             l_rtn.rtnCode = 0;
             l_rtn.appendOper = 'login';   // rtnCode = 0的时候，就是有附加操作的时候。
             aCallback(res.json(l_rtn));
+            return ;
           }
         }
         switch (lFunc) {
@@ -248,6 +302,7 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
               else {
                 if (aRtn.length > 0) {      // 存在了。
                   l_user = aRtn[0];
+                  console.log(l_user);
                   if (lExparm.regUser.oldPass == l_user.PASS) {
                     l_user.PASS = md5Pass;
                     l_user.MOBILE = lExparm.regUser.MOBILE;
@@ -277,6 +332,7 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
               if (aErr) aCallback(res.json(rtnErr(aErr)));
               else {
                 if (aRtn.length > 0) {
+                  console.log('login : ', aRtn);
                   var xtmp = userName + userPwd
                   var md5UserPwd = userPwd; // crypto.createHash('md5').update(xtmp).digest('hex'); 客户端已经搞定了。
                   if (aRtn[0].PASS == md5UserPwd) {
@@ -512,6 +568,21 @@ factory('exLocal', ['$q', '$window', 'exDb', function($q, $window, exDb){
             });
             break;
           }
+          case "exTools":
+            // lExparm. {sql: ls_sql, word: ls_admin};
+            if (lExparm.word == 'pub') {
+              runSql(lExparm.sql, [], function(aErr, aRtn) {
+                if (aErr) aCallback(res.json(rtnErr(aErr)));
+                else {
+                  ls_rtn = rtnMsg("成功");
+                  ls_rtn.exObj = aRtn?aRtn:[];  // 返回数组。
+                  aCallback(res.json(ls_rtn));
+                }
+              })
+            }
+            else
+              aCallback(res.json(rtnErr("--授权码错误。" + lExparm.word)));
+            break;
           case "mainList":
             break;
           default :

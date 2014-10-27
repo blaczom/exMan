@@ -1,6 +1,6 @@
 var app = angular.module("exman", ['ngRoute','exFactory','ngSanitize']);
 
-app.controller("ctrlLogin",['$scope','$location','exDb','exQuery',function($scope,$location,exDb,exQuery) {
+app.controller("ctrlLogin",['$scope','$location','exDb','exAccess',function($scope,$location,exDb,exAccess) {
   var lp = $scope;
   lp.user = exDb.userNew();
   lp.user.NICKNAME =exDb.getUser();
@@ -9,7 +9,7 @@ app.controller("ctrlLogin",['$scope','$location','exDb','exQuery',function($scop
   if (lp.user.REMPASS) lp.user.PASS = exDb.getWord();
   lp.rtnInfo = "";
   lp.userLogin = function () {
-    exQuery.userLoginPromise(lp.user).then( function(data) {
+    exAccess.userLoginPromise(lp.user).then( function(data) {
         if (data.rtnCode > 0) {
           exDb.setUser(lp.user.NICKNAME);
           exDb.setRem(lp.user.REMPASS);
@@ -23,14 +23,15 @@ app.controller("ctrlLogin",['$scope','$location','exDb','exQuery',function($scop
       }, function (error) {  lp.rtnInfo = JSON.stringify(status); });
   };
 }]);
-app.controller("ctrlRegUser", ['$scope','exDb','exQuery',function($scope,exDb,exQuery){
+app.controller("ctrlRegUser", ['$scope','exDb','exAccess',function($scope,exDb,exAccess){
   var lp = $scope;
   lp.user = exDb.userNew();
   lp.user.authCode = "";
   lp.rtnInfo = "";
   lp.userReg = function(){
-    exQuery.userRegPromise(lp.user).
+    exAccess.userRegPromise(lp.user).
       then(function (data) {
+          console.log("---got the date", data, typeof(data));
           lp.rtnInfo = data.rtnInfo;
           if (!exDb.getUser()) exDb.setUser(lp.user.NICKNAME);
       } , function (status) {
@@ -38,10 +39,10 @@ app.controller("ctrlRegUser", ['$scope','exDb','exQuery',function($scope,exDb,ex
       });
   };
 }]);
-app.controller("ctrlChangUser", ['$scope','exDb','exQuery',function($scope,exDb,exQuery){
+app.controller("ctrlChangUser", ['$scope','exDb','exAccess',function($scope,exDb,exAccess){
   var lp = $scope;
   lp.rtnInfo = "";
-  exQuery.userGetPromise().then( function (data){
+  exAccess.userGetPromise().then( function (data){
       if (!exDb.checkRtn(data)) return ;
       lp.rtnInfo = data.rtnInfo;
       if (data.exObj.length > 0) {
@@ -56,7 +57,7 @@ app.controller("ctrlChangUser", ['$scope','exDb','exQuery',function($scope,exDb,
     });
 
   lp.userChange = function(){
-    exQuery.userChangePromise(lp.user).
+    exAccess.userChangePromise(lp.user).
       then(function (data) {
         lp.rtnInfo = data.rtnInfo;
       }, function (status) {
@@ -64,7 +65,7 @@ app.controller("ctrlChangUser", ['$scope','exDb','exQuery',function($scope,exDb,
       });
   };
 }]);
-app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exQuery',function($scope,$routeParams,$location,exDb,exQuery){
+app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exAccess',function($scope,$routeParams,$location,exDb,exAccess){
   var lp = $scope;
   lp.showDebug = false;  // 调试信息打印。
   lp.seek = {seekContentFlag: false, seekContent : "",   // 是否search任务内容。
@@ -129,8 +130,10 @@ app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exQue
     $location.path('/workList/list').search({pid:lp.taskSet[aIndex].UUID, pcon:lp.taskSet[aIndex].CONTENT.substr(0,15) });
   }
   lp.taskEdit = function(aIndex){
+
     lp.curIndex = aIndex;
     lp.task = lp.taskSet[aIndex];
+    console.log('taskEdit ', aIndex, lp.task, lp.taskSet);
     lp.pristineTask = angular.copy(lp.taskSet[aIndex]);
     lp.task._exState = 'dirty';
     lp.task.PRIVATE = (lp.task.PRIVATE=="true" || lp.task.PRIVATE==true)?true:false;
@@ -138,7 +141,7 @@ app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exQue
   };
   lp.taskSave = function(){
     if (lp.task.STATE == exDb.planState[2] && (lp.task.FINISH||'').length==0) lp.task.FINISH = exDb.getDateTime(new Date());
-    exQuery.taskSavePromise(lp.task)
+    exAccess.taskSavePromise(lp.task)
     .then( function (data) {    // 得到新的消息
       lp.rtnInfo = data.rtnInfo;
       switch (lp.task._exState) {
@@ -159,7 +162,7 @@ app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exQue
     if (lp.curIndex >= 0  && lp.task._exState!="new") lp.taskSet[lp.curIndex] = lp.pristineTask;
   };
   lp.taskDelete = function(){
-    exQuery.taskDeletePromise(lp.task)
+    exAccess.taskDeletePromise(lp.task)
       .then(function (data) {    // 得到新的消息
         lp.rtnInfo = data.rtnInfo;
         if (data.rtnCode > 0){
@@ -186,7 +189,7 @@ app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exQue
     lp.taskGet();   // 应该把状态push进去，否则还是按照原来的逻辑进行get。
   };
   lp.taskGet = function(){
-    exQuery.taskListGetPromise(lp.locate, lp.seek)
+    exAccess.taskListGetPromise(lp.locate, lp.seek)
       .then(function (data) {    // 得到新的消息
         if (!exDb.checkRtn(data)) return ;
         lp.rtnInfo = data.rtnInfo;
@@ -210,7 +213,7 @@ app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exQue
   }
   lp.selectUser = function(){
     (lp.allSelectUser = lp.task.OUGHT.split(',')).pop();
-    exQuery.getAllUserPromise().then( function (data) {
+    exAccess.getAllUserPromise().then( function (data) {
       var lrtn = data.exObj;
       lp.allOtherUser =[];
       console.log(lrtn);
@@ -247,7 +250,7 @@ app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exQue
       break;
   }
 }]);
-app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exQuery',function($scope,$routeParams,$location,exDb,exQuery){
+app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exAccess',function($scope,$routeParams,$location,exDb,exAccess){
   var lp = $scope;
   lp.showDebug = false;  // 调试信息打印。
   lp.seek = {seekContentFlag: false, seekContent : "",   // 是否search任务内容。
@@ -314,7 +317,7 @@ app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exQuer
     $location.path('/workList/list').search({pid:lp.taskSet[aIndex].UUID, pcon:lp.taskSet[aIndex].CONTENT.substr(0,15) });
   }
   lp.taskEdit = function(aIndex){
-    console.log("edit " + aIndex);
+    console.log("edit " , aIndex);
     lp.curIndex = aIndex;
     lp.task = lp.taskSet[aIndex];
     lp.pristineTask = angular.copy(lp.taskSet[aIndex]);
@@ -326,7 +329,7 @@ app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exQuer
     lp.curIndex = aIndex;
     var l_uuid = lp.taskSet[aIndex].UUID, l_preFix = lp.taskSet[aIndex].preFix||'';
     if (lp.haveClicked.indexOf(l_uuid + ",") >= 0 ) return ;
-    exQuery.taskExpandPromise(l_uuid)
+    exAccess.taskExpandPromise(l_uuid)
       .then( function (data) {
         if (!exDb.checkRtn(data)) return ;
         lp.haveClicked = lp.haveClicked + l_uuid + ",";
@@ -345,7 +348,7 @@ app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exQuer
   };
   lp.taskSave = function(){
     if (lp.task.STATE == exDb.planState[2] && (lp.task.FINISH||'').length==0) lp.task.FINISH = exDb.getDateTime(new Date());
-    exQuery.taskSavePromise(lp.task)
+    exAccess.taskSavePromise(lp.task)
       .then( function (data) {    // 得到新的消息
         lp.rtnInfo = data.rtnInfo;
         switch (lp.task._exState) {
@@ -366,7 +369,7 @@ app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exQuer
     if (lp.curIndex >= 0  && lp.task._exState!="new") lp.taskSet[lp.curIndex] = lp.pristineTask;
   };
   lp.taskDelete = function(){
-    exQuery.taskDeletePromise(lp.task)
+    exAccess.taskDeletePromise(lp.task)
       .then(function (data) {    // 得到新的消息
         lp.rtnInfo = data.rtnInfo;
         if (data.rtnCode > 0){
@@ -389,11 +392,12 @@ app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exQuer
     lp.locate.curOffset = 0;  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
     lp.locate.limit = 5;      // 当前查询显示限制。
     lp.noData = false;
+    lp.haveClicked = "";
     if  (lp.seek.seekUserFlag && ((lp.seek.seekUser||'').length == 0)) lp.seek.seekUserFlag = false;
     lp.taskGet();  // 应该把状态push进去，否则还是按照原来的逻辑进行get。
   };
   lp.taskGet = function(){
-    exQuery.taskListGetPromise(lp.locate, lp.seek)
+    exAccess.taskListGetPromise(lp.locate, lp.seek)
       .then(function (data) {
         if (!exDb.checkRtn(data)) return ;
         lp.rtnInfo = data.rtnInfo;
@@ -418,7 +422,7 @@ app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exQuer
   };
   lp.selectUser = function(){
     (lp.allSelectUser = lp.task.OUGHT.split(',')).pop();
-    exQuery.getAllUserPromise().then( function (data) {
+    exAccess.getAllUserPromise().then( function (data) {
       var lrtn = data.exObj;
       for (var i in lrtn) {  if (lp.task.OUGHT.indexOf(lrtn[i].NICKNAME + ",") < 0 ) lp.allOtherUser.push(lrtn[i].NICKNAME); };
       lp.taskEditMask('userSelect');
@@ -451,7 +455,7 @@ app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exQuer
       break;
   }
 }]);
-app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exQuery',function($scope,$routeParams,exDb,exQuery){
+app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exAccess',function($scope,$routeParams,exDb,exAccess){
   var lp = $scope;
   lp.showDebug = false;  // 调试信息打印。
   lp.seek = {  seekContentFlag : false,  seekContent : "", // 是否search任务内容。
@@ -517,7 +521,7 @@ app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exQuery',function
   };
   lp.workSave = function(){
     if (lp.work.STATE == exDb.planState[2] && (lp.work.FINISH||'').length==0) lp.work.FINISH = exDb.getDateTime(new Date());
-    exQuery.workSavePromise(lp.work)
+    exAccess.workSavePromise(lp.work)
       .then( function (data) {
         lp.rtnInfo = data.rtnInfo;
         switch (lp.work._exState) {
@@ -539,7 +543,7 @@ app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exQuery',function
     lp.workEditMask("editcancel");
   };
   lp.workDelete = function(){
-    exQuery.workDeletePromise(lp.work)
+    exAccess.workDeletePromise(lp.work)
       .then( function (data) {
         lp.rtnInfo = data.rtnInfo;
         if (data.rtnCode > 0){
@@ -568,7 +572,7 @@ app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exQuery',function
     lp.workGet();   // 应该把状态push进去，否则还是按照原来的逻辑进行get。
   };
   lp.workGet = function(){
-    exQuery.workGetPromise(lp.locate, lp.seek)
+    exAccess.workGetPromise(lp.locate, lp.seek)
       .then(function (data) {
         if (!exDb.checkRtn(data)) return ;
         lp.rtnInfo = data.rtnInfo;
@@ -609,6 +613,21 @@ app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exQuery',function
       break;
   }
 }]);
+app.controller("ctrlExtools",['$scope','exAccess',function($scope, exAccess){
+    var lp = $scope;
+    lp.postReq = function() {
+      var l_param = {sql: lp.txtReq, word: lp.addPass};
+      exAccess.extoolsPromise(l_param)
+        .then(function (aRtn) {
+          // if (!exDb.checkRtn(data)) return ;
+          lp.txtReturn = JSON.stringify(aRtn);
+        },
+        function (err) {
+          lp.txtReturn = JSON.stringify(aRtn);
+        }
+      );
+    }
+}]);
 app.config(['$routeProvider', function($routeProvider) {
     $routeProvider.       // main.html <--------
       when('/', { templateUrl: '/partials/login.html', controller: "ctrlLogin" } ).
@@ -618,7 +637,7 @@ app.config(['$routeProvider', function($routeProvider) {
       when('/taskList/:aType', {templateUrl: '/partials/taskList.html',   controller: "ctrlTaskList"}).
       when('/workList/:aType', {templateUrl: '/partials/workList.html', controller: "ctrlWorkList"}).
       when('/taskAll/:aType', {templateUrl: '/partials/taskAll.html', controller: "ctrlTaskAll"}).
-      ///workList/xx?xxx=1&dd=2  -> {xxx: "1", dd: "2", aType: "xx"}
+      when('/extools', {templateUrl: '/partials/exTools.html', controller: "ctrlExtools"}).
       otherwise({redirectTo: '/'});
   }]);
 app.directive('validDateModel', function() {

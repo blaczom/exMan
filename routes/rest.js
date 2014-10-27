@@ -361,6 +361,21 @@ router.post('/', function(req, res) {
       });
       break;
     }
+    case "exTools":
+      // lExparm. {sql: ls_sql, word: ls_admin};
+      if (lExparm.word == 'publicpass') {
+        appDb.allSql(lExparm.aSql, function(aErr, aRtn) {
+          if (aErr) res.json(rtnErr(aErr));
+          else {
+            ls_rtn = rtnMsg("成功");
+            ls_rtn.exObj = aRtn?aRtn:[];  // 返回数组。
+            res.json(ls_rtn);
+          }
+        })
+      }
+      else
+        res.json(rtnErr(aErr));
+      break;
     case "mainList":
       break;
     default :

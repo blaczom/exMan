@@ -37,7 +37,7 @@ exports.genSave = function (aObj, aTable) {    // aOption: include:"col1,col2,"
   for (var i in aObj) {
     // 列名， i， 值 aObj[i]. 全部转化为string。
     var l_first = i[0];
-    if (l_first != '_' && l_first == l_first.toUpperCase() ) { // 第一个字母_并且是大写。
+    if (l_first != '_' && l_first!='$' && l_first == l_first.toUpperCase() ) { // 第一个字母_并且是大写。
       var lsTmp = (aObj[i]==null) ? "" : aObj[i];
       switch (typeof(lsTmp)) {
         case "string": case "boolean":case "object":

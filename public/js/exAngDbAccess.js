@@ -3,7 +3,6 @@
  * exAngDb.js -- exClientDb.js -- exAngDbAccess.js  顺序不能搞错。
  * // 注释掉 http的promise，更改成本地。
  * // 在index.html中加入对exClientDb.js的引用。
- *
  <script src="/js/angular1.3.min.js" type="text/javascript"></script>
  <script src="/js/angular-route.min.js"></script>
  <script src="/js/angular-sanitize.min.js"></script>
@@ -15,27 +14,32 @@
  //// AAAAAA
  <script src="/js/exAngDbAccess.js" type="text/javascript"></script>
  <script src="/js/angExMan.js" type="text/javascript"></script>
- *
+ *    去掉factory的exlocal注释。调用http到服务器端。
  */
 
 angular.module('exFactory').
-  // factory('exQuery', ['$http', '$q','md5','exDb', function($http,$q,md5,exDb){
-  factory('exQuery', ['$q','md5','exDb','exLocal',function($q,md5,exDb,exLocal){
+   //factory('exAccess', ['$http', '$q','md5','exDb', function($http,$q,md5,exDb){
+  factory('exAccess', ['$q','md5','exDb','exLocal',function($q,md5,exDb,exLocal){
+    var gDebug = true; // if (gDebug) console.log();
     var httpCom = function(aUrl, aObject){
       var deferred = $q.defer();
+     ///*
       exLocal.simuRestCall(aUrl, aObject, function(aRtn){
+        if (gDebug) { console.log("dbAccess: simulate send back: "); console.log(aRtn, ' type is ', typeof(aRtn)); }
         if (aRtn.rtnCode < 0)
           deferred.reject(aRtn);
         else
           deferred.resolve(aRtn);
       });
-      /*$http.post(aUrl, aObject) // 更改这个地方。变成单机版。
+     // */
+      /*
+      $http.post(aUrl, aObject) // 更改这个地方。变成单机版。
        .success(function (data, status, headers, config) {
        deferred.resolve(data || []);
        })
        .error(function (data, status, headers, config) {
        deferred.reject(status);
-       });*/
+       });  //  */
       return deferred.promise;
     };
     var userReg = function(aobjUser) {
@@ -59,7 +63,7 @@ angular.module('exFactory').
     };
 
     return {
-      /* exQuery.---().then(function(data){}, function(err){}) */
+      /* exAccess.---().then(function(data){}, function(err){}) */
       getAllUserPromise: function(){return httpCom('/rest',{ func: 'userGetAll',   ex_parm: {} })},
       userLoginPromise: userLogin,
       userRegPromise: userReg,
@@ -67,13 +71,12 @@ angular.module('exFactory').
       userGetPromise: function() { return httpCom('/rest',{func:'userGet', ex_parm:{userName:exDb.getUser()}})},
       taskSavePromise: function(aobjTask){return httpCom('/rest',{ func: 'taskEditSave', ex_parm: { msgObj: aobjTask}})},
       taskDeletePromise: function(aobjTask) {return httpCom('/rest',{ func: 'taskEditDelete',ex_parm: { msgObj: aobjTask}  })},
-      taskListGetPromise: function(aLocate, aFilter) {return httpCom('/rest',{ func: 'taskListGet',ex_parm: { locate: aLocate,  filter: aFilter}})},
+      taskListGetPromise: function(aLocate, aFilter) {return httpCom('/rest',{ func: 'taskListGet',ex_parm: { locate: aLocate,filter: aFilter}})},
       taskExpandPromise : function(aUuid){return  httpCom('/rest',{ func: 'taskAllGet', ex_parm: { taskUUID: aUuid }  })},
       workSavePromise : function(aobjWork){return httpCom('/rest',{ func: 'workEditSave',  ex_parm: { msgObj: aobjWork} })},
       workDeletePromise: function(aobjWork){return httpCom('/rest',{func:'workEditDelete',ex_parm:{msgObj:aobjWork}})},
-      workGetPromise: function(aLocate, aFilter){ return httpCom('/rest',{ func: 'workListGet', ex_parm: { locate: aLocate,  filter: aFilter } } );
-      }
+      workGetPromise: function(aLocate, aFilter){ return httpCom('/rest',{ func: 'workListGet', ex_parm:{locate:aLocate,filter: aFilter}})},
+      extoolsPromise: function(aParam){ return httpCom('/rest',{ func: 'exTools', ex_parm: aParam })}
     }
-
   }]);
 ;
