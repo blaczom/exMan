@@ -7,7 +7,7 @@
     lp.txtReturn = "";
     lp.addPass = "";
     lp.postReq = function(){
-        $http.post('/extools',  { exReq: lp.txtReq, exAdmin:lp.addPass  } )
+        $http.post('/rest',  { exReq: lp.txtReq, exAdmin:lp.addPass  } )
            .success(function(data, status, headers, config) {
               // $scope.$apply(this.txtReturn);
             lp.txtReturn = JSON.stringify(data);

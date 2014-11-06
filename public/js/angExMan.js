@@ -75,7 +75,7 @@ app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exAcc
   lp.taskSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
 
   lp.locate = { curOffset: 0,  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
-    limit: 5,      // 当前查询显示限制
+    limit: 10,      // 当前查询显示限制
     aType: $routeParams.aType    // 查询的页面参数。暂时没用。随便参数。
   };
 
@@ -183,7 +183,7 @@ app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exAcc
     //参数重置。
     lp.taskSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
     lp.locate.curOffset = 0;  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
-    lp.locate.limit = 5;      // 当前查询显示限制。
+    lp.locate.limit = 10;      // 当前查询显示限制。
     lp.noData = false;
     if  (lp.seek.seekUserFlag && ((lp.seek.seekUser||'').length == 0)) lp.seek.seekUserFlag = false;
     lp.taskGet();   // 应该把状态push进去，否则还是按照原来的逻辑进行get。
@@ -260,7 +260,7 @@ app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exAcce
   };
   lp.taskSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
   lp.locate = { curOffset: 0,  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
-    limit: 5,      // 当前查询显示限制
+    limit: 10,      // 当前查询显示限制
     aType: $routeParams.aType    // 查询的页面参数。暂时没用。随便参数。
   };
   lp.rtnInfo = "";   // 返回提示用户的信息。   // lp.task = exDb.taskNew();    // 暂时给遮挡编辑任务页面提供。
@@ -390,7 +390,7 @@ app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exAcce
     //参数重置。
     lp.taskSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
     lp.locate.curOffset = 0;  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
-    lp.locate.limit = 5;      // 当前查询显示限制。
+    lp.locate.limit = 10;      // 当前查询显示限制。
     lp.noData = false;
     lp.haveClicked = "";
     if  (lp.seek.seekUserFlag && ((lp.seek.seekUser||'').length == 0)) lp.seek.seekUserFlag = false;
@@ -464,11 +464,11 @@ app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exAccess',functio
     seekTaskUUID : $routeParams.pid,  // parent taskUUID // 必须要有当前task的id。增加的时候
     seekTask : ($routeParams.pcon || '无内容')    // 显示部分父任务的内容。
   };
-  console.log(lp.seek.seekTaskUUID + ' task uuid');
+  // console.log(lp.seek.seekTaskUUID + ' task uuid');
   lp.seek.seekTaskFlag = lp.seek.seekTaskUUID?true:false;   // 按照父任务搜索所有的子工作。
 
   lp.locate = { curOffset: 0,  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
-    limit: 5,      // 当前查询显示限制
+    limit: 10,      // 当前查询显示限制
     aType: $routeParams.aType    // 查询的页面参数。暂时没用。随便参数。
   };
   lp.rtnInfo = "";   // 返回提示用户的信息。 // lp.task = exDb.taskNew();    // 暂时给遮挡编辑任务页面提供。
@@ -567,7 +567,7 @@ app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exAccess',functio
     //参数重置。
     lp.workSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
     lp.locate.curOffset = 0;  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
-    lp.locate.limit = 5;      // 当前查询显示限制。
+    lp.locate.limit = 10;      // 当前查询显示限制。
     if  (lp.seek.seekUserFlag && ((lp.seek.seekUser||'').length == 0)) lp.seek.seekUserFlag = false;
     lp.workGet();   // 应该把状态push进去，否则还是按照原来的逻辑进行get。
   };
@@ -623,7 +623,7 @@ app.controller("ctrlExtools",['$scope','exAccess',function($scope, exAccess){
           lp.txtReturn = JSON.stringify(aRtn);
         },
         function (err) {
-          lp.txtReturn = JSON.stringify(aRtn);
+          lp.txtReturn = JSON.stringify(err);
         }
       );
     }

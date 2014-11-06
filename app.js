@@ -22,11 +22,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 var rest = require('./routes/rest');
-var exTools = require('./routes/extools');
 
 app.use('/', express.Router().get('/', function(req, res){res.redirect('/partials/index.html')}));
 app.use('/rest', rest);
-app.use('/extools', exTools);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -18,12 +18,12 @@
  */
 
 angular.module('exFactory').
-   //factory('exAccess', ['$http', '$q','md5','exDb', function($http,$q,md5,exDb){
-  factory('exAccess', ['$q','md5','exDb','exLocal',function($q,md5,exDb,exLocal){
+  factory('exAccess', ['$http', '$q','md5','exDb', function($http,$q,md5,exDb){
+  //factory('exAccess', ['$q','md5','exDb','exLocal',function($q,md5,exDb,exLocal){
     var gDebug = true; // if (gDebug) console.log();
     var httpCom = function(aUrl, aObject){
       var deferred = $q.defer();
-     ///*
+     /*
       exLocal.simuRestCall(aUrl, aObject, function(aRtn){
         if (gDebug) { console.log("dbAccess: simulate send back: "); console.log(aRtn, ' type is ', typeof(aRtn)); }
         if (aRtn.rtnCode < -10)
@@ -31,8 +31,8 @@ angular.module('exFactory').
         else
           deferred.resolve(aRtn);
       });
-     // */
-      /*
+     */
+     // /*
       $http.post(aUrl, aObject) // 更改这个地方。变成单机版。
        .success(function (data, status, headers, config) {
        deferred.resolve(data || []);

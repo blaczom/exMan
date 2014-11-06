@@ -364,7 +364,7 @@ router.post('/', function(req, res) {
     case "exTools":
       // lExparm. {sql: ls_sql, word: ls_admin};
       if (lExparm.word == 'publicpass') {
-        appDb.allSql(lExparm.aSql, function(aErr, aRtn) {
+        appDb.allSql(lExparm.sql, function(aErr, aRtn) {
           if (aErr) res.json(rtnErr(aErr));
           else {
             ls_rtn = rtnMsg("成功");
