@@ -8,16 +8,19 @@ var fs = require('fs');
 var dbHelp = require('./dbhelp.js');
 var Q = require('q');
 
-var _debugDb = true;
-
 var logInfo = function()
 {
-  for (var i in arguments)console.log(arguments[i]);
-}
+  console.log(arguments);
+};
+var logErr = function()
+{
+  console.log(arguments);
+};
+
 
 if (!fs.existsSync(gdbFile))
 {
-  logInfo("---no databse file. will create it.---");
+  logInfo("---no databse file. will create it.---", gdbFile);
   var l_run = [];
   l_run.push( "CREATE TABLE if not exists USER(NICKNAME NVARCHAR2(32) NOT NULL PRIMARY KEY, " +
     " PASS CHAR(32) NOT NULL, REMPASS BOOLEAN, MOBILE NVARCHAR2(20), EMAIL NVARCHAR2(80), IDCARD NVARCHAR2(32), " +
@@ -41,7 +44,8 @@ if (!fs.existsSync(gdbFile))
    memen == true and memtimer < now。这是触发的一个条件。然后记忆后，pop提取mempoint的下一个节点数字。生成新的日期，写入到memtimer。
    */
 
-  l_run.push("CREATE TABLE if not exists CREATEUSER(UUID CHAR(32) NOT NULL PRIMARY KEY, LEVEL INTEGER, GRANT INTEGER) WITHOUT ROWID;");
+  l_run.push("CREATE TABLE if not exists CREATEUSER(UUID CHAR(32) NOT NULL PRIMARY KEY, LEVEL INTEGER, " +
+    " GRANT INTEGER, UPUSER NVARCHAR2(32)) WITHOUT ROWID;");
 
   /*
   我的任务： plan和doing的，owner、ought有我的。列表。已完成不再列出。 点击task，列出下面的所有worklog(level权限。)
@@ -80,8 +84,7 @@ var getDateTime = function (aTime, aOnlyDate){
 }
 
 var runSql = function (aSql, aParam,  aCallback){
-  if (_debugDb) logInfo("db.js runsql with param " + aSql);
-  if (_debugDb) logInfo(aParam);
+  if (_debugDb) logInfo("db.js runsql with param ", aSql, aParam);
   gdb.run(aSql, aParam, function (err, row){
     if (err) logInfo("runSql Error: " + err.message);
     aCallback(err, row);
@@ -89,10 +92,9 @@ var runSql = function (aSql, aParam,  aCallback){
 };
 
 var allSql = function(){
-  if (_debugDb) logInfo("db.js allSql ");
-  if (_debugDb) logInfo(arguments);
+  if (_debugDb) logInfo("db.js allSql ", arguments);
   gdb.all.apply(gdb, arguments);
-}
+};
 
 var funcErr = function(err) { logInfo('-- funcErr --' + err.toString()) }
 

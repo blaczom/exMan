@@ -5,23 +5,7 @@
 
     <h3 class="divex-heading"> 任务梯次 </h3>
     <div class='contentBody'>
-        <div class="contentBodySearch">
-            <span class='contentBodySearchItem'>
-                <div>
-                    <input ng-model="seek.seekUserFlag" id="txtSeekUserFlag" name="txtSeekUserFlag" type="checkbox"/> 用户
-                    <input ng-disabled="!seek.seekUserFlag" ng-model="seek.seekUser" id="txtSeekUser" name="txtSeekUser" type="text" placeholder="内容" />
-                    <input ng-model="seek.seekStateFlag" id="txtSeekStateFlag" name="txtSeekStateFlag" type="checkbox"/> 状态
-                    <br/>
-                    <input ng-model="seek.seekContentFlag" id="txtSeekContentFlag" name="txtSeekContentFlag" type="checkbox"/> 内容
-                    <input ng-disabled="!seek.seekContentFlag" ng-model="seek.seekContent" id="txtSeekContent" name="txtSeekContent" type="text" placeholder="内容" />
-                    <button ng-click="taskfilter()"> 查找 </button>
-                    <br/>
-                    &nbsp;
-                </div>
-            </span>
-            <span class='contentBodySearchItem'> <select ng-disabled="!seek.seekStateFlag" ng-model="seek.seekState" multiple ng-options="m for m in planState"></select>
-            </span>
-        </div>
+      <div ng-include="'incTaskSearch.html'" ></div>
     </div>
     <hr/>
     <div class="contentBodyTitle">

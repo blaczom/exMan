@@ -39,9 +39,9 @@
 
 
 // On creation of a UUID object, set it's initial value
-function UUID(){
+var  UUID = function(){
   this.id = UUID.prototype.createUUID();
-}
+};
 
 // When asked what this Object is, lie and return it's value
 UUID.prototype.valueOf = function(){ return this.id; }

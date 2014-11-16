@@ -94,17 +94,14 @@ exports.genModel = function(aOpt)
   else
     var ls_pre = "this.", ls_sep = "=", ls_end = "'';";
   DB.directDb.get("select * from WORK ", function(err,rtn) {
-    console.log("--------------Work-----------");
     for (var i in rtn) {
       console.log(ls_pre + i +  ls_sep + rtn[i]  + ls_end);  // 没错误顺便输出对象的数据库属性。
     }
     DB.directDb.get("select * from TASK ", function (err, rtn) {
-      console.log("--------------Task-----------");
       for (var i in rtn) {
         console.log(ls_pre + i +  ls_sep + rtn[i]  + ls_end);  // 没错误顺便输出对象的数据库属性。
       }
       DB.directDb.get("select * from user ", function (err, rtn) {
-        console.log("--------------User-----------");
         for (var i in rtn) {
           console.log(ls_pre + i +  ls_sep + rtn[i]  + ls_end);  // 没错误顺便输出对象的数据库属性。
         }
