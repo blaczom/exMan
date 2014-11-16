@@ -157,7 +157,8 @@ var USER = function() {
   this.GRANT = '';
   this.SYNC = '';
   this._exState = "new",  // new , clean, dirty.
-  this._exDataSet = {}    // 扩展用。日后可以用于前台的数据更新判断. new buffer, old buffer.
+    this._exDataSet = {};    // 扩展用。日后可以用于前台的数据更新判断. new buffer, old buffer.
+};
 
 USER.prototype.new = function(){
   return new USER();
@@ -173,7 +174,6 @@ USER.prototype.delete = function(aUUID, aCallback){
 };
 USER.prototype.getByNickName = function (aNick, aCallback) {
   allSql("select * from user where NICKNAME= ?" , aNick, aCallback);
-}
 };
 var TASK = function() {
   this.UUID = '';
@@ -290,7 +290,7 @@ var exQ = { // exQ.runSql('xxxx sql').then(funcSuccess(row), funcErr(err)).fail(
   }
 }
 
-exports.User = function(){  return new USER();}();
+exports.User = USER.prototype.new();
 exports.Task = function(){  return new TASK();}();
 exports.Work = function(){  return new WORK();}();
 exports.setDirty = function(aParm) { aParm._exState = 'dirty' };
