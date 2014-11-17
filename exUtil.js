@@ -36,4 +36,4 @@ function getDateTime(aTime, aOnlyDate){
 exports.err = err;
 exports.info = info;
 exports.getDateTime = getDateTime;
-exports.getDate = function(arg1){getDateTime(arg1,true)};
+exports.getDate = function(arg1){return getDateTime(arg1,true)};
