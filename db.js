@@ -18,8 +18,7 @@ var logErr = function()
 };
 
 
-if (!fs.existsSync(gdbFile))
-{
+if (!fs.existsSync(gdbFile)){
   logInfo("---no databse file. will create it.---", gdbFile);
   var l_run = [];
   l_run.push( "CREATE TABLE if not exists USER(NICKNAME NVARCHAR2(32) NOT NULL PRIMARY KEY, " +
