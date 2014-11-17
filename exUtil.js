@@ -1,26 +1,40 @@
 /**
  * Created by blaczom on 2014/11/17.
  * log = require('./logger')
+ *
+ * log.setLogParam({name:"testUtil.log", tofile:true, showinfo:true});
  * log.info(), log.err()
+ *
  */
 
 var fs = require('fs');
-var gFileLog = 'logger.txt', gb2file = true;
+var gFileLog = 'logger.txt';
+var gb2file = true;
 var gbShowInfo = true;
+
+var setLogParam = function(aOpt) {
+  if (aOpt.hasOwnProperty('name')) gFileLog = aOpt.name;
+  if (aOpt.hasOwnProperty('tofile')) gb2file = aOpt.tofile;
+  if (aOpt.hasOwnProperty('showinfo')) gbShowInfo = aOpt.showinfo;
+};
+
 var info = function(){
   var ls_t = JSON.stringify(arguments);
-  if (gbShowInfo) console.log(ls_t);
-  if (gb2file) fs.appendFileSync(gFileLog, ls_t);
+  if (gbShowInfo) {
+    console.log(ls_t);
+    if (gb2file) fs.appendFileSync(gFileLog, ls_t);
+  }
+  return(ls_t);
 };
 var err = function(){
-  var l_a = ["--Err--"]; // ...
-  l_a.push(arguments);
+  var l_a = ["--Err--",getDateTime(), arguments];
   var ls_t = JSON.stringify(l_a);
   console.log(ls_t);
   if (gb2file) fs.appendFileSync(gFileLog, ls_t);
+  return(ls_t);
 };
 
-function getDateTime(aTime, aOnlyDate){
+var getDateTime = function(aTime, aOnlyDate){
   // 向后一天，用 new Date( new Date() - 0 + 1*86400000)
   // 向后一小时，用 new Date( new Date() - 0 + 1*3600000)
   if (!aTime) aTime = new Date();
@@ -36,4 +50,5 @@ function getDateTime(aTime, aOnlyDate){
 exports.err = err;
 exports.info = info;
 exports.getDateTime = getDateTime;
-exports.getDate = function(arg1){return getDateTime(arg1,true)};
+exports.getDate = function(arg1){ return getDateTime(arg1,true) };
+exports.setLogParam = setLogParam;

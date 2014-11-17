@@ -3,23 +3,16 @@
  */
 
 var sqlite3 = require('sqlite3');
-var gdbFile = 'exman.db'; // if exist exman.db, means the sql ddl have been execute.
+var ex = require('./exUtil.js');
 var fs = require('fs');
-var dbHelp = require('./dbhelp.js');
 var Q = require('q');
+var gdbFile = 'exman.db'; // if exist exman.db, means the sql ddl have been execute.
 
-var logInfo = function()
-{
-  console.log(arguments);
-};
-var logErr = function()
-{
-  console.log(arguments);
-};
-
+var loginfo = ex.info;
+var logErr = ex.err;
 
 if (!fs.existsSync(gdbFile)){
-  logInfo("---no databse file. will create it.---", gdbFile);
+  loginfo("---no databse file. will create it:---", gdbFile);
   var l_run = [];
   l_run.push( "CREATE TABLE if not exists USER(NICKNAME NVARCHAR2(32) NOT NULL PRIMARY KEY, " +
     " PASS CHAR(32) NOT NULL, REMPASS BOOLEAN, MOBILE NVARCHAR2(20), EMAIL NVARCHAR2(80), IDCARD NVARCHAR2(32), " +
@@ -62,28 +55,14 @@ if (l_init) {
   gdb.serialize(function() {
     for (var i in l_run) {
       gdb.run(l_run[i], function (err, row) {
-        if (err)  logInfo("run Error: " + err.message + " " + l_run[i]);
+        if (err) logErr(" 初始化创建数据库错误: ",err.message,l_run[i]);
       });
     }
   });
 }
 
-var reConnect = function(){
-  if (!gdb)  gdb = new sqlite3.Database(gdbFile);  // 时间长了可能会自动断掉?
-};
-
-var getDateTime = function (aTime, aOnlyDate){
-  // 向后一天，用 new Date( new Date() - 0 + 1*86400000) // 向后一小时，用 new Date( new Date() - 0 + 1*3600000)
-  var l_date = new Array(aTime.getFullYear(), aTime.getMonth() < 9 ? '0' + (aTime.getMonth() + 1) : (aTime.getMonth()+1), aTime.getDate() < 10 ? '0' + aTime.getDate() : aTime.getDate());
-  var l_time = new Array(aTime.getHours() < 10 ? '0' + aTime.getHours() : aTime.getHours(), aTime.getMinutes() < 10 ? '0' + aTime.getMinutes() : aTime.getMinutes(), aTime.getSeconds() < 10 ? '0' + aTime.getSeconds() : aTime.getSeconds());
-  if (aOnlyDate)
-    return( l_date.join('-')) ; // '2014-01-02'
-  else
-    return( l_date.join('-') + ' ' + l_time.join(':')); // '2014-01-02 09:33:33'
-}
-
 var runSql = function (aSql, aParam,  aCallback){
-  if (_debugDb) logInfo("db.js runsql with param ", aSql, aParam);
+  logInfo("db runsql with param ", aSql, aParam);
   gdb.run(aSql, aParam, function (err, row){
     if (err) logInfo("runSql Error: " + err.message);
     aCallback(err, row);

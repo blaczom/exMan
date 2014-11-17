@@ -58,7 +58,7 @@ Error: SQLITE_ERROR: cannot start a transaction within a transaction
 
 plugin / ignore
 
-db = require('./db.js')
+db = require('./db-sqlite3.js')
 User = db.User;
 u1 = User.new()
 u1.NICKNAME = 'dddh'
