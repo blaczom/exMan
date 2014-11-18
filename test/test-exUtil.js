@@ -1,11 +1,7 @@
 exUtil = require('../exUtil');
+testBase = require('./test-base');
 fs = require('fs');
-var test = {
-  obj : function(aName, aObj) { return {  name : aName, obj : aObj } },
-  ok : function(aObj){ console.log(aObj.name + "测试成功:->", aObj.obj); },
-  no : function(aObj){ console.log("------测试失败:---->" + aObj.name, aObj.obj);
-                      return false; }
-};
+var test = testBase.testObj;
 
 var checkResult = function(){
   exUtil.setLogParam({name:"testUtil.log", tofile:true, showinfo:true});
@@ -26,6 +22,10 @@ var checkResult = function(){
 
   l_testObj = test.obj("exUtil.getDate", exUtil.getDate(new Date()));
   if (l_testObj.obj > '2014-11-01') test.ok(l_testObj); else l_rtn = test.no(l_testObj);
+
+  var l_testObj = test.obj("exUtil.verifyBool", exUtil.verifyBool('true'));
+  if (exUtil.verifyBool(1) && exUtil.verifyBool('1') && exUtil.verifyBool('true')) test.ok(l_testObj); else l_rtn = test.no(l_testObj);
+  if (exUtil.verifyBool(0) || exUtil.verifyBool('0') || exUtil.verifyBool('false'))  l_rtn = test.no(l_testObj); else test.ok(l_testObj);
 
   return l_rtn;
 };

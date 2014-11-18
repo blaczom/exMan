@@ -1,6 +1,6 @@
 /**
  * Created by blaczom on 2014/11/17.
- * log = require('./logger')
+ * log = require('./exUtil')
  *
  * log.setLogParam({name:"testUtil.log", tofile:true, showinfo:true});
  * log.info(), log.err()
@@ -19,7 +19,7 @@ var setLogParam = function(aOpt) {
 };
 
 var info = function(){
-  var ls_t = JSON.stringify(arguments);
+  var ls_t = JSON.stringify(arguments) + '\n\r';
   if (gbShowInfo) {
     console.log(ls_t);
     if (gb2file) fs.appendFileSync(gFileLog, ls_t);
@@ -27,8 +27,7 @@ var info = function(){
   return(ls_t);
 };
 var err = function(){
-  var l_a = ["--Err--",getDateTime(), arguments];
-  var ls_t = JSON.stringify(l_a);
+  var ls_t = "--Err--" + getDateTime() + JSON.stringify(arguments) + '\n\r';
   console.log(ls_t);
   if (gb2file) fs.appendFileSync(gFileLog, ls_t);
   return(ls_t);
@@ -47,8 +46,11 @@ var getDateTime = function(aTime, aOnlyDate){
   }
 };
 
+
+
 exports.err = err;
 exports.info = info;
 exports.getDateTime = getDateTime;
 exports.getDate = function(arg1){ return getDateTime(arg1,true) };
 exports.setLogParam = setLogParam;
+exports.verifyBool = function (aParam){ return (aParam==true||aParam=="true")?true:false;  };
