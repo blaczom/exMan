@@ -10,7 +10,7 @@
 var fs = require('fs');
 var gFileLog = 'logger.txt';
 var gb2file = true;
-var gbShowInfo = true;
+var gbShowInfo = false;
 
 var setLogParam = function(aOpt) {
   if (aOpt.hasOwnProperty('name')) gFileLog = aOpt.name;

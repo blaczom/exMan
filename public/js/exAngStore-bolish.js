@@ -7,8 +7,9 @@ angular.module('exFactory', ['exService', 'angular-md5']).
     if(window.localStorage){
       console.log("check success -- > localStorage support!");
     }else{
-      alert('This browser does NOT support localStorage');
+      window.alert('This browser does NOT support localStorage');
     }
+
     var localStorageService = window.localStorage;
     var _debug = true;
     var objUser = function(){

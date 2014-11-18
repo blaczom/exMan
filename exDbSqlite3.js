@@ -117,8 +117,8 @@ var runSql = function (aSql, aParam,  aCallback){
   logInfo("db runSql with param ", aSql, aParam);
   if (aParam) {if (toString.apply(aParam) !== "[object Array]") aParam = [aParam];} else aParam = [];
   gdb.all(aSql, aParam, function (err, row){
-    if (err) logErr(err);
-    aCallback(err, row);
+    if (err) logErr("runSql",err,aSql,aParam);
+    if (aCallback) aCallback(err, row);
   } );
 };
 var runSqlPromise = function (aSql, aParam) {
@@ -126,50 +126,36 @@ var runSqlPromise = function (aSql, aParam) {
   if (aParam) {if (toString.apply(aParam) !== "[object Array]") aParam = [aParam];} else aParam = [];
   var deferred = Q.defer();
   gdb.all(aSql, aParam, function (err, row) {
-    if (err) deferred.reject(err); else deferred.resolve(row);
+    if (err) {if (err) logErr("runSqlPromise",err,aSql,aParam);deferred.reject(err);} else deferred.resolve(row);
   });
   return deferred.promise;
 };
-
-var funcErr = function(err) { logInfo('-- funcErr --' + err.toString()) }
 var comSave = function(aTarget, aTable, aCallback) {
   try {   // ls_sql = dbHelp.genSave(aTarget, aTable);  保存对象到数据库中。
     l_gen = genSave(aTarget, aTable);  // 返回一个数组，sql和后续参数。
     logInfo("com save run here with param: ", aTarget, aTable, l_gen);
     runSql(l_gen[0], l_gen[1], function (err, row) {
-      if (err) logErr(err);
       aCallback(err, row);
     });
   }
   catch (err) {
     logErr('comSave catch a error: ',err);
-    aCallback(err, err);
+    if (aCallback) aCallback(err, err);
   }
 };
 
 var helpUser = {
   save:function (aUser, aCallback){ comSave(aUser, 'USER', aCallback); },
   delete : function(aNickName, aCallback){
-    runSql("delete from USER where NICKNAME = ?", aNickName, function (err, row) {
-      if (err) logErr("delete user Error: ", err); aCallback(err, row);
-    }); } ,
+    runSql("delete from USER where NICKNAME = ?", aNickName, aCallback); } ,
   getByNickName:function(aNickName, aCallback) {
     runSql("select * from user where NICKNAME= ?" , aNickName, aCallback);
   }
 };
 var helpTask = {
-  save: function (aTask, aCallback) {
-    comSave(aTask, 'TASK', aCallback);
-  },
+  save: function (aTask, aCallback) {    comSave(aTask, 'TASK', aCallback);  },
   delete: function (aUUID, aCallBack) {
-    runSql("delete from TASK where UUID = ?", aUUID, function (err, row) {
-      if (err) logErr("delete task Error: ", err);
-      aCallBack(err, row);
-    });
-  },
-  getByUUID: function (aUUID, aCallback) {
-    runSql("select * from task where UUID=?", aUUID, aCallback);
-  },
+    runSql("delete from TASK where UUID = ?", aUUID, aCallBack);  },
   getChildren: function (rootTask, aCallback) {
     var statckCallback = [];
     function nextTask(aParent, aRow, aI, aCallFin)  // aRow, 是一个数组。aI作为索引。 alen作为结束判断。

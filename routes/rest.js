@@ -3,9 +3,9 @@
  */
 var express = require('express'),
   router = express.Router(),
-//  crypto = require('crypto'),
-  appDb =  require('../db');
-  var Q = require('q');
+  appDb =  require('../exDbAccess'),
+  Q = require('q'),
+  log = require('../exUtil');
 
 var rtnErr = function(aMsg, aErr) {
   return { "rtnInfo": JSON.stringify(aMsg), rtnCode: -1, "alertType": 0, error: JSON.stringify(aErr), exObj:{} }
@@ -14,29 +14,26 @@ var rtnMsg = function(aMsg) {
   return { "rtnInfo": aMsg, rtnCode: 1, "alertType": 0, error: [], exObj:{} }
 };
 
-var logInfo = function()
-{
-  console.log(arguments);
-};
+var logInfo = log.info;
+var logErr = log.err;
 
 router.get('/', function(req, res) {
   res.send('没有此功能。');
 });
 
-function checkLogin(req, res){
-  // if(req.cookies.loginUser)  { req.session.loginUser = req.cookies.loginUser; }
+function checkLogin(req, res){  
   if (req.session.loginUser) return true; else return false;  // 只信任服务器端的数据。
 }
 
 function getSubList(aSql, aParam, aWithSub, aCallback){  // 得到指定的任务下面的任务数量。
-  appDb.allSql(aSql, aParam, function(aErr, aRtn) {
+  appDb.runSql(aSql, aParam, function(aErr, aRtn) {
     if (aErr) aCallback(aErr);
     else {
       var l_exObj = aRtn?aRtn:[];
       if (aWithSub) {
-        var stackSubQ = []
+        var stackSubQ = [];
         for (var i in l_exObj) { // 对返回的所有数据集进行处理。
-          stackSubQ.push( appDb.Q.allSql("select count(*) as SUBCOUNT, state as SUBSTATE from task where uptask='" + l_exObj[i].UUID + "' group by STATE") )
+          stackSubQ.push( appDb.runSqlPromise("select count(*) as SUBCOUNT, state as SUBSTATE from task where uptask='" + l_exObj[i].UUID + "' group by STATE") )
         }
         Q.all(stackSubQ).then(function(row2){
           var l_a = [0,0,0]
@@ -123,7 +120,7 @@ router.post('/', function(req, res) {
     }
     case "userlogin": { // lExparm.txtUserName, lExparm.txtUserPwd
       var userName = lExparm.txtUserName,  userPwd = lExparm.txtUserPwd,  userRem = lExparm.remPass;
-      appDb.User.getByNickName(userName, function (aErr, aRtn) {
+      appDb.USER.getByNickName(userName, function (aErr, aRtn) {
         if (aErr) res.json(rtnErr(aErr));
         else {
           if (aRtn.length > 0) {
@@ -160,7 +157,7 @@ router.post('/', function(req, res) {
           }
           else {
             // 根据授权码判断授权是否可以。然后创建新用户，然后删除授权码，然后提交事物。
-            appDb.Q.allSql("select * from createUser where uuid = '" + authCod + "'")
+            appDb.runSqlPromise("select * from createUser where uuid = '" + authCod + "'")
               .then(function(aRow){
                 if((aRow||[]).length > 0 ){
                   userAdd = appDb.User.new();
@@ -274,7 +271,7 @@ router.post('/', function(req, res) {
       break;
     }
     case 'userGet':  { // lExparm.msgObj
-      appDb.allSql("select * from user where NICKNAME = ? " , lExparm.userName ,  function(aErr, aRtn) {
+      appDb.runSql("select * from user where NICKNAME = ? " , lExparm.userName ,  function(aErr, aRtn) {
         if (aErr) res.json(rtnErr(aErr));
         else {
           ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
@@ -364,7 +361,7 @@ router.post('/', function(req, res) {
     case "exTools":
       // lExparm. {sql: ls_sql, word: ls_admin};
       if (lExparm.word == 'publicpass') {
-        appDb.allSql(lExparm.sql, function(aErr, aRtn) {
+        appDb.runSql(lExparm.sql, [], function(aErr, aRtn) {
           if (aErr) res.json(rtnErr(aErr));
           else {
             ls_rtn = rtnMsg("成功");
