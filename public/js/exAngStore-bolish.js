@@ -24,7 +24,7 @@ angular.module('exFactory', ['exService', 'angular-md5']).
       this.GRANT = '';
       this.SYNC = '';
       this._exState = "new"  // new , clean, dirty.
-    }
+    };
     var objTask = function(){
       this.UUID = exUtil.uuid();
       this.UPTASK = '';
@@ -38,11 +38,11 @@ angular.module('exFactory', ['exService', 'angular-md5']).
       this.CONTENT = '';
       this.SYNC = '';
       this._exState='new';
-    }
+    };
     var objWork = function(){
       this.UUID = exUtil.uuid();
       this.UPTASK = '';
-      this.CREATETIME = exUtil.getDateTime(new Date());;
+      this.CREATETIME = exUtil.getDateTime(new Date());
       this.LASTMODIFY = '';
       this.OWNER = '';
       this.PRIVATE = '';
@@ -54,7 +54,7 @@ angular.module('exFactory', ['exService', 'angular-md5']).
       this.STATE = '';
       this.SYNC = '';
       this._exState='new';
-    }
+    };
 
     var getDateTime = function(aTime, aOnlyDate){
       // 向后一天，用 new Date( new Date() - 0 + 1*86400000)

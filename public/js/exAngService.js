@@ -113,7 +113,7 @@ angular.module('exService', ['angular-md5'])
       log:function(){if (_debug) console.log(arguments); }
     }
   }])
-  .factory('exAccess', ['$http', '$q','md5','exStore', function($http,$q,md5,exStore){
+  .factory('exAccess', ['$http', '$q','md5','exStore','exUtil', function($http,$q,md5,exStore,exUtil){
     //factory('exAccess', ['$q','md5','exStore',function($q,md5,exStore){
     var gDebug = true; // if (gDebug) console.log();
     var httpCom = function(aUrl, aObject){
@@ -153,10 +153,10 @@ angular.module('exService', ['angular-md5'])
     };
     objUser.prototype.new = function(){  return(new objUser()); };
     var objTask = function() {
-      this.UUID = '';
+      this.UUID = exUtil.createUUID();
       this.UPTASK = '';
-      this.PLANSTART = '';
-      this.PLANFINISH = '';
+      this.PLANSTART = exUtil.getDateTime(new Date());
+      this.PLANFINISH = exUtil.getDateTime(new Date( new Date() - 0 + 1*86400000));
       this.FINISH = '';
       this.STATE = '';
       this.OWNER = '';
@@ -169,9 +169,9 @@ angular.module('exService', ['angular-md5'])
     };
     objTask.prototype.new  = function(){  return(new objTask()); };
     var objWork = function() {
-      this.UUID = '';
+      this.UUID = exUtil.createUUID();
       this.UPTASK = '';
-      this.CREATETIME = '';
+      this.CREATETIME = exUtil.getDateTime(new Date());
       this.LASTMODIFY = '';
       this.OWNER = '';
       this.PRIVATE = '';

@@ -156,6 +156,7 @@ var helpTask = {
   save: function (aTask, aCallback) {    comSave(aTask, 'TASK', aCallback);  },
   delete: function (aUUID, aCallBack) {
     runSql("delete from TASK where UUID = ?", aUUID, aCallBack);  },
+  getByUUID : function (aUUID, aCallback) { runSql("select * from task where UUID=?", aUUID, aCallback); },
   getChildren: function (rootTask, aCallback) {
     var statckCallback = [];
     function nextTask(aParent, aRow, aI, aCallFin)  // aRow, 是一个数组。aI作为索引。 alen作为结束判断。
@@ -189,6 +190,7 @@ var helpTask = {
     });
 
   }
+
 };
 var helpWork = {
   save : function (aWORK, aCallback) {  comSave(aWORK, 'WORK', aCallback); },

@@ -35,6 +35,7 @@ var checkResult = function(){
     test.ok({name: "genSave生成update的user语句", obj: l_genUserSql});
   else l_rtn=test.no({name: "genSave生成update的user语句", obj: l_genUserSql });
   //exDb.genModel(true); // 从数据库中生成数据模型对象
+
   // 测试插入保存和更新.测试delete(runsql), save(comSave)
   l_user.delete(l_user.NICKNAME, function(aErr, aRow) {
     if (aErr) l_rtn = test.no({name: "user.delete", obj: aErr });
@@ -52,41 +53,36 @@ var checkResult = function(){
     });
   });
 
-
-
-
-/*
-   //  exLocalDb.comSave  && user.getByNickName, save, delete
-  exDbAccess.appendix.setNew(l_user);
-    // 清理一下如果有残余
- exLocalDb.comSave(l_user, 'USER', function(aErr, aRow){
- if (aErr) logNo({name: "comSave user ", obj: aErr });
- else {
- logOk( {name:"comSave user", obj: aRow } );
- l_user.getByNickName(l_user.NICKNAME, function(aErr, aRow){
- if (aErr) logNo({name: "user getByNickName", obj: aErr });
- else {
- if (aRow.length > 0 ) {
- logOk( {name:"user getByNickName", obj: aRow } );
- l_user.PASS = 'change4update';
- exLocalDb.appendix.setDirty(l_user);
- l_user.save(l_user, function(aErr, aRow){
- if (aErr) logNo({name: "user save", obj: aErr });
- else {
- logOk( {name:"user save", obj: aRow } )
- l_user.delete(l_user.NICKNAME, function(aErr, aRow){
- if (aErr) logNo({name: "user delete", obj: aErr });
- else logOk( {name:"user delete", obj: aRow } )
- });
- }
- })
- }
- else
- logNo({name: "user getByNickName has no return ", obj: aRow });
- }
- });
- }
- });*/
+  var l_task = exDbAccess.TASK.new();
+  l_task.UUID = "tmpInsertTask";
+  l_task.save(l_task, function(aErr, aRow) {
+    if (aErr) l_rtn = test.no({name: "l_task.save", obj: aErr });
+    l_task.getByUUID(l_task.UUID, function(aErr, aRow) {
+      if (aErr) l_rtn = test.no({name: "l_task.getByUUID run err ", obj: aErr });
+      else
+        if ((aRow||[]).length > 0 && aRow[0].UUID == l_task.UUID) {
+          test.ok({name: "l_task.getByUUID", obj: aRow });
+          l_task.delete(l_task.UUID, function(aErr, aRow) {});
+        }
+        else
+          l_rtn = test.no({name: "l_task.getByUUID get no data:", obj: aRow });
+    });
+  });
+  var l_work = exDbAccess.WORK.new();
+  l_work.UUID = "tmpInsertWork";
+  l_work.save(l_work, function(aErr, aRow) {
+    if (aErr) l_rtn = test.no({name: "l_work.save", obj: aErr });
+    l_work.getByUUID(l_work.UUID, function(aErr, aRow) {
+      if (aErr) l_rtn = test.no({name: "l_work.getByUUID", obj: aErr });
+      else
+      if ((aRow||[]).length > 0 && aRow[0].UUID == l_work.UUID) {
+        test.ok({name: "l_work.getByUUID", obj: aRow });
+        l_work.delete(l_work.UUID, function(aErr, aRow) {});
+      }
+      else
+        l_rtn = test.no({name: "l_work.getByUUID get no data:", obj: aRow });
+    });
+  });
   return l_rtn;
 };
 

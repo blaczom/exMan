@@ -44,7 +44,7 @@ var objTask = function() {
   this.PRIVATE = '';
   this.CONTENT = '';
   this.SYNC = '';
-  this._exState = '';
+  this._exState = 'new';
   this._exDataSet = {};
 };
 objTask.prototype.new  = function(){  return(new objTask()); };
@@ -67,7 +67,7 @@ var objWork = function() {
   this.MEMTIMER = '';
   this.STATE = '';
   this.SYNC = '';
-  this._exState = '';
+  this._exState = 'new';
   this._exDataSet = {};
 };
 objWork.prototype.new = function(){  return(new objWork()); };
