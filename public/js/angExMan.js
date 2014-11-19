@@ -1,10 +1,17 @@
 var app = angular.module("exman", ['ngRoute','exService','ngSanitize']);
-
+/* run test
+ var app = angular.module("exman", ['ngRoute','exService','exManTest']);
+ <script src="/js/exTest.js"></script>
+app.run(function(exTestUtil,exTestDb) {
+  console.log("=====测试exUtil-----", exTestUtil.checkResult());
+  console.log("=====测试exStore----", exTestDb.checkResult());
+});
+*/
 app.config(['$routeProvider', function($routeProvider) {
     $routeProvider.       // main.html <--------
       when('/', { templateUrl: '/partials/login.html', controller: "ctrlLogin" } ).
       when('/reg', { templateUrl: '/partials/reg.html', controller: "ctrlRegUser" }).
-      when('/chang', { templateUrl: '/partials/userChange.html', controller: "ctrlChangUser" }).
+      when('/change', { templateUrl: '/partials/userChange.html', controller: "ctrlChangUser" }).
       when('/msgEdit/:id', {templateUrl: '/partials/msgEdit.html',   controller: "ctrlMsgEdit"}).
       when('/taskList/:aType', {templateUrl: '/partials/taskList.html',   controller: "ctrlTaskList"}).
       when('/workList/:aType', {templateUrl: '/partials/workList.html', controller: "ctrlWorkList"}).
@@ -29,6 +36,6 @@ app.directive('validDateModel', function() {
       });
     }
   };
-})
+});
 
 

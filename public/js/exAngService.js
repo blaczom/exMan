@@ -57,7 +57,7 @@ angular.module('exService', ['angular-md5'])
       verifyBool : function (aParam){ return (aParam==true||aParam=="true")?true:false;  }
     }
   })
-  .factory('exStore', ['$location',function($location){
+  .factory('exStore', function(){
     var _debug = true;
     if(window.localStorage) console.log("check success -- > localStorage support!");
     else window.alert('This browser does NOT support localStorage. pls choose allow localstorage');
@@ -65,8 +65,13 @@ angular.module('exService', ['angular-md5'])
     var _currentUser = (l_store.getItem('exManCurrentLocalUser') || ""),
       _userList = (l_store.getItem('exManLocalUserList') || "{}");
 
+    var verifyBool = function (aParam){ return (aParam==true||aParam=="true")?true:false;  };
     return{
-      getUserList: function(){return JSON.parse(_userList);},
+      getUserList: function(){
+        var l_rtn=[] , l_user=JSON.parse(_userList);
+        for (i in l_user) l_rtn.push({name:i, pass:l_user[i].pass, rempass:l_user[i].rempass});
+        return l_rtn;
+      },
       getUserNameList: function(){
         var la_userName = [];
         for (var i in JSON.parse(_userList)) la_userName.push(i);
@@ -74,7 +79,7 @@ angular.module('exService', ['angular-md5'])
       },
       setUserList: function(aUser, aPass, aRem) {  // 设置当前用户，名称，密码和保存密码。
         var l_t = JSON.parse(_userList);
-        l_t[aUser] = {pass:aPass,rempass:aRem};
+        l_t[aUser] = {pass:aRem?aPass:"",rempass:aRem};
         _userList = JSON.stringify(l_t);
         l_store.setItem('exManLocalUserList', _userList);
         _currentUser = aUser; l_store.setItem('exManCurrentLocalUser', aUser)
@@ -83,21 +88,11 @@ angular.module('exService', ['angular-md5'])
       getUser: function(){  // return {name:, pass:, rempass:}
         var l_name = (arguments.length > 0)?arguments[0]:_currentUser;
         var l_user = JSON.parse(_userList)[l_name];
-        if (l_user) l_user.name = l_name; else l_user = {name:'', pass:'', rempass:false};
+        if (l_user) { l_user.name = l_name; l_user.rempass=verifyBool(l_user.rempass)}
+        else l_user = {name:'', pass:'', rempass:false};
         return l_user;
       },
-      verifyBool: function (aParam){ return (aParam==true||aParam=="true")?true:false;  },
-      checkRtn: function(aRtn) {
-        if (aRtn.rtnCode == 0) {
-          switch (aRtn.appendOper) {
-            case 'login':
-              $location.path('/');
-              return false;
-              break;
-          }
-        }
-        return true;
-      },
+      verifyBool: verifyBool,
       err: function(){
         if ((arguments||[]).length > 0) {
           console.log(arguments);
@@ -112,8 +107,8 @@ angular.module('exService', ['angular-md5'])
       getErr:function(){ return l_store.getItem('exManLastErr') },
       log:function(){if (_debug) console.log(arguments); }
     }
-  }])
-  .factory('exAccess', ['$http', '$q','md5','exStore','exUtil', function($http,$q,md5,exStore,exUtil){
+  })
+  .factory('exAccess', function($location,$http,$q,md5,exStore,exUtil){
     //factory('exAccess', ['$q','md5','exStore',function($q,md5,exStore){
     var gDebug = true; // if (gDebug) console.log();
     var httpCom = function(aUrl, aObject){
@@ -189,9 +184,10 @@ angular.module('exService', ['angular-md5'])
 
 
     var userReg = function(aobjUser) {
-      aobjUser.md5Pass = md5.createHash(aobjUser.NICKNAME + aobjUser.PASS);
-      aobjUser.pass = aobjUser.pass2 = "";  // 防止网络传输明码。
-      return httpCom('/rest',  { func: 'userReg',  ex_parm: { regUser: aobjUser} })
+      var l_user = angular.copy(aobjUser);
+      l_user.md5Pass = md5.createHash(l_user.NICKNAME + l_user.PASS);
+      l_user.pass = l_user.pass2 = "";  // 防止网络传输明码。
+      return httpCom('/rest',  { func: 'userReg',  ex_parm: { regUser: l_user} })
     };
     var userLogin = function(aobjUser) {
       return httpCom('/rest', { func: 'userlogin',   ex_parm: { txtUserName: aobjUser.NICKNAME,
@@ -225,25 +221,38 @@ angular.module('exService', ['angular-md5'])
       extoolsPromise: function(aParam){ return httpCom('/rest',{ func: 'exTools', ex_parm: aParam })},
       USER : new objUser(),
       TASK : new objTask(),
-      WORK : new objWork()
-
+      WORK : new objWork(),
+      planState : ['计划','进行','结束'],
+      memPoint : '1,1,2,4,7,15',
+      checkRtn: function(aRtn) {
+        if (aRtn.rtnCode == 0) {
+          switch (aRtn.appendOper) {
+            case 'login':
+              $location.path('/');
+              return false;
+              break;
+          }
+        }
+        return true;
+      }
     };
-    /**
-     * Created by blaczom4gmail on 2014/10/25.
-     * exAngDb.js -- exClientDb.js -- exAngDbAccess.js  顺序不能搞错。
-     * // 注释掉 http的promise，更改成本地。
-     * // 在index.html中加入对exClientDb.js的引用。
-     <script src="/js/angular1.3.min.js" type="text/javascript"></script>
-     <script src="/js/angular-route.min.js"></script>
-     <script src="/js/angular-sanitize.min.js"></script>
-     <script src="/js/angular-md5.min.js"></script>
-     <script src="/js/exAngUtils.js" type="text/javascript"></script>
-     <script src="/js/exAngDb.js" type="text/javascript"></script>
-     //// VVVVVV   here !!!
-     <script src="/js/exClientDb.js" type="text/javascript"></script>
-     //// AAAAAA
-     <script src="/js/exAngDbAccess.js" type="text/javascript"></script>
-     <script src="/js/angExMan.js" type="text/javascript"></script>
-     *    去掉factory的exlocal注释。调用http到服务器端。
-     */
-  }]);
+  });
+
+/**
+ * Created by blaczom4gmail on 2014/10/25.
+ * exAngDb.js -- exClientDb.js -- exAngDbAccess.js  顺序不能搞错。
+ * // 注释掉 http的promise，更改成本地。
+ * // 在index.html中加入对exClientDb.js的引用。
+ <script src="/js/angular1.3.min.js" type="text/javascript"></script>
+ <script src="/js/angular-route.min.js"></script>
+ <script src="/js/angular-sanitize.min.js"></script>
+ <script src="/js/angular-md5.min.js"></script>
+ <script src="/js/exAngUtils.js" type="text/javascript"></script>
+ <script src="/js/exAngDb.js" type="text/javascript"></script>
+ //// VVVVVV   here !!!
+ <script src="/js/exClientDb.js" type="text/javascript"></script>
+ //// AAAAAA
+ <script src="/js/exAngDbAccess.js" type="text/javascript"></script>
+ <script src="/js/angExMan.js" type="text/javascript"></script>
+ *    去掉factory的exlocal注释。调用http到服务器端。
+ */

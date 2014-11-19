@@ -6,7 +6,7 @@ var ex = require('./exUtil');
 
 var gdbFile = 'exman.db'; // if exist exman.db, means the sql ddl have been execute.
 var fs = require('fs');
-var gdb = require('./exDbSqlite3');
+var gdbLib = require('./exDbSqlite3');
 var Q = require('q');
 
 var logInfo = ex.info;
@@ -28,9 +28,9 @@ var objUser = function() {
   this._exDataSet = {};    // 扩展用。日后可以用于前台的数据更新判断. new buffer, old buffer.
 };
 objUser.prototype.new = function(){  return(new objUser()); };
-objUser.prototype.save = gdb.helpUser.save;
-objUser.prototype.delete = gdb.helpUser.delete;
-objUser.prototype.getByNickName = gdb.helpUser.getByNickName;
+objUser.prototype.save = gdbLib.helpUser.save;
+objUser.prototype.delete = gdbLib.helpUser.delete;
+objUser.prototype.getByNickName = gdbLib.helpUser.getByNickName;
 
 var objTask = function() {
   this.UUID = '';
@@ -48,10 +48,10 @@ var objTask = function() {
   this._exDataSet = {};
 };
 objTask.prototype.new  = function(){  return(new objTask()); };
-objTask.prototype.save  = gdb.helpTask.save;
-objTask.prototype.delete = gdb.helpTask.delete;
-objTask.prototype.getByUUID = gdb.helpTask.getByUUID;
-objTask.prototype.getChildren = gdb.helpTask.getChildren;
+objTask.prototype.save  = gdbLib.helpTask.save;
+objTask.prototype.delete = gdbLib.helpTask.delete;
+objTask.prototype.getByUUID = gdbLib.helpTask.getByUUID;
+objTask.prototype.getChildren = gdbLib.helpTask.getChildren;
 
 var objWork = function() {
   this.UUID = '';
@@ -71,9 +71,9 @@ var objWork = function() {
   this._exDataSet = {};
 };
 objWork.prototype.new = function(){  return(new objWork()); };
-objWork.prototype.save = gdb.helpWork.save;
-objWork.prototype.delete = gdb.helpWork.delete;
-objWork.prototype.getByUUID = gdb.helpWork.getByUUID;
+objWork.prototype.save = gdbLib.helpWork.save;
+objWork.prototype.delete = gdbLib.helpWork.delete;
+objWork.prototype.getByUUID = gdbLib.helpWork.getByUUID;
 
 exports.USER = new objUser();
 exports.TASK = new objTask();
@@ -81,6 +81,6 @@ exports.WORK = new objWork();
 exports.setDirty = function(aParm) { aParm._exState = 'dirty' };
 exports.setNew = function(aParm) { aParm._exState = 'new' };
 exports.setClean = function(aParm) { aParm._exState = 'clean' };
-exports.runSql = gdb.runSql;
-exports.runSqlPromise = gdb.runSqlPromise;
-exports.db = gdb;
+exports.runSql = gdbLib.runSql;
+exports.runSqlPromise = gdbLib.runSqlPromise;
+exports.dbLib = gdbLib;

@@ -2,13 +2,58 @@
  * Created by Administrator on 2014/11/16.
  */
 var app = angular.module("exman");
+app.controller("ctrlIndex",function($scope,$location,exStore) {
+  var lp = $scope;
+  lp.currentUser = "";
+  lp.$on('event:login', function(){
+    lp.currentUser = exStore.getUser().name;
+  });
+});
+app.controller("ctrlLogin",function($rootScope,$scope,$location,exStore,exAccess) {
+  var lp = $scope;
+  lp.rtnInfo = "";
+  lp.l_logUser = exStore.getUserList();   // 下拉菜单用户名。
+  lp.l_tmpUser = exStore.getUser();       // 当前用户
 
-app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exAccess',function($scope,$routeParams,$location,exDb,exAccess){
+  lp.userLogin = function () {
+    lp.user = exAccess.USER.new();
+    lp.user.NICKNAME = lp.l_tmpUser.name;
+    lp.user.REMPASS = lp.l_tmpUser.rempass;
+    lp.user.PASS = lp.l_tmpUser.pass;
+    exAccess.userLoginPromise(lp.user).then( function(data) {
+      if (data.rtnCode > 0) {
+        exStore.setUserList(lp.user.NICKNAME, lp.user.PASS, lp.user.REMPASS );
+        $rootScope.$broadcast('event:login');
+        $location.path('/taskList/main');
+      }
+      else{
+        lp.rtnInfo = data.rtnInfo;
+      }
+    }, function (error) {  lp.rtnInfo = JSON.stringify(status); });
+  };
+});
+app.controller("ctrlRegUser", function($scope,exStore,exAccess){
+  var lp = $scope;
+  lp.user = exAccess.USER.new();
+  lp.user.authCode = "";
+  lp.rtnInfo = "";
+  lp.userReg = function(){
+    exAccess.userRegPromise(lp.user).
+      then(function (data) {
+        exStore.log("---got the rtn date", data);
+        lp.rtnInfo = data.rtnInfo;
+        if (!exStore.getUser()) exStore.setUser(lp.user.NICKNAME);
+      } , function (status) {
+        lp.rtnInfo = JSON.stringify(status);
+      });
+  };
+});
+app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exAccess,exUtil){
   var lp = $scope;
   lp.showDebug = false;  // 调试信息打印。
   lp.seek = {seekContentFlag: false, seekContent : "",   // 是否search任务内容。
     seekStateFlag : true,  seekState : ['计划','进行'],  // 是否search任务状态。
-    seekUserFlag : true, seekUser : exDb.getUser()       // 是否按照用户搜索
+    seekUserFlag : true, seekUser : exStore.getUser().name       // 是否按照用户搜索
   };
   lp.taskSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
 
@@ -18,10 +63,9 @@ app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exAcc
   };
 
   lp.curIndex = null;     //当前编辑的索引值
-  lp.rtnInfo = "";   // 返回提示用户的信息。   // lp.task = exDb.taskNew();    // 暂时给遮挡编辑任务页面提供。
+  lp.rtnInfo = "";   // 返回提示用户的信息。   // lp.task = exStore.taskNew();    // 暂时给遮挡编辑任务页面提供。
   lp.editMode = "list";    // 是否在单记录编辑模式。
-  lp.planState = exDb.planState;  // 选择的task状态内容。
-  lp.bigScreen = exDb.getPlat()?" ":"  <br> ";
+  lp.planState = exStore.planState;  // 选择的task状态内容。
   lp.taskEditMask = function(aShow){
     switch (aShow){
       case 'editsave':
@@ -52,11 +96,11 @@ app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exAcc
         lp.editMode = 'user';
         break;
     }
-  }
+  };
   lp.taskAdd = function(aIndex){   // 增加和编辑。
     lp.curIndex = aIndex;
-    lp.task = exDb.taskNew();
-    lp.task.OWNER = exDb.getUser();
+    lp.task = exAccess.TASK.new();
+    lp.task.OWNER = exStore.getUser().name;
     lp.task.STATE = '计划';
     lp.task._exState = 'new';
     if(aIndex != null){
@@ -78,7 +122,7 @@ app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exAcc
     lp.taskEditMask("listedit");
   };
   lp.taskSave = function(){
-    if (lp.task.STATE == exDb.planState[2] && (lp.task.FINISH||'').length==0) lp.task.FINISH = exDb.getDateTime(new Date());
+    if (lp.task.STATE == exStore.planState[2] && (lp.task.FINISH||'').length==0) lp.task.FINISH = exStore.getDateTime(new Date());
     exAccess.taskSavePromise(lp.task)
       .then( function (data) {    // 得到新的消息
         lp.rtnInfo = data.rtnInfo;
@@ -129,7 +173,7 @@ app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exAcc
   lp.taskGet = function(){
     exAccess.taskListGetPromise(lp.locate, lp.seek)
       .then(function (data) {    // 得到新的消息
-        if (!exDb.checkRtn(data)) return ;
+        if (!exAccess.checkRtn(data)) return ;
         lp.rtnInfo = data.rtnInfo;
         var ltmp1 = data.exObj;
         if (ltmp1.length > 0){
@@ -187,13 +231,13 @@ app.controller("ctrlTaskList",['$scope','$routeParams','$location','exDb','exAcc
       lp.taskfilter();  // 默认来一次。
       break;
   }
-}]);
-app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exAccess',function($scope,$routeParams,$location,exDb,exAccess){
+});
+app.controller("ctrlTaskAll",function($scope,$routeParams,$location,exStore,exAccess,exUtil){
   var lp = $scope;
   lp.showDebug = false;  // 调试信息打印。
   lp.seek = {seekContentFlag: false, seekContent : "",   // 是否search任务内容。
     seekStateFlag : true,  seekState : ['计划','进行'],  // 是否search任务状态。
-    seekUserFlag : true, seekUser : exDb.getUser(),       // 是否按照用户搜索
+    seekUserFlag : true, seekUser : exStore.getUser(),       // 是否按照用户搜索
     seekTop: true
   };
   lp.taskSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
@@ -201,11 +245,10 @@ app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exAcce
     limit: 10,      // 当前查询显示限制
     aType: $routeParams.aType    // 查询的页面参数。暂时没用。随便参数。
   };
-  lp.rtnInfo = "";   // 返回提示用户的信息。   // lp.task = exDb.taskNew();    // 暂时给遮挡编辑任务页面提供。
+  lp.rtnInfo = "";   // 返回提示用户的信息。   // lp.task = exStore.taskNew();    // 暂时给遮挡编辑任务页面提供。
   lp.curIndex = null;     //当前编辑的索引值
   lp.editMode = "list";    // 是否在单记录编辑模式。
-  lp.planState = exDb.planState;  // 选择的task状态内容。
-  lp.bigScreen = exDb.getPlat()?" ":"  <br> ";   // 宽屏幕支持。
+  lp.planState = exStore.planState;  // 选择的task状态内容。
   lp.haveClicked = "";   // 是否已经展开过。已展开不再展开。
 
   lp.taskEditMask = function(aShow){
@@ -242,8 +285,8 @@ app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exAcce
   lp.taskAdd = function(aIndex){   // 增加和编辑。
     console.log("add " + aIndex);
     lp.curIndex = aIndex;
-    lp.task = exDb.taskNew();
-    lp.task.OWNER = exDb.getUser();
+    lp.task = exStore.taskNew();
+    lp.task.OWNER = exStore.getUser();
     lp.task.STATE = '计划';
     lp.task._exState = 'new';
     if(aIndex != null){
@@ -269,7 +312,7 @@ app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exAcce
     if (lp.haveClicked.indexOf(l_uuid + ",") >= 0 ) return ;
     exAccess.taskExpandPromise(l_uuid)
       .then( function (data) {
-        if (!exDb.checkRtn(data)) return ;
+        if (!exAccess.checkRtn(data)) return ;
         lp.haveClicked = lp.haveClicked + l_uuid + ",";
         lp.rtnInfo = data.rtnInfo;
         var ltmp1 = data.exObj;
@@ -285,7 +328,7 @@ app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exAcce
       });
   };
   lp.taskSave = function(){
-    if (lp.task.STATE == exDb.planState[2] && (lp.task.FINISH||'').length==0) lp.task.FINISH = exDb.getDateTime(new Date());
+    if (lp.task.STATE == exStore.planState[2] && (lp.task.FINISH||'').length==0) lp.task.FINISH = exStore.getDateTime(new Date());
     exAccess.taskSavePromise(lp.task)
       .then( function (data) {    // 得到新的消息
         lp.rtnInfo = data.rtnInfo;
@@ -337,7 +380,7 @@ app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exAcce
   lp.taskGet = function(){
     exAccess.taskListGetPromise(lp.locate, lp.seek)
       .then(function (data) {
-        if (!exDb.checkRtn(data)) return ;
+        if (!exAccess.checkRtn(data)) return ;
         lp.rtnInfo = data.rtnInfo;
         var ltmp1 = data.exObj ;
         if (ltmp1.length > 0){
@@ -392,51 +435,14 @@ app.controller("ctrlTaskAll",['$scope','$routeParams','$location','exDb','exAcce
       lp.taskfilter();  // 默认来一次。
       break;
   }
-}]);
-app.controller("ctrlLogin",['$scope','$location','exDb','exAccess',function($scope,$location,exDb,exAccess) {
-  var lp = $scope;
-  lp.user = exDb.userNew();
-  lp.user.NICKNAME =exDb.getUser();
-  lp.user.REMPASS =   exDb.getRem();
-  lp.runPlatform = exDb.getPlat();
-  if (lp.user.REMPASS) lp.user.PASS = exDb.getWord();
-  lp.rtnInfo = "";
-  lp.userLogin = function () {
-    exAccess.userLoginPromise(lp.user).then( function(data) {
-      if (data.rtnCode > 0) {
-        exDb.setUser(lp.user.NICKNAME);
-        exDb.setRem(lp.user.REMPASS);
-        exDb.setPlat(lp.runPlatform)
-        if (lp.user.REMPASS) exDb.setWord(lp.user.PASS);
-        $location.path('/taskList/main');
-      }
-      else{
-        lp.rtnInfo = data.rtnInfo;
-      }
-    }, function (error) {  lp.rtnInfo = JSON.stringify(status); });
-  };
-}]);
-app.controller("ctrlRegUser", ['$scope','exDb','exAccess',function($scope,exDb,exAccess){
-  var lp = $scope;
-  lp.user = exDb.userNew();
-  lp.user.authCode = "";
-  lp.rtnInfo = "";
-  lp.userReg = function(){
-    exAccess.userRegPromise(lp.user).
-      then(function (data) {
-        console.log("---got the date", data, typeof(data));
-        lp.rtnInfo = data.rtnInfo;
-        if (!exDb.getUser()) exDb.setUser(lp.user.NICKNAME);
-      } , function (status) {
-        lp.rtnInfo = JSON.stringify(status);
-      });
-  };
-}]);
-app.controller("ctrlChangUser", ['$scope','exDb','exAccess',function($scope,exDb,exAccess){
+});
+
+
+app.controller("ctrlChangUser", ['$scope','exStore','exAccess',function($scope,exStore,exAccess){
   var lp = $scope;
   lp.rtnInfo = "";
   exAccess.userGetPromise().then( function (data){
-    if (!exDb.checkRtn(data)) return ;
+    if (!exAccess.checkRtn(data)) return ;
     lp.rtnInfo = data.rtnInfo;
     if (data.exObj.length > 0) {
       lp.user = data.exObj[0];
@@ -458,12 +464,12 @@ app.controller("ctrlChangUser", ['$scope','exDb','exAccess',function($scope,exDb
       });
   };
 }]);
-app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exAccess',function($scope,$routeParams,exDb,exAccess){
+app.controller("ctrlWorkList",function($scope,$routeParams,exStore,exAccess){
   var lp = $scope;
   lp.showDebug = false;  // 调试信息打印。
   lp.seek = {  seekContentFlag : false,  seekContent : "", // 是否search任务内容。
     seekStateFlag : true, seekState : ['计划','进行'], // 是否search任务状态。
-    seekUserFlag : true, seekUser : exDb.getUser(),  // 是否按照用户搜索
+    seekUserFlag : true, seekUser : exStore.getUser(),  // 是否按照用户搜索
     seekTaskUUID : $routeParams.pid,  // parent taskUUID // 必须要有当前task的id。增加的时候
     seekTask : ($routeParams.pcon || '无内容')    // 显示部分父任务的内容。
   };
@@ -474,10 +480,10 @@ app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exAccess',functio
     limit: 10,      // 当前查询显示限制
     aType: $routeParams.aType    // 查询的页面参数。暂时没用。随便参数。
   };
-  lp.rtnInfo = "";   // 返回提示用户的信息。 // lp.task = exDb.taskNew();    // 暂时给遮挡编辑任务页面提供。
+  lp.rtnInfo = "";   // 返回提示用户的信息。 // lp.task = exStore.taskNew();    // 暂时给遮挡编辑任务页面提供。
   lp.curIndex = null;     //当前编辑的索引值
   lp.editMode = "list";    // 是否在单记录编辑模式。
-  lp.planState = exDb.planState;  // 选择的task状态内容。
+  lp.planState = exStore.planState;  // 选择的task状态内容。
   lp.workEditMask = function(aShow){
     switch (aShow){
       case 'editsave':
@@ -499,10 +505,10 @@ app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exAccess',functio
   };
   lp.workAdd = function(aIndex){   // 增加和编辑。
     lp.curIndex = aIndex;
-    lp.work = exDb.workNew();
-    lp.work.OWNER = exDb.getUser();
+    lp.work = exAccess.WORK.new();
+    lp.work.OWNER = exStore.getUser().name;
     lp.work.STATE = '计划';
-    lp.work.MEMPOINT = exDb.memPoint;
+    lp.work.MEMPOINT = exAccess.memPoint;
     lp.work._exState = 'new';
     if(aIndex != null) {
       lp.work.UPTASK = lp.workSet[aIndex].UPTASK;  // 点那个任务的就增加那个任务下面的记录。
@@ -523,7 +529,7 @@ app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exAccess',functio
     lp.workEditMask("listedit");
   };
   lp.workSave = function(){
-    if (lp.work.STATE == exDb.planState[2] && (lp.work.FINISH||'').length==0) lp.work.FINISH = exDb.getDateTime(new Date());
+    if (lp.work.STATE == exAccess.planState[2] && (lp.work.FINISH||'').length==0) lp.work.FINISH = exUtil.getDateTime(new Date());
     exAccess.workSavePromise(lp.work)
       .then( function (data) {
         lp.rtnInfo = data.rtnInfo;
@@ -563,9 +569,9 @@ app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exAccess',functio
     );
   };
   lp.memCheck = function(){
-    lp.work.MEMTIMER = exDb.getDateTime(new Date(), true);
-    if ((lp.work.MEMPOINT||'').length > 0);else lp.work.MEMPOINT = exDb.memPoint;
-  }
+    lp.work.MEMTIMER = exUtil.getDateTime(new Date(), true);
+    if ((lp.work.MEMPOINT||'').length > 0);else lp.work.MEMPOINT = exAccess.memPoint;
+  };
   lp.workfilter = function(){
     //参数重置。
     lp.workSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
@@ -577,7 +583,7 @@ app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exAccess',functio
   lp.workGet = function(){
     exAccess.workGetPromise(lp.locate, lp.seek)
       .then(function (data) {
-        if (!exDb.checkRtn(data)) return ;
+        if (!exAccess.checkRtn(data)) return ;
         lp.rtnInfo = data.rtnInfo;
         var ltmp1 = (data.exObj || []);
         if (ltmp1.length > 0){
@@ -601,7 +607,7 @@ app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exAccess',functio
       if (new Date(lp.work.MEMTIMER) < new Date()){
         var ltmp = lp.work.MEMPOINT.split(','); //  数组，搞到当前时间后面的几天。
         var lgo = parseInt(ltmp.shift());
-        lp.work.MEMTIMER = exDb.getDateTime(new Date(new Date() - 0 + lgo * 86400000), true);
+        lp.work.MEMTIMER = exUtil.getDateTime(new Date(new Date() - 0 + lgo * 86400000), true);
         lp.work.MEMPOINT = ltmp.join(',');
       }
     }
@@ -615,14 +621,14 @@ app.controller("ctrlWorkList",['$scope','$routeParams','exDb','exAccess',functio
       lp.workfilter();  // 默认来一次。
       break;
   }
-}]);
+});
 app.controller("ctrlExtools",['$scope','exAccess',function($scope, exAccess){
   var lp = $scope;
   lp.postReq = function() {
     var l_param = {sql: lp.txtReq, word: lp.addPass};
     exAccess.extoolsPromise(l_param)
       .then(function (aRtn) {
-        // if (!exDb.checkRtn(data)) return ;
+        // if (!exAccess.checkRtn(data)) return ;
         lp.txtReturn = JSON.stringify(aRtn);
       },
       function (err) {

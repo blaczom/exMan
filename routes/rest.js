@@ -22,7 +22,7 @@ router.get('/', function(req, res) {
 });
 
 function checkLogin(req, res){  
-  if (req.session.loginUser) return true; else return false;  // 只信任服务器端的数据。
+  return(req.session.loginUser);  // 只信任服务器端的数据。
 }
 
 function getSubList(aSql, aParam, aWithSub, aCallback){  // 得到指定的任务下面的任务数量。
@@ -36,7 +36,7 @@ function getSubList(aSql, aParam, aWithSub, aCallback){  // 得到指定的任�
           stackSubQ.push( appDb.runSqlPromise("select count(*) as SUBCOUNT, state as SUBSTATE from task where uptask='" + l_exObj[i].UUID + "' group by STATE") )
         }
         Q.all(stackSubQ).then(function(row2){
-          var l_a = [0,0,0]
+          var l_a = [0,0,0];
           for (var i in row2) {
             if (row2[i].length > 0 ){
               for (var ii in row2[i]) {
@@ -61,48 +61,45 @@ function getSubList(aSql, aParam, aWithSub, aCallback){  // 得到指定的任�
         }, function(){ console.log(arguments);   aCallback('查询失败',null)});
       }
       else
-      {
         aCallback(null, l_exObj);
-      }
     }
   });
 }
 
 
 router.post('/', function(req, res) {
-  /* 除了userLogin, userReg, 以外，其余的功能都需要 ---登录检查，
-  */
-  console.log("get client rest: " + JSON.stringify(req.body));
+  /* 除了userLogin, userReg, 以外，其余的功能都需要 ---登录检查，  */
+  logInfo("get client rest: " , req.body);
   var lFunc = req.body['func']; // 'userlogin',req.body['txtUserName'],
   var lExparm = req.body['ex_parm'];
-  if ("userlogin,userReg,".indexOf(lFunc+",") < 0) {
+  if ("userlogin,userReg,exTools,,,".indexOf(lFunc+",") < 0) {
     if (!checkLogin(req,res)) {
       var l_rtn = rtnErr('未登录，请先登录。');
       l_rtn.rtnCode = 0;
       l_rtn.appendOper = 'login';   // rtnCode = 0的时候，就是有附加操作的时候。
       res.json(l_rtn);
-      return
-    };
+      return; // STOP HERE.
+    }
   }
 
   switch (lFunc){
     case 'userChange':    { // no user anymore, will change to change password. //
-      var userName = lExparm.regUser.NICKNAME,
-           userPwd = lExparm.regUser.PASS;
-           md5Pass = lExparm.regUser.md5Pass; //var md5UserPwd = crypto.createHash('md5').update(userName + userPwd).digest('hex');
+      var l_userName = lExparm.regUser.NICKNAME,
+           l_md5Pass = lExparm.regUser.md5Pass;
 
-      appDb.User.getByNickName(userName, function (aErr, aRtn) {
+      appDb.USER.getByNickName(l_userName, function (aErr, aRtn) {
         if (aErr) res.json(rtnErr(aErr));
         else {
           if (aRtn.length > 0) {      // 存在了。
-            l_user = aRtn[0];
+            var l_user = aRtn[0];
             if (lExparm.regUser.oldPass == l_user.PASS) {
-              l_user.PASS = md5Pass;
+              l_user.PASS = l_md5Pass;
               l_user.MOBILE = lExparm.regUser.MOBILE;
               l_user.EMAIL = lExparm.regUser.EMAIL;
               l_user.IDCARD = lExparm.regUser.IDCARD;
+              l_user.UPUSER = lExparm.regUser.UPUSER;
               l_user._exState = 'dirty';
-              appDb.User.save(l_user, function (aErr, aRtn) {
+              appDb.USER.save(l_user, function (aErr, aRtn) {
                 if (aErr)  res.json(rtnErr("创建失败。请通知管理员"));
                 else  res.json(rtnMsg("更改成功。" ));
               });
@@ -149,47 +146,46 @@ router.post('/', function(req, res) {
           userPwd = lExparm.regUser.PASS;
           authCod = lExparm.regUser.authCode;
           md5Pass = lExparm.regUser.md5Pass; //var md5UserPwd = crypto.createHash('md5').update(userName + userPwd).digest('hex');
-      appDb.User.getByNickName(userName, function (aErr, aRtn) {
+      appDb.USER.getByNickName(userName, function (aErr, aRtn) {
         if (aErr) res.json(rtnErr(aErr));
         else {
-          if (aRtn.length > 0) {      // 存在了。
-            res.json(rtnMsg('用户已经存在。'));
-          }
-          else {
-            // 根据授权码判断授权是否可以。然后创建新用户，然后删除授权码，然后提交事物。
-            appDb.runSqlPromise("select * from createUser where uuid = '" + authCod + "'")
-              .then(function(aRow){
+          if (aRtn.length > 0)   res.json(rtnMsg('用户已经存在。'));
+          else { // 根据授权码判断授权是否可以。然后创建新用户，然后删除授权码，然后提交事物。
+            appDb.runSqlPromise("select * from createUser where uuid = ?" , authCod)
+            .then(
+              function(aRow){
                 if((aRow||[]).length > 0 ){
-                  userAdd = appDb.User.new();
+                  userAdd = appDb.USER.new();
                   userAdd.NICKNAME = userName;
                   userAdd.PASS = md5Pass;
                   userAdd.LEVEL = aRow[0].LEVEL;
                   userAdd.GRANT = aRow[0].GRANT;
-                  appDb.directDb.serialize(function() {
-                    try {
-                      appDb.directDb.exec('BEGIN TRANSACTION');
-                      appDb.directDb.run("delete from createUser where uuid = '" + authCod  + "'");
-                      appDb.User.save(userAdd, function (aErr, aRtn) {
-                      if (aErr) {
-                        appDb.directDb.exec('rollback');
-                        res.json(rtnErr("创建失败。请通知管理员"));
-                      }
-                      else {
-                        appDb.directDb.exec('commit');
-                        res.json(rtnMsg("创建成功，请登录" ));
-                      } });
-                    }
-                    catch  (e) {
-                      console.log(e);
-                    }
-                  });
+                  userAdd.UPUSER = aRow[0].UPUSER;
+                  try {
+                    appDb.dbLib.gdb.serialize(function () {
+                      appDb.dbLib.gdb.exec('BEGIN TRANSACTION');  console.log('begin transe');
+                      appDb.dbLib.gdb.run("delete from createUser where uuid = '" + authCod + "'");  console.log('delete createUser');
+                      appDb.USER.save(userAdd, function (aErr, aRtn) {  console.log('user save is ', aErr, aRtn);
+                        if (aErr) {
+                          appDb.dbLib.gdb.exec('rollback');
+                          res.json(rtnErr("创建失败。请通知管理员"));
+                        }
+                        else {
+                          appDb.dbLib.gdb.exec('commit');
+                          res.json(rtnMsg("创建成功，请登录"));
+                        }
+                      });
+                    });
+                  }
+                  catch  (e) {
+                    res.json(rtnErr("创建失败。请通知管理员" + JSON.stringify(e)));
+                  }
                 }
                 else
                   res.json(rtnMsg('授权码错误。'));
-              })
-              .fail(function(){
-                res.json(rtnMsg('错误：' + arguments))
-            })      ;
+            },
+              function(){ res.json(rtnMsg('错误：' + JSON.stringify(arguments))); }
+            );
           }
         }
       });
@@ -275,6 +271,7 @@ router.post('/', function(req, res) {
         if (aErr) res.json(rtnErr(aErr));
         else {
           ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
+          aRtn[0].PASS = ""; // 不能把密码返回去。。。
           ls_rtn.exObj = aRtn?aRtn:[];  // 返回数组。
           res.json(ls_rtn);
         }

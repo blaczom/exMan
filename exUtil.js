@@ -10,7 +10,7 @@
 var fs = require('fs');
 var gFileLog = 'logger.txt';
 var gb2file = true;
-var gbShowInfo = false;
+var gbShowInfo = true;
 
 var setLogParam = function(aOpt) {
   if (aOpt.hasOwnProperty('name')) gFileLog = aOpt.name;
@@ -19,7 +19,7 @@ var setLogParam = function(aOpt) {
 };
 
 var info = function(){
-  var ls_t = JSON.stringify(arguments) + '\n\r';
+  var ls_t = JSON.stringify(arguments) + '\n';
   if (gbShowInfo) {
     console.log(ls_t);
     if (gb2file) fs.appendFileSync(gFileLog, ls_t);
@@ -27,7 +27,7 @@ var info = function(){
   return(ls_t);
 };
 var err = function(){
-  var ls_t = "--Err--" + getDateTime() + JSON.stringify(arguments) + '\n\r';
+  var ls_t = "--Err--" + getDateTime() + JSON.stringify(arguments) + '\n';
   console.log(ls_t);
   if (gb2file) fs.appendFileSync(gFileLog, ls_t);
   return(ls_t);

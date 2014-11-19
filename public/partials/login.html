@@ -1,20 +1,22 @@
 <div id="container" class="container">
+  <div id="alt_info" ng-show="rtnInfo" class="alert alert-success">
+      <span ng-bind="rtnInfo"></span>
+  </div>
 
-    <div id="alt_info" ng-show="rtnInfo" class="alert alert-success">
-        <span ng-bind="rtnInfo"></span>
-    </div>
+  <form ng-submit="userLogin()" class="formex" role="form" method="post">
+    <h2 class="formex-heading"> 登 录 </h2>
+    <input ng-model="l_tmpUser.name" id="txtUser" name="txtUser" type="text" class="formex-control"
+           placeholder="用户名" style="display:inline;" required autofocus/>
+    <select ng-model="l_tmpUser" ng-options="i.name for i in l_logUser"  style="width:20px;"  />
+    <input ng-model="l_tmpUser.pass" id="txtUserPwd" name="txtUserPwd" type="password" class="formex-control"
+           placeholder="密码" required/>
 
-    <form ng-submit="userLogin()" class="formex" role="form" method="post">
-        <h2 class="formex-heading"> 登 录 </h2>
-        <input ng-model="user.NICKNAME" id="txtUserName" name="txtUserName" type="text" class="formex-control" placeholder="用户名" required autofocus />
-        <input ng-model="user.PASS" id="txtUserPwd" name="txtUserPwd" type="password" class="formex-control" placeholder="密码" required/>
-        <label  class="checkbox">
-            <input ng-model="user.REMPASS" name="chbRem" id="chbRem" type="checkbox" > 记住密码
-            <input ng-model="runPlatform" name="runPlatform" id="runPlatform" type="checkbox" > 宽屏
-        </label>
-        <button id="btnSub" class="btn btn-lg btn-primary" type="submit">登  录</button>
-        <a class="btn btn-link" href="#/reg" role="button">注  册</a>
+    <label  class="checkbox">
+        <input ng-model="l_tmpUser.rempass" name="chbRem" id="chbRem" type="checkbox" /> 记住密码
+    </label>
+    <button id="btnSub" class="btn btn-lg btn-primary" type="submit">登  录</button>
+    <a class="btn btn-link" href="#/reg" role="button">注  册</a>
 
-    </form>
+  </form>
 
 </div>
