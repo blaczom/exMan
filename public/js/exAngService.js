@@ -1,5 +1,5 @@
 angular.module('exService', ['angular-md5'])
-  .factory('exUtil', function(){
+  .factory('exUtil', function(md5){
     var UUID = function(){};
     UUID.prototype.createUUID = function(){
       var dg = new Date(1582, 10, 15, 0, 0, 0, 0);
@@ -41,7 +41,7 @@ angular.module('exService', ['angular-md5'])
       // 向后一天，用 new Date( new Date() - 0 + 1*86400000)
       // 向后一小时，用 new Date( new Date() - 0 + 1*3600000)
       if (!aTime) aTime = new Date();
-      var l_date = new Array(aTime.getFullYear(), aTime.getMonth()  < 9 ? '0' + (aTime.getMonth() + 1) : (aTime.getMonth()+1), aTime.getDate() < 10 ? '0' + aTime.getDate() : aTime.getDate());
+      var l_date = new Array(aTime.getFullYear(),aTime.getMonth()<9?'0'+(aTime.getMonth()+1):(aTime.getMonth()+1),aTime.getDate()<10?'0'+aTime.getDate():aTime.getDate());
       if (aOnlyDate)
         return( l_date.join('-')) ; // '2014-01-02'
       else {
@@ -54,7 +54,9 @@ angular.module('exService', ['angular-md5'])
       createUUID : UUID.prototype.createUUID,
       getDateTime : getDateTime,    // 向后一天，用 new Date( new Date() - 0 + 1*86400000)  1小时3600000
       getDate : function(arg1){ return getDateTime(arg1,true) },
-      verifyBool : function (aParam){ return (aParam==true||aParam=="true")?true:false;  }
+      verifyBool : function (aParam){ return (aParam==true||aParam=="true")?true:false;  } ,
+      md5String: md5.createHash,
+      shareCache: {}
     }
   })
   .factory('exStore', function(){
@@ -146,12 +148,12 @@ angular.module('exService', ['angular-md5'])
       this._exState = "new";  // new , clean, dirty.
       this._exDataSet = {};    // 扩展用。日后可以用于前台的数据更新判断. new buffer, old buffer.
     };
-    objUser.prototype.new = function(){  return(new objUser()); };
+    objUser.prototype.newUser = function(){  return(new objUser()); };
     var objTask = function() {
       this.UUID = exUtil.createUUID();
       this.UPTASK = '';
       this.PLANSTART = exUtil.getDateTime(new Date());
-      this.PLANFINISH = exUtil.getDateTime(new Date( new Date() - 0 + 1*86400000));
+      this.PLANFINISH = exUtil.getDateTime(new Date( new Date() - 0 + 86400000));
       this.FINISH = '';
       this.STATE = '';
       this.OWNER = '';
@@ -162,7 +164,7 @@ angular.module('exService', ['angular-md5'])
       this._exState = '';
       this._exDataSet = {};
     };
-    objTask.prototype.new  = function(){  return(new objTask()); };
+    objTask.prototype.newTask  = function(){  return(new objTask()); };
     var objWork = function() {
       this.UUID = exUtil.createUUID();
       this.UPTASK = '';
@@ -180,7 +182,7 @@ angular.module('exService', ['angular-md5'])
       this._exState = '';
       this._exDataSet = {};
     };
-    objWork.prototype.new = function(){  return(new objWork()); };
+    objWork.prototype.newWork = function(){  return(new objWork()); };
 
 
     var userReg = function(aobjUser) {
@@ -205,7 +207,7 @@ angular.module('exService', ['angular-md5'])
     };
 
     return {
-      /* exAccess.---().then(function(data){}, function(err){}) */
+      /* exAccess.---().then(function(data){}, function(err){})     */
       getAllUserPromise: function(){return httpCom('/rest',{ func: 'userGetAll',   ex_parm: {} })},
       userLoginPromise: userLogin,
       userRegPromise: userReg,

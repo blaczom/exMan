@@ -37,5 +37,15 @@ app.directive('validDateModel', function() {
     }
   };
 });
-
-
+app.directive('dirSelectUser', function() {
+  return {
+    scope:{ objSelectUser: '=ngModel'},
+    templateUrl: "incSelectUser.html",
+    replace:true,
+    controller: function($scope){
+      var lp = $scope;
+      lp.showMe = false;
+      lp.selectUser = function(){ lp.showMe=true; console.log(lp); lp.objSelectUser="changed"; }
+    }
+  };
+});

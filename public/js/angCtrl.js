@@ -16,7 +16,7 @@ app.controller("ctrlLogin",function($rootScope,$scope,$location,exStore,exAccess
   lp.l_tmpUser = exStore.getUser();       // 当前用户
 
   lp.userLogin = function () {
-    lp.user = exAccess.USER.new();
+    lp.user = exAccess.USER.newUser();
     lp.user.NICKNAME = lp.l_tmpUser.name;
     lp.user.REMPASS = lp.l_tmpUser.rempass;
     lp.user.PASS = lp.l_tmpUser.pass;
@@ -34,7 +34,7 @@ app.controller("ctrlLogin",function($rootScope,$scope,$location,exStore,exAccess
 });
 app.controller("ctrlRegUser", function($scope,exStore,exAccess){
   var lp = $scope;
-  lp.user = exAccess.USER.new();
+  lp.user = exAccess.USER.newUser();
   lp.user.authCode = "";
   lp.rtnInfo = "";
   lp.userReg = function(){
@@ -99,7 +99,7 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
   };
   lp.taskAdd = function(aIndex){   // 增加和编辑。
     lp.curIndex = aIndex;
-    lp.task = exAccess.TASK.new();
+    lp.task = exAccess.TASK.newTask();
     lp.task.OWNER = exStore.getUser().name;
     lp.task.STATE = '计划';
     lp.task._exState = 'new';
@@ -110,7 +110,7 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
   };
   lp.subWorkList = function(aIndex) {   // 列出他的子任务。
     $location.path('/workList/list').search({pid:lp.taskSet[aIndex].UUID, pcon:lp.taskSet[aIndex].CONTENT.substr(0,15) });
-  }
+  };
   lp.taskEdit = function(aIndex){
 
     lp.curIndex = aIndex;
@@ -372,7 +372,7 @@ app.controller("ctrlTaskAll",function($scope,$routeParams,$location,exStore,exAc
     lp.taskSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
     lp.locate.curOffset = 0;  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
     lp.locate.limit = 10;      // 当前查询显示限制。
-    lp.noData = false;
+    lp.noData = false;     // 是否显示下10条数据。
     lp.haveClicked = "";
     if  (lp.seek.seekUserFlag && ((lp.seek.seekUser||'').length == 0)) lp.seek.seekUserFlag = false;
     lp.taskGet();  // 应该把状态push进去，否则还是按照原来的逻辑进行get。
@@ -505,7 +505,7 @@ app.controller("ctrlWorkList",function($scope,$routeParams,exStore,exAccess){
   };
   lp.workAdd = function(aIndex){   // 增加和编辑。
     lp.curIndex = aIndex;
-    lp.work = exAccess.WORK.new();
+    lp.work = exAccess.WORK.newWork();
     lp.work.OWNER = exStore.getUser().name;
     lp.work.STATE = '计划';
     lp.work.MEMPOINT = exAccess.memPoint;
@@ -622,10 +622,11 @@ app.controller("ctrlWorkList",function($scope,$routeParams,exStore,exAccess){
       break;
   }
 });
-app.controller("ctrlExtools",['$scope','exAccess',function($scope, exAccess){
+app.controller("ctrlExtools",function($scope,exAccess,exUtil){
   var lp = $scope;
+  lp.md5String = exUtil.md5String;
   lp.postReq = function() {
-    var l_param = {sql: lp.txtReq, word: lp.addPass};
+    var l_param = {sql: lp.txtReq, word: exUtil.md5String(lp.addPass) };
     exAccess.extoolsPromise(l_param)
       .then(function (aRtn) {
         // if (!exAccess.checkRtn(data)) return ;
@@ -636,5 +637,20 @@ app.controller("ctrlExtools",['$scope','exAccess',function($scope, exAccess){
       }
     );
   }
-}]);
+});
+app.controller("testtest",function($window,$scope,exAccess,exUtil){
+  var lp = $scope;
+  lp.test1 = "111";
+  exAccess.getAllUserPromise().then(function(data){
+    lp.testUser = [];
+    for (var i in data.exObj) lp.testUser.push(data.exObj[i].NICKNAME);
+  }, function(err){console.log(err)});
+  lp.showme = function(){
+    console.log(lp.test1);
+    exUtil.shareCache.testSelectUser = lp.test1;
+  };
+  lp.showme2 = function(){
+    console.log(exUtil.shareCache.testSelectUser);
 
+  }
+});

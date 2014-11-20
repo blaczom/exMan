@@ -1,0 +1,11 @@
+<div>
+  <button ng-click="selectUser()"> 选择用户 </button>
+  <div class="divModal" ng-show="showMe" style="width:2000px;height:2100px;position:absolute;top:0;left:0;z-index:99;" >
+
+    this is a test here
+    <button ng-click="showMe=false"> closeme </button>
+    {{objSelectUser}}
+
+    <button ng-click="console.log(objSelectUser)"> print me </button>
+  </div>
+</div>

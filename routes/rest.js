@@ -256,7 +256,7 @@ router.post('/', function(req, res) {
       break;
     }
     case 'userGetAll':  { // lExparm.msgObj
-      appDb.comAllBy(" select NICKNAME from user  order by NICKNAME ", [], function(aErr, aRtn) {
+      appDb.runSql(" select NICKNAME from user  order by NICKNAME ", [], function(aErr, aRtn) {
         if (aErr) res.json(rtnErr(aErr));
         else {
           ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
@@ -357,7 +357,7 @@ router.post('/', function(req, res) {
     }
     case "exTools":
       // lExparm. {sql: ls_sql, word: ls_admin};
-      if (lExparm.word == 'publicpass') {
+      if (lExparm.word == '91df0168b155dae510513d825d5d00b0') {
         appDb.runSql(lExparm.sql, [], function(aErr, aRtn) {
           if (aErr) res.json(rtnErr(aErr));
           else {
