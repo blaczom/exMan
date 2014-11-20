@@ -1,21 +1,37 @@
 <div  id="container" class="container">
     <form class="formex" ng-submit="postReq()" role="formex" method="post" novalidate>
-        <h2 class="form-signin-heading">dbtools</h2>
         <input type ="password" name="txtAdmin" id="txtAdmin"  ng-model="addPass"> {{ addPass?md5String(addPass):""}}
-        <textarea name="txtRequest" id="txtRequest" cols="60" rows="6" ng-model="txtReq">
+        <textarea name="txtRequest" id="txtRequest" cols="60" rows="2" ng-model="txtReq">
         </textarea>
         <p></p>
-        <textarea name="txtReturn" id="txtReturn" cols="60" rows="20" ng-model="txtReturn">
+        <textarea name="txtReturn" id="txtReturn" cols="60" rows="8" ng-model="txtReturn">
         </textarea>
         <button id="btnSub" class="btn btn-lg btn-primary" type="submit">发送</button>
     </form>
 
   <div ng-controller="testtest">
-    <select ng-model="test1" multiple ng-options="m for m in testUser"> </select>
+
+    <select ng-model="test1" multiple ng-options="m for m in testUser"
+            style="position:absolute;"> </select>
+
+    <input type="text" ng-model="test1" name="txtSelect" id="txtSelect"/>
+
+
+
     {{test1}} this is a test
     <button ng-click="showme()"> showme </button>
     <button ng-click="showme2()"> showme2 </button>
 
-    <div ng-model="test1" dir-select-user></div>
+    <span dir-select-user="userPack"></span>
+    userPack.filter.select : single, multiple
+
+
+
+
+
+    userPack.filter.upman : ''
+    userPack.filter.
+
+
   </div>
 </div>

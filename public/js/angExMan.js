@@ -39,13 +39,13 @@ app.directive('validDateModel', function() {
 });
 app.directive('dirSelectUser', function() {
   return {
-    scope:{ objSelectUser: '=ngModel'},
+    scope:{ dirSelectUser: '='},
     templateUrl: "incSelectUser.html",
     replace:true,
     controller: function($scope){
       var lp = $scope;
       lp.showMe = false;
-      lp.selectUser = function(){ lp.showMe=true; console.log(lp); lp.objSelectUser="changed"; }
+      lp.selectUser = function(){ lp.showMe=true; console.log(lp); lp.dirSelectUser="changed"; }
     }
   };
 });

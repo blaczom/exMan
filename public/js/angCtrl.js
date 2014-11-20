@@ -4,7 +4,7 @@
 var app = angular.module("exman");
 app.controller("ctrlIndex",function($scope,$location,exStore) {
   var lp = $scope;
-  lp.currentUser = "";
+  lp.currentUser = exStore.getUser().name;
   lp.$on('event:login', function(){
     lp.currentUser = exStore.getUser().name;
   });
@@ -625,6 +625,7 @@ app.controller("ctrlWorkList",function($scope,$routeParams,exStore,exAccess){
 app.controller("ctrlExtools",function($scope,exAccess,exUtil){
   var lp = $scope;
   lp.md5String = exUtil.md5String;
+
   lp.postReq = function() {
     var l_param = {sql: lp.txtReq, word: exUtil.md5String(lp.addPass) };
     exAccess.extoolsPromise(l_param)
@@ -641,6 +642,7 @@ app.controller("ctrlExtools",function($scope,exAccess,exUtil){
 app.controller("testtest",function($window,$scope,exAccess,exUtil){
   var lp = $scope;
   lp.test1 = "111";
+  lp.userPack = {name:"", filter:""};
   exAccess.getAllUserPromise().then(function(data){
     lp.testUser = [];
     for (var i in data.exObj) lp.testUser.push(data.exObj[i].NICKNAME);
@@ -651,6 +653,9 @@ app.controller("testtest",function($window,$scope,exAccess,exUtil){
   };
   lp.showme2 = function(){
     console.log(exUtil.shareCache.testSelectUser);
+    document.getElementById("txtSelect").style.top="10px";
+  };
 
-  }
+
+
 });
