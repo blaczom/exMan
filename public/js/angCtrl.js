@@ -63,9 +63,9 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
   };
 
   lp.curIndex = null;     //当前编辑的索引值
-  lp.rtnInfo = "";   // 返回提示用户的信息。   // lp.task = exStore.taskNew();    // 暂时给遮挡编辑任务页面提供。
+  lp.rtnInfo = "";   // 返回提示用户的信息。    
   lp.editMode = "list";    // 是否在单记录编辑模式。
-  lp.planState = exStore.planState;  // 选择的task状态内容。
+  lp.planState = exAccess.planState;  // 选择的task状态内容。
   lp.taskEditMask = function(aShow){
     switch (aShow){
       case 'editsave':
@@ -112,7 +112,6 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
     $location.path('/workList/list').search({pid:lp.taskSet[aIndex].UUID, pcon:lp.taskSet[aIndex].CONTENT.substr(0,15) });
   };
   lp.taskEdit = function(aIndex){
-
     lp.curIndex = aIndex;
     lp.task = lp.taskSet[aIndex];
     console.log('taskEdit ', aIndex, lp.task, lp.taskSet);
@@ -122,7 +121,7 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
     lp.taskEditMask("listedit");
   };
   lp.taskSave = function(){
-    if (lp.task.STATE == exStore.planState[2] && (lp.task.FINISH||'').length==0) lp.task.FINISH = exStore.getDateTime(new Date());
+    if (lp.task.STATE == exAccess.planState[2] && (lp.task.FINISH||'').length==0) lp.task.FINISH = exStore.getDateTime(new Date());
     exAccess.taskSavePromise(lp.task)
       .then( function (data) {    // 得到新的消息
         lp.rtnInfo = data.rtnInfo;
@@ -133,7 +132,7 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
             break;
           case 'new':
             lp.task._exState = "clean";
-            lp.taskSet.unshift(lp.task);
+            lp.taskSet.splice(lp.curIndex+1,0,lp.task);
             break;
         }
         lp.taskEditMask("editsave");
@@ -162,7 +161,7 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
     );
   };
   lp.taskfilter = function(){
-    //参数重置。
+    //参数重置。    
     lp.taskSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
     lp.locate.curOffset = 0;  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
     lp.locate.limit = 10;      // 当前查询显示限制。
@@ -189,6 +188,7 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
           lp.taskSet = lRet;
           if (ltmp1.length < lp.locate.limit ) lp.noData = true;
         }
+		else lp.noData = true;
       },function (status) {
         lp.rtnInfo = JSON.stringify(status);
       });
@@ -228,7 +228,14 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
   {
     case "main":
     default :
-      lp.taskfilter();  // 默认来一次。
+      if (exUtil.shareCache.ctrlStateCache["ctrlTaskList"]) {        
+        lp.taskSet = exUtil.shareCache.ctrlStateCache["ctrlTaskList"].taskSet;  // 当前网页的数据集合。 
+        lp.locate.curOffset = exUtil.shareCache.ctrlStateCache["ctrlTaskList"].curOffset;  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
+        lp.locate.limit = exUtil.shareCache.ctrlStateCache["ctrlTaskList"].limit;      // 当前查询显示限制。
+        lp.noData = exUtil.shareCache.ctrlStateCache["ctrlTaskList"].noData;
+      }
+      else 
+        lp.taskfilter();  // 默认来一次。
       break;
   }
 });

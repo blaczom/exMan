@@ -231,7 +231,7 @@ router.post('/', function(req, res) {
     }
     case 'taskEditSave':  {// lExparm.msgObj
       lExparm.msgObj.OWNER = req.session.loginUser;
-      appDb.Task.save(lExparm.msgObj, function(aErr, aRtn){
+      appDb.TASK.save(lExparm.msgObj, function(aErr, aRtn){
         if (aErr) { res.json(rtnErr(aErr)) }
         else {
           res.json(rtnMsg("更新成功."));
@@ -241,7 +241,7 @@ router.post('/', function(req, res) {
     }
     case 'taskEditDelete':    {
       if (lExparm.msgObj.OWNER == req.session.loginUser) {
-        appDb.Task.delete(lExparm.msgObj.UUID, function (aErr, aRtn) {
+        appDb.TASK.delete(lExparm.msgObj.UUID, function (aErr, aRtn) {
           if (aErr) {
             res.json(rtnErr(aErr))
           }
@@ -281,7 +281,7 @@ router.post('/', function(req, res) {
     case 'workListGet': {
       /* ex_parm: { taskType: lp.aType, limit:lp.limit, offset:lp.curOffset, filter:{seekContentFlag : lp.seekContentFlag, seekContent: lp.seekContent,
        seekStateFlag: lp.seekStateFlag , seekState: lp.seekState, seekUserFlag: lp.seekUserFlag, seekUser: lp.seekUser   }}*/
-      var ls_memen = " (owner = '" + req.session.loginUser + "' and memen = 1 and memtimer < '" + appDb.getDateTime(new Date(), true) + "') ";
+      var ls_memen = " (owner = '" + req.session.loginUser + "' and memen = 1 and memtimer < '" + log.getDateTime(new Date(), true) + "') ";
 
       var la_where  = [], la_param = [];
       if (lExparm.filter.seekContentFlag)  {
@@ -305,7 +305,7 @@ router.post('/', function(req, res) {
       ls_where = " where " + ls_memen; // memen是必须选的。
       if (la_where.length > 0)
         ls_where = ls_where + ' or (' + la_where.join(" and ") + ")";
-      appDb.comAllBy("select distinct * from work "+ ls_where +
+      appDb.runSql("select distinct * from work "+ ls_where +
         " order by memen , CREATETIME limit " +  lExparm.locate.limit + " offset " +  lExparm.locate.curOffset, la_param, function(aErr, aRtn) {
           if (aErr) res.json(rtnErr(aErr));
           else {
@@ -331,7 +331,7 @@ router.post('/', function(req, res) {
     }
     case 'workEditDelete': {  // lExparm.msgObj
       if (lExparm.msgObj.OWNER == req.session.loginUser) {
-        appDb.Work.delete(lExparm.msgObj.UUID, function (aErr, aRtn) {
+        appDb.WORK.delete(lExparm.msgObj.UUID, function (aErr, aRtn) {
           if (aErr) {
             res.json(rtnErr(aErr))
           }
@@ -347,7 +347,7 @@ router.post('/', function(req, res) {
     }
     case 'workEditSave':  {  // lExparm.msgObj
       lExparm.msgObj.OWNER = req.session.loginUser;
-      appDb.Work.save(lExparm.msgObj, function(aErr, aRtn){
+      appDb.WORK.save(lExparm.msgObj, function(aErr, aRtn){
         if (aErr) { res.json(rtnErr(aErr)) }
         else {
           res.json(rtnMsg("更新成功."));
