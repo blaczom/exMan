@@ -50,17 +50,14 @@ app.directive('dirSelectUser', function() {
   };
 });
 app.run(function ($rootScope, exUtil) {
-  var routeChangeStartOff = $rootScope.$on('$routeChangeStart', routeChange1);
+  $rootScope.$on('$routeChangeStart', routeChange1);
   function routeChange1(event, aObjTo, aObjFrom) {
     console.log(arguments);
-    if (aObjFrom) {
+    if (aObjFrom && aObjFrom.$$route) {
       switch (aObjFrom.$$route.controller) {
       case "ctrlTaskList":
         exUtil.shareCache.ctrlStateCache["ctrlTaskList"] = {};
-        exUtil.shareCache.ctrlStateCache[aObjFrom.$$route.controller].taskSet = aObjFrom.scope.taskSet;
-        exUtil.shareCache.ctrlStateCache[aObjFrom.$$route.controller].curOffset = aObjFrom.scope.curOffset;
-        exUtil.shareCache.ctrlStateCache[aObjFrom.$$route.controller].limit = aObjFrom.scope.limit;
-        exUtil.shareCache.ctrlStateCache[aObjFrom.$$route.controller].noData = aObjFrom.scope.noData;
+        exUtil.shareCache.ctrlStateCache[aObjFrom.$$route.controller].para = aObjFrom.scope.para;
         break;
       }
     }

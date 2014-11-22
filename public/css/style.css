@@ -1,6 +1,6 @@
 body {
   padding: 5px;
-  font: 14px Cursive;
+  font: 14px Verdana serif;
   background-color: #67BF7F;
 }
 
@@ -12,6 +12,11 @@ span {
     vertical-align: top;
     color: black;
 }
+
+button {
+    margin-right: 1px;
+}
+
 .contentBodyContentItemPanel{
     background-color: greenyellow;  margin-bottom: 2px;
 }
@@ -49,15 +54,14 @@ input.ng-valid {
     border: 1px solid green;
     background-color: lightgreen;
 }
-
-.prefixHead{
+.prefixHead span{
     background-color: #00ffff;
-    pad:1px;
-    margin: 1px;
+    margin-left: -3px;
 }
 
 .subExpand span{
     background-color: #9fffff;
+    margin-left: -3px;
 }
 
 
@@ -66,7 +70,6 @@ input.ng-valid {
 
 
 .formex{
-    max-width: 600px;
     padding: 5px;
     margin: 0 auto;
 }
@@ -117,4 +120,9 @@ input.ng-valid {
     box-sizing: border-box;
 }
 
-
+.ex-showme {
+    border:1px solid #00F;
+}
+.ex-showme .ex-showme {
+    border:1px solid red;
+}

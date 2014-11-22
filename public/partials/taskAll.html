@@ -1,6 +1,6 @@
-<div class="content" ng-show="editMode=='list'">
-    <div class="contentHead" ng-show="rtnInfo">
-        <span class="markInfo" ng-bind="rtnInfo"></span>
+<div class="content" ng-show="para.editMode=='list'">
+    <div class="contentHead" ng-show="para.rtnInfo">
+        <span class="markInfo" ng-bind="para.rtnInfo"></span>
     </div>
 
     <h3 class="divex-heading"> 任务梯次 </h3>
@@ -10,43 +10,43 @@
     <hr/>
     <div class="contentBodyTitle">
         <span style="width:30px;">   序号  </span>
-        <span ng-show="showDebug" style="width:300px;"> uuid </span>
+        <span ng-show="para.showDebug" style="width:300px;"> uuid </span>
         <span style="width:150px;"> 内容 </span>
-        <span ng-show="showDebug" style="width:40px;"> 父任务 </span>
+        <span ng-show="para.showDebug" style="width:40px;"> 父任务 </span>
         <span style="width:140px;">计划开始</span>
         <span style="width:140px;">计划结束</span>
-        <span ng-show="showDebug" style="width:140px;">结束时间</span>
+        <span ng-show="para.showDebug" style="width:140px;">结束时间</span>
         <span style="width:40px;">状态</span>
         <span style="width:60px;">所有者</span>
         <span style="width:60px;">承担者</span>
         <span style="width:40px;">私有</span>
-        <span style="width:40px;">完成情况</span>
+        <span style="width:80px;">完成情况</span>
     </div>
     <hr/>
-    <div class="contentBodyContent" ng-repeat='taskItem in taskSet' >
-        <span>   {{ taskItem.preFix }} </span>
-        <span ng-class="taskItem.classShow">
-        <span ng-show="showDebug" style="width:200px;">{{ taskItem.UUID }}</span>
-        <span style="width:150px;">{{taskItem.CONTENT.substr(0,15) }}</span>
-        <span ng-show="showDebug" style="width:40px;">{{ taskItem.UPTASK }}</span>
-        <span style="width:140px;">{{taskItem.PLANSTART.substr(0,16)}}</span>
-        <span style="width:140px;">{{taskItem.PLANFINISH.substr(0,16)}}</span>
-        <span ng-show="showDebug" style="width:140px;">{{taskItem.FINISH}}</span>
-        <span style="width:40px;">{{taskItem.STATE}}</span>
-        <span style="width:60px;">{{taskItem.OWNER}}</span>
-        <span style="width:60px;">{{taskItem.OUGHT.substr(0,8)}}</span>
-        <span style="width:40px;">{{taskItem.PRIVATE}}</span>
-        <span style="width:40px;">{{taskItem.subTask}}</span>
-        <button ng-click="taskExpend($index)"> 展 </button>
-        <button ng-click="taskEdit($index)"> 改 </button>
-        <button ng-click="taskAdd($index)"> +子</button>
-        <button ng-click="subWorkList($index)"> 工作 </button>
+    <div class="contentBodyContent" ng-repeat='taskItem in para.taskSet' >
+
+        <span ng-class="taskItem.classShow" style="line-height :30px; margin-bottom: 2px;">
+          <span style="padding-right: 10px;background-color: #67BF7F;">   {{ taskItem.preFix }} </span>
+          <span ng-show="para.showDebug" style="width:200px;">{{ taskItem.UUID }}</span>
+          <span style="width:150px;">{{taskItem.CONTENT.substr(0,15) }}</span>
+          <span ng-show="para.showDebug" style="width:40px;">{{ taskItem.UPTASK }}</span>
+          <span style="width:140px;">{{taskItem.PLANSTART.substr(0,16)}}</span>
+          <span style="width:140px;">{{taskItem.PLANFINISH.substr(0,16)}}</span>
+          <span ng-show="para.showDebug" style="width:140px;">{{taskItem.FINISH}}</span>
+          <span style="width:40px;">{{taskItem.STATE}}</span>
+          <span style="width:60px;">{{taskItem.OWNER}}</span>
+          <span style="width:60px;">{{taskItem.OUGHT.substr(0,8)||'&nbsp;'}}</span>
+          <span style="width:40px;">{{taskItem.PRIVATE||'&nbsp;'}}</span>
+          <span style="width:40px;">{{taskItem.subTask}}</span>
+          <span style="margin:0px;padding:0px;">
+            <button ng-click="taskExpend($index)">展</button><button ng-click="taskEdit($index)">改</button><button ng-click="taskAdd($index)"> +子</button><button ng-click="subWorkList($index)"> 工作 </button>
+          </span>
         </span>
         <br/>
     </div>
     <hr style="border : 1px dashed blue;" />
     <div class="contentFoot">
-        <button ng-disabled="noData" ng-click="taskGet()"> 下<span ng-bind="locate.limit"></span>条 </button>
+        <button ng-disabled="para.noData" ng-click="taskGet()"> 下<span ng-bind="para.locate.limit"></span>条 </button>
     </div>
 </div>
 <div ng-include="'incTaskEdit.html'" ></div>

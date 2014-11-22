@@ -215,8 +215,7 @@ router.post('/', function(req, res) {
       var ls_where = "";
       if (la_where.length > 0)
         ls_where = " where " + la_where.join(" and ");
-      console.log("taskListGet sql where with param : " + ls_where);
-      console.log(la_param);
+      console.log("taskListGet sql where with param : ", ls_where, la_param);
       getSubList("select distinct * from task " + ls_where + " order by PLANSTART limit " +
         lExparm.locate.limit + " offset " +  lExparm.locate.curOffset, la_param, lExparm.filter.seekTop, function(aErr, aRtn) {
         if (aErr) res.json(rtnErr(aErr));
