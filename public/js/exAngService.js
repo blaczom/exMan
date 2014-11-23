@@ -161,7 +161,7 @@ angular.module('exService', ['angular-md5'])
       this.PRIVATE = '';
       this.CONTENT = '';
       this.SYNC = '';
-      this._exState = '';
+      this._exState = 'new';
       this._exDataSet = {};
     };
     objTask.prototype.newTask  = function(){  return(new objTask()); };
@@ -179,7 +179,7 @@ angular.module('exService', ['angular-md5'])
       this.MEMTIMER = '';
       this.STATE = '';
       this.SYNC = '';
-      this._exState = '';
+      this._exState = 'new';
       this._exDataSet = {};
     };
     objWork.prototype.newWork = function(){  return(new objWork()); };
@@ -216,6 +216,7 @@ angular.module('exService', ['angular-md5'])
       taskSavePromise: function(aobjTask){return httpCom('/rest',{ func: 'taskEditSave', ex_parm: { msgObj: aobjTask}})},
       taskDeletePromise: function(aobjTask) {return httpCom('/rest',{ func: 'taskEditDelete',ex_parm: { msgObj: aobjTask}  })},
       taskListGetPromise: function(aLocate, aFilter) {return httpCom('/rest',{ func: 'taskListGet',ex_parm: { locate: aLocate,filter: aFilter}})},
+      taskGetPromise: function(aUUID) {return httpCom('/rest',{ func: 'taskGet',ex_parm: { UUID:aUUID } } ) },
       taskExpandPromise : function(aUuid){return  httpCom('/rest',{ func: 'taskAllGet', ex_parm: { taskUUID: aUuid }  })},
       workSavePromise : function(aobjWork){return httpCom('/rest',{ func: 'workEditSave',  ex_parm: { msgObj: aobjWork} })},
       workDeletePromise: function(aobjWork){return httpCom('/rest',{func:'workEditDelete',ex_parm:{msgObj:aobjWork}})},

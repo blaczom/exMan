@@ -64,8 +64,6 @@ input.ng-valid {
     margin-left: -3px;
 }
 
-
-
 /********************/
 
 
@@ -125,4 +123,8 @@ input.ng-valid {
 }
 .ex-showme .ex-showme {
     border:1px solid red;
+}
+
+.ex-hideme {
+    display: none;
 }

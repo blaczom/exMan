@@ -23,9 +23,11 @@
         <span style="width:80px;">完成情况</span>
     </div>
     <hr/>
-    <div class="contentBodyContent" ng-repeat='taskItem in para.taskSet' >
+    <div class="contentBodyContent" style="white-space:nowrap;"
+         ng-repeat='taskItem in para.taskSet' expandMark="{{taskItem.expandMark}}" expandSelect="{{taskItem.preFix}}">
 
-        <span ng-class="taskItem.classShow" style="line-height :30px; margin-bottom: 2px;">
+        <span ng-class="taskItem.classShow" style="line-height :30px; margin-bottom: 2px;" >
+          <span style="width: 10px;"></span>
           <span style="padding-right: 10px;background-color: #67BF7F;">   {{ taskItem.preFix }} </span>
           <span ng-show="para.showDebug" style="width:200px;">{{ taskItem.UUID }}</span>
           <span style="width:150px;">{{taskItem.CONTENT.substr(0,15) }}</span>
@@ -35,7 +37,7 @@
           <span ng-show="para.showDebug" style="width:140px;">{{taskItem.FINISH}}</span>
           <span style="width:40px;">{{taskItem.STATE}}</span>
           <span style="width:60px;">{{taskItem.OWNER}}</span>
-          <span style="width:60px;">{{taskItem.OUGHT.substr(0,8)||'&nbsp;'}}</span>
+          <span style="width:100px;">{{taskItem.OUGHT.substr(0,8)||'&nbsp;'}}</span>
           <span style="width:40px;">{{taskItem.PRIVATE||'&nbsp;'}}</span>
           <span style="width:40px;">{{taskItem.subTask}}</span>
           <span style="margin:0px;padding:0px;">

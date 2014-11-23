@@ -228,6 +228,17 @@ router.post('/', function(req, res) {
       });
       break;
     }
+    case 'taskGet': {
+      appDb.runSql("select * from task where UUID = ? " , lExparm.UUID ,  function(aErr, aRtn) {
+        if (aErr) res.json(rtnErr(aErr));
+        else {
+          ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
+          ls_rtn.exObj = aRtn?aRtn:[];  // 返回数组。
+          res.json(ls_rtn);
+        }
+      });
+      break;
+    }
     case 'taskEditSave':  {// lExparm.msgObj
       lExparm.msgObj.OWNER = req.session.loginUser;
       appDb.TASK.save(lExparm.msgObj, function(aErr, aRtn){
@@ -292,7 +303,7 @@ router.post('/', function(req, res) {
         if (req.session.loginUser == lExparm.filter.seekUser) // 当前用户就是查询的用户。可以显示私有工作，否则不显示私有工作。
           la_where.push("( owner = '" + req.session.loginUser + "') ");
         else
-          la_where.push(" (owner = '" + lExparm.filter.seekUser + "' and private != 1 and level <= " + req.session.userGrant + ")) ");
+          la_where.push(" (owner = '" + lExparm.filter.seekUser + "' and private != 1 and level > " + req.session.userGrant + ")) ");
       }
       else // 没选则用户，就是要查找所有的用户。
         la_where.push( "((owner = '" + req.session.loginUser + "') or (owner != '" + req.session.loginUser +

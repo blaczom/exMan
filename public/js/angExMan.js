@@ -55,11 +55,14 @@ app.run(function ($rootScope, exUtil) {
     console.log(arguments);
     if (aObjFrom && aObjFrom.$$route) {
       switch (aObjFrom.$$route.controller) {
+      case "ctrlTaskAll":
       case "ctrlTaskList":
-        exUtil.shareCache.ctrlStateCache["ctrlTaskList"] = {};
+      case "ctrlWorkList":
+        exUtil.shareCache.ctrlStateCache[aObjFrom.$$route.controller] = {};
         exUtil.shareCache.ctrlStateCache[aObjFrom.$$route.controller].para = aObjFrom.scope.para;
         break;
       }
+
     }
     // aObjFrom.$$route.controller == "ctrlTaskList";
   

@@ -110,24 +110,32 @@ var genSave = function (aObj, aTable) {    //  列名必须大写。第一字母
       break;
     default : // do nothing.
       ls_sql = "";
+      logErr('i dont know why you call me with this ---,aObj');
   }
   return [ls_sql, l_pristine];   // 返回一个数组。前面是语句，后面是参数。f
 };
 var runSql = function (aSql, aParam,  aCallback){
   logInfo("db runSql with param ", aSql, aParam);
-  if (aParam) {if (toString.apply(aParam) !== "[object Array]") aParam = [aParam];} else aParam = [];
-  gdb.all(aSql, aParam, function (err, row){
-    if (err) logErr("runSql",err,aSql,aParam);
-    if (aCallback) aCallback(err, row);
-  } );
+  if (aSql.trim().length > 4)  {
+    if (aParam) {if (toString.apply(aParam) !== "[object Array]") aParam = [aParam];} else aParam = [];
+    gdb.all(aSql, aParam, function (err, row){
+      if (err) logErr("runSql",err,aSql,aParam);
+      if (aCallback) aCallback(err, row);
+    } );
+  }
+  else
+    if (aCallback) aCallback("no sql", aParam);
 };
 var runSqlPromise = function (aSql, aParam) {
   logInfo("db runSqlPromise with param ", aSql, aParam);
   if (aParam) {if (toString.apply(aParam) !== "[object Array]") aParam = [aParam];} else aParam = [];
   var deferred = Q.defer();
-  gdb.all(aSql, aParam, function (err, row) {
-    if (err) {if (err) logErr("runSqlPromise",err,aSql,aParam);deferred.reject(err);} else deferred.resolve(row);
-  });
+  if (aSql.trim().length > 4)  {
+    gdb.all(aSql, aParam, function (err, row) {
+      if (err) {if (err) logErr("runSqlPromise",err,aSql,aParam);deferred.reject(err);} else deferred.resolve(row);
+    });
+  }
+  else deferred.reject("no sql statement ");
   return deferred.promise;
 };
 var comSave = function(aTarget, aTable, aCallback) {
