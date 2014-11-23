@@ -376,37 +376,25 @@ router.post('/', function(req, res) {
         if (aErr) res.json(rtnErr(aErr));
         else {
           ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
-          ls_rtn.exObj = aRtn?aRtn:[];  // 返回数组。
+          ls_rtn.exObj = aRtn?aRtn:[];  // 返回数组。  ls_rtn.exObj;
           // 统计所有的对应用户的任务和工作情况。
           var stackSubQ = [];
-          for (var i in ls_rtn.exObj) {
-            stackSubQ.push(appDb.runSqlPromise("select count(*) as SUBCOUNT, state as SUBSTATE from task where uptask='" + l_exObj[i].UUID + "' group by STATE"))
+          var ls_runsql = "SELECT sum(CASE STATE WHEN '计划' THEN 1 else 0 end) as plan, sum(CASE STATE WHEN '进行' THEN 1 else 0 end) as deal," +
+              " sum(CASE STATE WHEN '结束' THEN 1 else 0 end) as over from task where OUGHT like '%'||?||'%' union all " +
+              " SELECT sum(CASE STATE WHEN '计划' THEN 1 else 0 end) as plan, sum(CASE STATE WHEN '进行' THEN 1 else 0 end) as deal, " +
+              " sum(CASE STATE WHEN '结束' THEN 1 else 0 end) as over from work where OWNER=? ";
+          for (var i in ls_rtn.exObj) { // 对返回的所有数据集进行处理。
+            stackSubQ.push( appDb.runSqlPromise( ls_runsql, [ls_rtn.exObj[i].NICKNAME, ls_rtn.exObj[i].NICKNAME] ));
           }
           Q.all(stackSubQ).then(function(row2){
-            var l_a = [0,0,0];
-            for (var i in row2) {
-              if (row2[i].length > 0 ){
-                for (var ii in row2[i]) {
-                  var l_rtn = row2[i][ii]
-                  switch (l_rtn.SUBSTATE) {
-                    case '结束':
-                      l_a[2] = l_rtn.SUBCOUNT;
-                      break;
-                    case '进行':
-                      l_a[1] = l_rtn.SUBCOUNT;
-                      break;
-                    case '计划':
-                      l_a[0] = l_rtn.SUBCOUNT;
-                      break;
-                  }
-                }
-                l_exObj[i].subTask = l_a.join('|');
-              }
-              else   l_exObj[i].subTask = "nosub";
+            for (var ii in row2) {
+              var l_t = [row2[ii][0].plan, row2[ii][0].deal, row2[ii][0].over];
+              ls_rtn.exObj[ii].statTask =   l_t.join('|');
+              var l_t2 = [row2[ii][1].plan, row2[ii][1].deal, row2[ii][1].over];
+              ls_rtn.exObj[ii].statWork =   l_t2.join('|');
             }
-            aCallback(null, l_exObj);
-          }, function(){ console.log(arguments);   aCallback('查询失败',null)});
-          res.json(ls_rtn);
+            res.json(ls_rtn);
+          }, function(err){ res.json(err); });
         }
       });
       break;

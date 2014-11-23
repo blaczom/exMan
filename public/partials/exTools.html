@@ -1,6 +1,7 @@
 <div  id="container" class="container">
     <form class="formex" ng-submit="postReq()" role="formex" method="post" novalidate>
-        <input type ="password" name="txtAdmin" id="txtAdmin"  ng-model="addPass"> {{ addPass?md5String(addPass):""}}
+        <input type ="password" name="txtAdmin" id="txtAdmin"  ng-model="addPass">
+        {{ addPass?md5String(addPass):""}} <br/>
         <textarea name="txtRequest" id="txtRequest" cols="60" rows="2" ng-model="txtReq">
         </textarea>
         <p></p>
@@ -24,10 +25,6 @@
 
     <span dir-select-user="userPack"></span>
     userPack.filter.select : single, multiple
-
-
-
-
 
     userPack.filter.upman : ''
     userPack.filter.
