@@ -222,6 +222,7 @@ angular.module('exService', ['angular-md5'])
       workDeletePromise: function(aobjWork){return httpCom('/rest',{func:'workEditDelete',ex_parm:{msgObj:aobjWork}})},
       workGetPromise: function(aLocate, aFilter){ return httpCom('/rest',{ func: 'workListGet', ex_parm:{locate:aLocate,filter: aFilter}})},
       extoolsPromise: function(aParam){ return httpCom('/rest',{ func: 'exTools', ex_parm: aParam })},
+      userListGetPromise: function(aParam){ return httpCom('/rest',{ func: 'userListGet', ex_parm: {filter: aParam }})},
       USER : new objUser(),
       TASK : new objTask(),
       WORK : new objWork(),

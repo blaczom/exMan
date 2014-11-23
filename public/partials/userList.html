@@ -1,0 +1,39 @@
+<div class="content" >
+    <div class="contentHead" ng-show="para.rtnInfo">
+        <span class="markInfo" ng-bind="para.rtnInfo"></span>
+    </div>
+    <h3 class="divex-heading"> 人员 </h3>
+
+    <div class='contentBody'>
+      <div class="contentBodySearch">
+        <span class='contentBodySearchItem'>
+          <div>
+            <input ng-model="para.seek.seekUserFlag" id="txtSeekUserFlag" name="txtSeekUserFlag" type="checkbox"/> 用户
+            <input ng-disabled="!para.seek.seekUserFlag" ng-model="para.seek.seekUser" id="txtSeekUser" name="txtSeekUser" type="text" placeholder="内容" />
+            <button ng-click="userfilter()"> 条件查找 </button>
+          </div>
+        </span>
+      </div>
+    </div>
+    <hr/>
+    <div class="contentBodyTitle">
+      <span style="width:30px;"> 序号  </span>
+      <span style="width:40px;"> 用户 </span>
+      <span style="width:80px;">电话</span>
+      <span style="width:120px;">邮箱</span>
+      <span style="width:60px;">授权级</span>
+      <span style="width:40px;">组长</span>
+    </div>
+    <hr/>
+    <div class="contentBodyContent" ng-repeat='userItem in para.userSet' >
+        <span class="subExpand" style="line-height :30px; margin-bottom: 2px;" >
+          <span style="width:30px;">    {{$index}}  </span>
+          <span style="width:50px;">{{ userItem.NICKNAME }}</span>
+          <span style="width:80px;">{{ userItem.MOBILE||"&nbsp;" }}</span>
+          <span style="width:120px;">{{ userItem.EMAIL||"&nbsp;" }}</span>
+          <span style="width:60px;">{{ userItem.GRANT||"&nbsp;" }}</span>
+          <span style="width:40px;">{{ userItem.UPUSER||"&nbsp;" }}</span>
+        </span>
+        <br/>
+    </div>
+</div>

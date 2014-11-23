@@ -365,6 +365,51 @@ router.post('/', function(req, res) {
       });
       break;
     }
+    case 'userListGet':
+      var ls_where = "", la_where =[];
+      if (lExparm.filter.seekUserFlag)
+        if (lExparm.filter.seekUser.length>0) {
+          ls_where = " where NICKNAME = ? or UPUSER = ? ";
+          la_where.splice(0 , 0, lExparm.filter.seekUser, lExparm.filter.seekUser);
+        }
+      appDb.runSql("select NICKNAME,MOBILE,EMAIL,UPUSER,LEVEL,GRANT from user "+ ls_where +" order by upuser ", la_where, function(aErr, aRtn) {
+        if (aErr) res.json(rtnErr(aErr));
+        else {
+          ls_rtn = rtnMsg('');  // 检索成功不需要提示信息。
+          ls_rtn.exObj = aRtn?aRtn:[];  // 返回数组。
+          // 统计所有的对应用户的任务和工作情况。
+          var stackSubQ = [];
+          for (var i in ls_rtn.exObj) {
+            stackSubQ.push(appDb.runSqlPromise("select count(*) as SUBCOUNT, state as SUBSTATE from task where uptask='" + l_exObj[i].UUID + "' group by STATE"))
+          }
+          Q.all(stackSubQ).then(function(row2){
+            var l_a = [0,0,0];
+            for (var i in row2) {
+              if (row2[i].length > 0 ){
+                for (var ii in row2[i]) {
+                  var l_rtn = row2[i][ii]
+                  switch (l_rtn.SUBSTATE) {
+                    case '结束':
+                      l_a[2] = l_rtn.SUBCOUNT;
+                      break;
+                    case '进行':
+                      l_a[1] = l_rtn.SUBCOUNT;
+                      break;
+                    case '计划':
+                      l_a[0] = l_rtn.SUBCOUNT;
+                      break;
+                  }
+                }
+                l_exObj[i].subTask = l_a.join('|');
+              }
+              else   l_exObj[i].subTask = "nosub";
+            }
+            aCallback(null, l_exObj);
+          }, function(){ console.log(arguments);   aCallback('查询失败',null)});
+          res.json(ls_rtn);
+        }
+      });
+      break;
     case "exTools":
       // lExparm. {sql: ls_sql, word: ls_admin};
       if (lExparm.word == '91df0168b155dae510513d825d5d00b0') {

@@ -12,6 +12,7 @@ app.config(['$routeProvider', function($routeProvider) {
       when('/', { templateUrl: '/partials/login.html', controller: "ctrlLogin" } ).
       when('/reg', { templateUrl: '/partials/reg.html', controller: "ctrlRegUser" }).
       when('/change', { templateUrl: '/partials/userChange.html', controller: "ctrlChangUser" }).
+      when('/userList/:aType', { templateUrl: '/partials/userList.html', controller: "ctrlUserList" }).
       when('/msgEdit/:id', {templateUrl: '/partials/msgEdit.html',   controller: "ctrlMsgEdit"}).
       when('/taskList/:aType', {templateUrl: '/partials/taskList.html',   controller: "ctrlTaskList"}).
       when('/workList/:aType', {templateUrl: '/partials/workList.html', controller: "ctrlWorkList"}).
