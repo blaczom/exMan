@@ -45,7 +45,7 @@ var checkResult = function(){
       l_user.getByNickName(l_user.NICKNAME, function(aErr, aRow) {
         if (aErr) l_rtn = test.no({name: "user.getByNickName", obj: aErr });
         else
-          if ((aRow||[]).length > 0 && aRow[0].NICKNAME == l_user.NICKNAME)
+          if (aRow && aRow.NICKNAME == l_user.NICKNAME)
             test.ok({name: "user getByNickName", obj: aRow });
           else
             l_rtn = test.no({name: "user getByNickName get no data:", obj: aRow });
@@ -60,7 +60,7 @@ var checkResult = function(){
     l_task.getByUUID(l_task.UUID, function(aErr, aRow) {
       if (aErr) l_rtn = test.no({name: "l_task.getByUUID run err ", obj: aErr });
       else
-        if ((aRow||[]).length > 0 && aRow[0].UUID == l_task.UUID) {
+        if (aRow && aRow.UUID == l_task.UUID) {
           test.ok({name: "l_task.getByUUID", obj: aRow });
           l_task.delete(l_task.UUID, function(aErr, aRow) {});
         }
@@ -75,7 +75,7 @@ var checkResult = function(){
     l_work.getByUUID(l_work.UUID, function(aErr, aRow) {
       if (aErr) l_rtn = test.no({name: "l_work.getByUUID", obj: aErr });
       else
-      if ((aRow||[]).length > 0 && aRow[0].UUID == l_work.UUID) {
+      if (aRow && aRow.UUID == l_work.UUID) {
         test.ok({name: "l_work.getByUUID", obj: aRow });
         l_work.delete(l_work.UUID, function(aErr, aRow) {});
       }

@@ -90,8 +90,8 @@ router.post('/', function(req, res) {
       appDb.USER.getByNickName(l_userName, function (aErr, aRtn) {
         if (aErr) res.json(rtnErr(aErr));
         else {
-          if (aRtn.length > 0) {      // 存在了。
-            var l_user = aRtn[0];
+          if (aRtn) {      // 存在了。
+            var l_user = aRtn;
             if (lExparm.regUser.oldPass == l_user.PASS) {
               l_user.PASS = l_md5Pass;
               l_user.MOBILE = lExparm.regUser.MOBILE;
@@ -120,13 +120,13 @@ router.post('/', function(req, res) {
       appDb.USER.getByNickName(userName, function (aErr, aRtn) {
         if (aErr) res.json(rtnErr(aErr));
         else {
-          if (aRtn.length > 0) {
-            var xtmp = userName + userPwd
+          if (aRtn) {
+            var xtmp = userName + userPwd;
             var md5UserPwd = userPwd ; // crypto.createHash('md5').update(xtmp).digest('hex'); 客户端已经搞定了。
-            if (aRtn[0].PASS == md5UserPwd) {
+            if (aRtn.PASS == md5UserPwd) {
               req.session.loginUser = userName;
-              req.session.userLevel = aRtn[0].LEVEL;
-              req.session.userGrant = aRtn[0].GRANT;
+              req.session.userLevel = aRtn.LEVEL;
+              req.session.userGrant = aRtn.GRANT;
               res.json(rtnMsg('登录成功。'));
             }
             else {
@@ -156,18 +156,18 @@ router.post('/', function(req, res) {
       appDb.USER.getByNickName(userName, function (aErr, aRtn) {
         if (aErr) res.json(rtnErr(aErr));
         else {
-          if (aRtn.length > 0)   res.json(rtnMsg('用户已经存在。'));
+          if (aRtn)   res.json(rtnMsg('用户已经存在。'));
           else { // 根据授权码判断授权是否可以。然后创建新用户，然后删除授权码，然后提交事物。
-            appDb.runSqlPromise("select * from createUser where uuid = ?" , authCod)
+            appDb.getPromise("select * from createUser where uuid = ?" , authCod)
             .then(
               function(aRow){
-                if((aRow||[]).length > 0 ){
+                if(aRow){
                   userAdd = appDb.USER.new();
                   userAdd.NICKNAME = userName;
                   userAdd.PASS = md5Pass;
-                  userAdd.LEVEL = aRow[0].LEVEL;
-                  userAdd.GRANT = aRow[0].GRANT;
-                  userAdd.UPUSER = aRow[0].UPUSER;
+                  userAdd.LEVEL = aRow.LEVEL;
+                  userAdd.GRANT = aRow.GRANT;
+                  userAdd.UPUSER = aRow.UPUSER;
                   try {
                     appDb.dbLib.gdb.serialize(function () {
                       appDb.dbLib.gdb.exec('BEGIN TRANSACTION');  console.log('begin transe');
@@ -214,7 +214,7 @@ router.post('/', function(req, res) {
         var ls_append = "";
         if (req.session.loginUser != lExparm.filter.seekUser) // 当前用户就是查询的用户。可以显示私有任务，否则不显示私有任务。
           ls_append = " and private!=1 " ;
-        la_where.push(" (owner = '" + lExparm.filter.seekUser + "' or ought like '%" + lExparm.filter.seekUser + ",%')" + ls_append );
+        la_where.push(" (owner = '" + lExparm.filter.seekUser + "' or ought like '%," + lExparm.filter.seekUser + ",%')" + ls_append );
       }
       if (lExparm.filter.seekTop)       /////////////////// 梯次任务列表
         la_where.push(" uptask = '' ");
@@ -298,29 +298,28 @@ router.post('/', function(req, res) {
     case 'workListGet': {
       /* ex_parm: { taskType: lp.aType, limit:lp.limit, offset:lp.curOffset, filter:{seekContentFlag : lp.seekContentFlag, seekContent: lp.seekContent,
        seekStateFlag: lp.seekStateFlag , seekState: lp.seekState, seekUserFlag: lp.seekUserFlag, seekUser: lp.seekUser   }}*/
-      var ls_memen = " (owner = '" + req.session.loginUser + "' and memen = 1 and memtimer < '" + log.getDateTime(new Date(), true) + "') ";
-
       var la_where  = [], la_param = [];
       if (lExparm.filter.seekContentFlag)  {
-        la_where.push(" content like '%'||?||'%' ");   // 这个语法要命。。。
+        la_where.push(" (content like '%'||?||'%') ");   // 这个语法要命。。。
         la_param.push(lExparm.filter.seekContent);
       }
-      if (lExparm.filter.seekStateFlag) la_where.push(" state in ('" + lExparm.filter.seekState.join("','") + "') ");
+      if (lExparm.filter.seekStateFlag) la_where.push(" (state in ('" + lExparm.filter.seekState.join("','") + "')) ");
       if (lExparm.filter.seekUserFlag) {  // req.session.userLevel = aRtn[0].LEVEL;
         if (req.session.loginUser == lExparm.filter.seekUser) // 当前用户就是查询的用户。可以显示私有工作，否则不显示私有工作。
-          la_where.push("( owner = '" + req.session.loginUser + "') ");
+          la_where.push(" (owner = '" + req.session.loginUser + "') ");
         else
           la_where.push(" (owner = '" + lExparm.filter.seekUser + "' and private != 1 and level > " + req.session.userGrant + ") ");
       }
-      else // 没选则用户，就是要查找所有的用户。
-        la_where.push( "((owner = '" + req.session.loginUser + "') or (owner != '" + req.session.loginUser +
-        "' and private != 1 and level <= " + req.session.userGrant + "))" ) ;
+      else // 没选则用户，就是要查找所有的用户。 ((owner='111') or (owner!='111' and private!=1 and level<=99))
+        la_where.push( " ((owner = '" + req.session.loginUser + "') or (owner != '" + req.session.loginUser +
+        "' and private != 1 and level > " + req.session.userGrant + "))" ) ;
       if (lExparm.filter.seekTaskFlag) {
-        la_where.push(" uptask = '" + lExparm.filter.seekTaskUUID + "'"  );
-      }
+        la_where.push(" (uptask = '" + lExparm.filter.seekTaskUUID + "') "  );
+      }  // 以上都是and的关系。
       var ls_where = "";
-      ls_where = " where " + ls_memen; // memen是必须选的。
-      if (la_where.length > 0)
+      // where (owner='111' and memen=1 and memtimer<'2011-1-1')   // 有需要记忆的东西是必须显示的。
+      ls_where = " where (owner = '" + req.session.loginUser + "' and memen = 1 and memtimer < '" + log.getDateTime(new Date(), true) + "') "; // memen是必须选的。
+      if (la_where.length > 0)  // 剩下的，是要or的。
         ls_where = ls_where + ' or (' + la_where.join(" and ") + ")";
       appDb.runSql("select distinct * from work "+ ls_where +
         " order by memen , CREATETIME limit " +  lExparm.locate.limit + " offset " +  lExparm.locate.curOffset, la_param, function(aErr, aRtn) {
@@ -390,8 +389,10 @@ router.post('/', function(req, res) {
               " sum(CASE STATE WHEN '结束' THEN 1 else 0 end) as over from task where OUGHT like '%'||?||'%' union all " +
               " SELECT sum(CASE STATE WHEN '计划' THEN 1 else 0 end) as plan, sum(CASE STATE WHEN '进行' THEN 1 else 0 end) as deal, " +
               " sum(CASE STATE WHEN '结束' THEN 1 else 0 end) as over from work where OWNER=? ";
+
           for (var i in ls_rtn.exObj) { // 对返回的所有数据集进行处理。
-            stackSubQ.push( appDb.runSqlPromise( ls_runsql, [ls_rtn.exObj[i].NICKNAME, ls_rtn.exObj[i].NICKNAME] ));
+            var l_userOught = ','+ls_rtn.exObj[i].NICKNAME+',';
+            stackSubQ.push( appDb.runSqlPromise( ls_runsql, [l_userOught, l_userOught] ));
           }
           Q.all(stackSubQ).then(function(row2){
             for (var ii in row2) {

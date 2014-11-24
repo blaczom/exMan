@@ -1,77 +1,76 @@
 <div class="content" ng-show="para.editMode=='list'">
-    <div class="contentHead" ng-show="para.rtnInfo">
-        <span class="markInfo" ng-bind="para.rtnInfo"></span>
-    </div>
-    <h3 class="divex-heading"> 工作记录 </h3>
+  <div class="contentHead" ng-show="para.rtnInfo">
+      <span class="markInfo" ng-bind="para.rtnInfo"></span>
+  </div>
+  <h3 class="divex-heading"> 工作记录 </h3>
 
-    <div class='contentBody'>
-        <div class="contentBodySearch">
-            <span class='contentBodySearchItem'>
-                <span>
-                    <div>
-                        <input ng-model="para.seek.seekUserFlag" id="txtSeekUserFlag" name="txtSeekUserFlag" type="checkbox"/> 用户
-                        <input ng-disabled="!para.seek.seekUserFlag" ng-model="para.seek.seekUser" id="txtSeekUser" name="txtSeekUser" type="text" placeholder="内容" />
-                        <br/>
-                        <input ng-model="para.seek.seekContentFlag" id="txtSeekContentFlag" name="txtSeekContentFlag" type="checkbox"/> 内容
-                        <input ng-disabled="!para.seek.seekContentFlag" ng-model="para.seek.seekContent" id="txtSeekContent" name="txtSeekContent" type="text" placeholder="内容" />
-                        <br/>
-                        <input ng-model="para.seek.seekTaskFlag" id="txtSeekTaskFlag" name="txtSeekTaskFlag" type="checkbox"/> 父任务
-                        <input ng-disabled="true" ng-model="para.seek.seekTask" id="txtSeekTask" name="txtSeekTask" type="text" placeholder="内容" />
-                        <br/>
-                        <span class="linkButton"><a href="#/taskList/navi" > 查找任务 </a> </span>
-                        <button ng-disabled="!para.seek.seekTaskUUID" ng-click="workAdd()"> 增加子记录 </button>
-                        <button ng-click="workfilter()"> 条件查找 </button>
-                    </div>
-
-                </span>
-                <span ><input ng-model="para.seek.seekStateFlag" id="txtSeekStateFlag" name="txtSeekStateFlag" type="checkbox"/> 状态 </span>
-                <span><select ng-disabled="!para.seek.seekStateFlag" ng-model="para.seek.seekState" multiple ng-options="m for m in para.planState"></select></span>
-            </span>
-        </div>
-    </div>
-    <hr/>
-    <div class="contentBodyTitle">
-        <span style="width:30px;">   序号  </span>
-        <span ng-show="para.showDebug" style="width:300px;"> uuid </span>
-        <span style="width:150px;"> 内容 </span>
-        <span ng-show="para.showDebug" style="width:40px;"> 父任务 </span>
-        <span style="width:120px;">创建时间</span>
-        <span style="width:100px;">最后更新</span>
-        <span style="width:40px;">状态</span>
-        <span style="width:60px;">所有者</span>
-        <span style="width:40px;">私有</span>
-        <span style="width:40px;">权限</span>
-        <span ng-show="para.showDebug" style="width:40px;">记忆间隔</span>
-        <span style="width:40px;">记忆</span>
-        <span style="width:120px;">提醒闹钟</span>
-    </div>
-    <hr/>
-    <div class="contentBodyContent" ng-repeat='workItem in para.workSet' >
-        <span style="width:20px;">    {{$index}}  </span>
-        <span class="subExpand" style="line-height :30px; margin-bottom: 2px;" >
-          <span ng-show="para.showDebug" style="width:300px;">{{ workItem.UUID }}</span>
-          <span style="width:150px;">{{workItem.CONTENT.substr(0,20)||"&nbsp;" }}</span>
-          <span ng-show="para.showDebug" style="width:40px;">{{ workItem.UPTASK }}</span>
-          <span style="width:120px;">{{workItem.CREATETIME.substr(0,16)}}</span>
-          <span style="width:120px;">{{workItem.LASTMODIFY.substr(0,16)||"&nbsp;"}}</span>
-          <span style="width:40px;">{{workItem.STATE}}</span>
-          <span style="width:60px;">{{workItem.OWNER}}</span>
-          <span>
-            <input style="width:40px;" ng-disabled="1" ng-checked="workItem.PRIVATE?true:false" type="checkbox"/>
-          </span>
-          <span style="width:40px;">{{workItem.LEVEL||"&nbsp;"}}</span>
-          <span ng-show="para.showDebug" style="width:40px;">{{workItem.MEMPOINT.substr(0,6)}}</span>
-          <span><input style="width:40px;" ng-disabled="1" ng-checked="workItem.MEMEN?true:false" type="checkbox"/></span>
-          <span style="width:120px;">{{workItem.MEMTIMER.substr(0,16)||"&nbsp;"}}</span>
-          <span>
-          <button ng-click="workEdit($index)"> 详 </button><!--
-          --><button ng-click="workAdd($index)"> 增 </button>
-          </span>
+  <div class='contentBody'>
+    <div class="contentBodySearch">
+      <span class='contentBodySearchItem'>
+        <span>
+          <div>
+            <input ng-model="para.seek.seekUserFlag" id="txtSeekUserFlag" name="txtSeekUserFlag" type="checkbox"/> 用户
+            <input ng-disabled="!para.seek.seekUserFlag" ng-model="para.seek.seekUser" id="txtSeekUser" name="txtSeekUser" type="text" placeholder="内容" />
+            <br/>
+            <input ng-model="para.seek.seekContentFlag" id="txtSeekContentFlag" name="txtSeekContentFlag" type="checkbox"/> 内容
+            <input ng-disabled="!para.seek.seekContentFlag" ng-model="para.seek.seekContent" id="txtSeekContent" name="txtSeekContent" type="text" placeholder="内容" />
+            <br/>
+            <input ng-model="para.seek.seekTaskFlag" id="txtSeekTaskFlag" name="txtSeekTaskFlag" type="checkbox"/> 父任务
+            <input ng-disabled="true" ng-model="para.seek.seekTask" id="txtSeekTask" name="txtSeekTask" type="text" placeholder="内容" />
+            <br/>
+            <span class="linkButton"><a href="#/taskList/navi" > 查找任务 </a> </span>
+            <button ng-disabled="!para.seek.seekTaskUUID" ng-click="workAdd()"> 增加子记录 </button>
+            <button ng-click="workfilter()"> 条件查找 </button>
+          </div>
         </span>
-        <br/>
+        <span ><input ng-model="para.seek.seekStateFlag" id="txtSeekStateFlag" name="txtSeekStateFlag" type="checkbox"/> 状态 </span>
+        <span><select ng-disabled="!para.seek.seekStateFlag" ng-model="para.seek.seekState" multiple ng-options="m for m in para.planState"></select></span>
+      </span>
     </div>
-    <hr style="border : 1px dashed blue;" />
-    <button ng-disabled="para.noData" ng-click="workGet()"> 下<span ng-bind="para.locate.limit"></span>条 </button>
+  </div>
+  <hr/>
+  <div class="contentBodyTitle">
+    <span style="width:30px;">   序号  </span>
+    <span ng-show="para.showDebug" style="width:300px;"> uuid </span>
+    <span style="width:150px;"> 内容 </span>
+    <span ng-show="para.showDebug" style="width:40px;"> 父任务 </span>
+    <span style="width:120px;">创建时间</span>
+    <span style="width:100px;">最后更新</span>
+    <span style="width:40px;">状态</span>
+    <span style="width:60px;">所有者</span>
+    <span style="width:40px;">私有</span>
+    <span style="width:40px;">权限</span>
+    <span ng-show="para.showDebug" style="width:40px;">记忆间隔</span>
+    <span style="width:40px;">记忆</span>
+    <span style="width:120px;">提醒闹钟</span>
+  </div>
+  <hr/>
+  <div class="contentBodyContent" ng-repeat='workItem in para.workSet' >
+      <span style="width:20px;">    {{$index}}  </span>
+    <span class="subExpand" style="line-height :30px; margin-bottom: 2px;" >
+      <span ng-show="para.showDebug" style="width:300px;">{{ workItem.UUID }}</span>
+      <span style="width:150px;">{{workItem.CONTENT.substr(0,20)||"&nbsp;" }}</span>
+      <span ng-show="para.showDebug" style="width:40px;">{{ workItem.UPTASK }}</span>
+      <span style="width:120px;">{{workItem.CREATETIME.substr(0,16)}}</span>
+      <span style="width:120px;">{{workItem.LASTMODIFY.substr(0,16)||"&nbsp;"}}</span>
+      <span style="width:40px;">{{workItem.STATE}}</span>
+      <span style="width:60px;">{{workItem.OWNER}}</span>
+      <span>
+        <input style="width:40px;" ng-disabled="1" ng-checked="workItem.PRIVATE?true:false" type="checkbox"/>
+      </span>
+      <span style="width:40px;">{{workItem.LEVEL||"&nbsp;"}}</span>
+      <span ng-show="para.showDebug" style="width:40px;">{{workItem.MEMPOINT.substr(0,6)}}</span>
+      <span><input style="width:40px;" ng-disabled="1" ng-checked="workItem.MEMEN?true:false" type="checkbox"/></span>
+      <span style="width:120px;">{{workItem.MEMTIMER.substr(0,16)||"&nbsp;"}}</span>
+      <span>
+      <button ng-click="workEdit($index)"> 详 </button><!--
+      --><button ng-click="workAdd($index)"> 增 </button>
+      </span>
+    </span>
+    <br/>
+  </div>
+  <hr style="border : 1px dashed blue;" />
+  <button ng-disabled="para.noData" ng-click="workGet()"> 下<span ng-bind="para.locate.limit"></span>条 </button>
 </div>
 
 <div class="divModal" ng-show="para.editMode=='edit'" style="width:100%;height:100%;background-color:#9999CC;position:absolute;top:0;left:0;z-index:10;display:inline;" >

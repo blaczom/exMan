@@ -8,13 +8,12 @@ var checkResult = function(){
   var l_rtn = true;
   var l_testObj = test.obj("exUtil.info", exUtil.info("test"));
   var ls = fs.readFileSync('testUtil.log', 'utf-8');
-  if (l_testObj.obj=='{"0":"test"}' && '{"0":"test"}'==ls ) test.ok(l_testObj); else l_rtn = test.no(l_testObj);
+  if (ls.length>5) test.ok(l_testObj); else l_rtn = test.no(l_testObj);
   fs.unlinkSync('testUtil.log');
 
-  var l_testObj = test.obj("exUtil.err", exUtil.err("err"));
+  var l_testObj = test.obj("exUtil.err", exUtil.err("not error, just test"));
   var ls = fs.readFileSync('testUtil.log', 'utf-8');
-  if ( JSON.parse(l_testObj.obj)[2]['0'] == 'err' &&
-    JSON.parse(ls)[2]['0'] == 'err' ) test.ok(l_testObj); else l_rtn = test.no(l_testObj);
+  if ( ls.indexOf('not error, just test') >0 ) test.ok(l_testObj); else l_rtn = test.no(l_testObj);
   fs.unlinkSync('testUtil.log');
 
   l_testObj = test.obj("exUtil.getDateTime", exUtil.getDateTime());

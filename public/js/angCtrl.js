@@ -2,11 +2,13 @@
  * Created by Administrator on 2014/11/16.
  */
 var app = angular.module("exman");
-app.controller("ctrlIndex",function($scope,$location,exStore) {
+app.controller("ctrlIndex",function($scope,$location,exStore,exUtil) {
+  // 全局的control。因为我是主页哈哈哈。
   var lp = $scope;
   lp.currentUser = exStore.getUser().name;
   lp.$on('event:login', function(){
     lp.currentUser = exStore.getUser().name;
+    exUtil.shareCache.ctrlStateCache = {}; // 清空。。。
   });
 });
 app.controller("ctrlLogin",function($rootScope,$scope,$location,exStore,exAccess) {
@@ -208,12 +210,14 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
       });
   }
   lp.selectUser = function(){
-    (lp.para.allSelectUser = lp.para.task.OUGHT.split(',')).pop();
+    lp.para.allSelectUser = lp.para.task.OUGHT.split(',');
+    lp.para.allSelectUser.pop();
+    lp.para.allSelectUser.shift();
     exAccess.getAllUserPromise().then( function (data) {
       var lrtn = data.exObj;
       lp.para.allOtherUser =[];
       console.log(lrtn);
-      for (var i in lrtn) {  if (lp.para.task.OUGHT.indexOf(lrtn[i].NICKNAME + ",") < 0 ) lp.para.allOtherUser.push(lrtn[i].NICKNAME); };
+      for (var i in lrtn) {  if (lp.para.task.OUGHT.indexOf(","+ lrtn[i].NICKNAME + ",") < 0 ) lp.para.allOtherUser.push(lrtn[i].NICKNAME); };
       lp.taskEditMask('userSelect');
     }, function (reason) { console.log(reason); lp.para.allOtherUser = []  });
 
@@ -235,7 +239,7 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
   };
   lp.selectUserOk = function(){
     /// 根据选中的用户进行。
-    lp.para.task.OUGHT = lp.para.allSelectUser.join(",") + ",";
+    lp.para.task.OUGHT = "," + lp.para.allSelectUser.join(",") + ",";
     lp.taskEditMask('usersave');
   };
   switch (lp.para.aType)

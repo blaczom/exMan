@@ -138,11 +138,25 @@ var runSqlPromise = function (aSql, aParam) {
   else deferred.reject("no sql statement ");
   return deferred.promise;
 };
+var getPromise = function (aSql, aParam) {
+  logInfo("db getPromise with param ", aSql, aParam);
+  if (aParam) {if (toString.apply(aParam) !== "[object Array]") aParam = [aParam];} else aParam = [];
+  var deferred = Q.defer();
+  if (aSql.trim().length > 4)  {
+    gdb.get(aSql, aParam, function (err, row) {
+      if (err) {if (err) logErr("runSqlPromise",err,aSql,aParam);deferred.reject(err);} else deferred.resolve(row);
+    });
+  }
+  else deferred.reject("no sql statement ");
+  return deferred.promise;
+};
+
 var comSave = function(aTarget, aTable, aCallback) {
   try {   // ls_sql = dbHelp.genSave(aTarget, aTable);  保存对象到数据库中。
     l_gen = genSave(aTarget, aTable);  // 返回一个数组，sql和后续参数。
     logInfo("com save run here with param: ", aTarget, aTable, l_gen);
-    runSql(l_gen[0], l_gen[1], function (err, row) {
+    gdb.run(l_gen[0], l_gen[1], function (err, row) {
+      row = this.changes;
       aCallback(err, row);
     });
   }
@@ -157,14 +171,14 @@ var helpUser = {
   delete : function(aNickName, aCallback){
     runSql("delete from USER where NICKNAME = ?", aNickName, aCallback); } ,
   getByNickName:function(aNickName, aCallback) {
-    runSql("select * from user where NICKNAME= ?" , aNickName, aCallback);
+    gdb.get("select * from user where NICKNAME= ?" , aNickName, aCallback);
   }
 };
 var helpTask = {
   save: function (aTask, aCallback) {    comSave(aTask, 'TASK', aCallback);  },
   delete: function (aUUID, aCallBack) {
     runSql("delete from TASK where UUID = ?", aUUID, aCallBack);  },
-  getByUUID : function (aUUID, aCallback) { runSql("select * from task where UUID=?", aUUID, aCallback); },
+  getByUUID : function (aUUID, aCallback) { gdb.get("select * from task where UUID=?", aUUID, aCallback); },
   getChildren: function (rootTask, aCallback) {
     var statckCallback = [];
     function nextTask(aParent, aRow, aI, aCallFin)  // aRow, 是一个数组。aI作为索引。 alen作为结束判断。
@@ -202,7 +216,7 @@ var helpTask = {
 };
 var helpWork = {
   save : function (aWORK, aCallback) {  comSave(aWORK, 'WORK', aCallback); },
-  getByUUID : function (aUUID, aCallback) { runSql("select * from work where UUID=?", aUUID, aCallback); },
+  getByUUID : function (aUUID, aCallback) { gdb.get("select * from work where UUID=?", aUUID, aCallback); },
   delete : function(aUUID, aCallback){ runSql("delete from WORK where UUID = ?", aUUID, aCallback); }
 };
 
@@ -210,6 +224,9 @@ exports.helpTask = helpTask;
 exports.helpUser = helpUser;
 exports.helpWork = helpWork;
 exports.runSql = runSql;
+exports.run = gdb.run;
+exports.get = gdb.get;
+exports.getPromise = getPromise;
 exports.runSqlPromise = runSqlPromise;
 exports.gdb = gdb;
 exports.genSave = genSave;
