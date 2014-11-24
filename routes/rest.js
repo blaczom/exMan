@@ -146,6 +146,13 @@ router.post('/', function(req, res) {
           userPwd = lExparm.regUser.PASS;
           authCod = lExparm.regUser.authCode;
           md5Pass = lExparm.regUser.md5Pass; //var md5UserPwd = crypto.createHash('md5').update(userName + userPwd).digest('hex');
+
+      var l_matchRull = (userName||",").match(/(\w|@|\.)+/);
+      if (!l_matchRull || (l_matchRull[0] != l_matchRull.input)) {
+        res.json(rtnErr("名字不能包含@.字母数字以外的东东"));
+        return;
+      }
+
       appDb.USER.getByNickName(userName, function (aErr, aRtn) {
         if (aErr) res.json(rtnErr(aErr));
         else {
@@ -303,7 +310,7 @@ router.post('/', function(req, res) {
         if (req.session.loginUser == lExparm.filter.seekUser) // 当前用户就是查询的用户。可以显示私有工作，否则不显示私有工作。
           la_where.push("( owner = '" + req.session.loginUser + "') ");
         else
-          la_where.push(" (owner = '" + lExparm.filter.seekUser + "' and private != 1 and level > " + req.session.userGrant + ")) ");
+          la_where.push(" (owner = '" + lExparm.filter.seekUser + "' and private != 1 and level > " + req.session.userGrant + ") ");
       }
       else // 没选则用户，就是要查找所有的用户。
         la_where.push( "((owner = '" + req.session.loginUser + "') or (owner != '" + req.session.loginUser +
@@ -388,9 +395,9 @@ router.post('/', function(req, res) {
           }
           Q.all(stackSubQ).then(function(row2){
             for (var ii in row2) {
-              var l_t = [row2[ii][0].plan, row2[ii][0].deal, row2[ii][0].over];
+              var l_t = [row2[ii][0].plan||0, row2[ii][0].deal||0, row2[ii][0].over||0];
               ls_rtn.exObj[ii].statTask =   l_t.join('|');
-              var l_t2 = [row2[ii][1].plan, row2[ii][1].deal, row2[ii][1].over];
+              var l_t2 = [row2[ii][1].plan||0, row2[ii][1].deal||0, row2[ii][1].over||0];
               ls_rtn.exObj[ii].statWork =   l_t2.join('|');
             }
             res.json(ls_rtn);

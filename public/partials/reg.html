@@ -5,6 +5,7 @@
 <form ng-submit="userReg()" class="formex" role="form" method="post" novalidate>
     <h2 class="formex-heading"> 注 册</h2>
     <input ng-model="user.NICKNAME" id="txtUserName" name="txtUserName" type="text" class="formex-control" placeholder="用户名" required autofocus />
+    <div ng-show="(user.NICKNAME.match(namePattern)[0] != user.NICKNAME)"> 用户名非法字符 </div>
     <input ng-model="user.PASS" id="txtUserPwd" name="txtUserPwd" type="password" class="formex-control" placeholder="密码" required/>
     <input ng-model="user.PASS2" id="txtUserRePwd"  name="txtUserRePwd" type="password" class="formex-control" placeholder="重复密码" required/>
     <input ng-model="user.authCode" id="txtUserAuthCode"  name="txtUserAuthCode" type="text" class="formex-control" placeholder="授权码" required/>

@@ -37,6 +37,7 @@ app.controller("ctrlRegUser", function($scope,exStore,exAccess){
   lp.user = exAccess.USER.newUser();
   lp.user.authCode = "";
   lp.rtnInfo = "";
+  lp.namePattern = new RegExp('(\\w|@|\\.)+');
   lp.userReg = function(){
     exAccess.userRegPromise(lp.user).
       then(function (data) {
@@ -239,21 +240,11 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
   };
   switch (lp.para.aType)
   {
-    case "list4user":
-      if (exUtil.shareCache.ctrlStateCache["ctrlTaskList"]) {
-        lp.para = exUtil.shareCache.ctrlStateCache["ctrlTaskList"].para;  // 当前网页的数据集合。
-        /*  得到user的变量。来找到。
-        if ($routeParams.pid && (lp.para.seek.seekTaskUUID != $routeParams.pid))   // 必须要有当前task的id。增加的时候
-        {
-          lp.para.seek.seekTaskUUID = $routeParams.pid;
-          lp.para.seek.seekTask = ($routeParams.pcon || '无内容');    // 显示部分父任务的内容。
-          if  ((lp.para.seek.seekTaskUUID||'').length == 0) lp.para.seek.seekTaskFlag = false; else lp.para.seek.seekTaskFlag = true;
-          lp.workfilter();
-        } */
-        break;
-      }
-      else
-        lp.workfilter();  // 默认来一次。
+    case "user":
+      lp.para.seek.seekUser = $routeParams.pname;
+      if ((lp.para.seek.seekUser).length != 0){
+        lp.para.seek.seekUserFlag = true;
+        lp.taskfilter();}
       break;
     case "navi":
     default :
@@ -543,7 +534,7 @@ app.controller("ctrlWorkList",function($scope,$routeParams,exStore,exAccess,exUt
       curOffset: 0,  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
       limit: 10      // 当前查询显示限制
     },
-    aType : $routeParams.aType,   // 查询的页面参数。暂时没用。随便参数。
+    aType : $routeParams.aType,   // 查询的页面参数。
     rtnInfo : "",   // 返回提示用户的信息。 // lp.task = exStore.taskNew();    // 暂时给遮挡编辑任务页面提供。
     curIndex : null,     //当前编辑的索引值
     editMode : "list",    // 是否在单记录编辑模式。
@@ -718,8 +709,11 @@ app.controller("ctrlWorkList",function($scope,$routeParams,exStore,exAccess,exUt
       else
         lp.workfilter();  // 默认来一次。
       break;
-    case 'list4user':
-
+    case 'user':
+      lp.para.seek.seekUser = $routeParams.pname;
+      if ((lp.para.seek.seekUser).length != 0){
+        lp.para.seek.seekUserFlag = true;
+        lp.workfilter();}
       break;
     case "navi":
     default :
@@ -731,7 +725,7 @@ app.controller("ctrlWorkList",function($scope,$routeParams,exStore,exAccess,exUt
       break;
   }
 });
-app.controller("ctrlUserList", ['$scope','exStore','exAccess',function($scope,exStore,exAccess){
+app.controller("ctrlUserList", function($scope,exStore,exUtil,exAccess){
   var lp = $scope;
   lp.para = {
     rtnInfo : "",
@@ -739,7 +733,6 @@ app.controller("ctrlUserList", ['$scope','exStore','exAccess',function($scope,ex
     seek : {  seekUserFlag : true, seekUser : exStore.getUser().name
     }
   };
-
   lp.userfilter = function(){
     exAccess.userListGetPromise(lp.para.seek)
     .then( function (data){
@@ -753,7 +746,10 @@ app.controller("ctrlUserList", ['$scope','exStore','exAccess',function($scope,ex
       lp.rtnInfo = JSON.stringify(status);
     });
   };
-}]);
+  if (exUtil.shareCache.ctrlStateCache["ctrlUserList"]) {
+    lp.para = exUtil.shareCache.ctrlStateCache["ctrlUserList"].para;  // 当前网页的数据集合。
+  }
+});
 app.controller("ctrlExtools",function($scope,exAccess,exUtil){
   var lp = $scope;
   lp.md5String = exUtil.md5String;

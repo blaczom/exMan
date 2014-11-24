@@ -35,8 +35,12 @@
           <span style="width:150px;">{{ userItem.EMAIL||"&nbsp;" }}</span>
           <span style="width:60px;">{{ userItem.GRANT||"&nbsp;" }}</span>
           <span style="width:40px;">{{ userItem.UPUSER||"&nbsp;" }}</span>
-          <span style="width:100px;">{{ userItem.statWork ||"&nbsp;" }}</span>
-          <span style="width:100px;">{{ userItem.statTask||"&nbsp;" }}</span>
+          <span style="width:100px;" class="linkButton">
+            <a href="#/workList/user?pname={{userItem.NICKNAME}}" > {{ userItem.statWork ||"&nbsp;" }} </a>
+          </span>
+          <span style="width:100px;" class="linkButton">
+            <a href="#/taskList/user?pname={{userItem.NICKNAME}}" > {{ userItem.statTask ||"&nbsp;" }} </a>
+          </span>
         </span>
         <br/>
     </div>

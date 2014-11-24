@@ -53,9 +53,9 @@ app.directive('dirSelectUser', function() {
 app.run(function ($rootScope, exUtil) {
   $rootScope.$on('$routeChangeStart', routeChange1);
   function routeChange1(event, aObjTo, aObjFrom) {
-    console.log(arguments);
     if (aObjFrom && aObjFrom.$$route) {
       switch (aObjFrom.$$route.controller) {
+      case "ctrlUserList":
       case "ctrlTaskAll":
       case "ctrlTaskList":
       case "ctrlWorkList":
