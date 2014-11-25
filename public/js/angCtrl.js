@@ -130,49 +130,64 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
     lp.para.task.PRIVATE = exUtil.verifyBool(lp.para.task.PRIVATE);
     lp.taskEditMask("listedit");
   };
-  lp.taskSave = function(){
+  lp.taskSave = function(aClose){
     if (lp.para.task.STATE == exAccess.planState[2] && (lp.para.task.FINISH||'').length==0) lp.para.task.FINISH = exUtil.getDateTime(new Date());
-    exAccess.taskSavePromise(lp.para.task)
-      .then( function (data) {    // 得到新的消息
-        lp.para.rtnInfo = data.rtnInfo;
-        if (data.rtnCode > 0) {
-          switch (lp.para.task._exState) {
-            case 'dirty':
-              lp.para.task._exState = "clean";
-              lp.para.taskSet[lp.para.curIndex] = lp.para.task;
-              break;
-            case 'new':
-              lp.para.task._exState = "clean";
-              lp.para.taskSet.splice(lp.para.curIndex + 1, 0, lp.para.task);
-              lp.para.taskSetUuidAll[lp.para.task.UUID] = 1;
-              break;
+    if (lp.para.task._exState == "clean" && lp.editForm.$dirty) lp.para.task._exState="dirty";
+    if (lp.para.task._exState != "clean")
+      exAccess.taskSavePromise(lp.para.task)
+        .then( function (data) {    // 得到新的消息
+          lp.para.rtnInfo = data.rtnInfo;
+          if (data.rtnCode > 0) {
+            switch (lp.para.task._exState) {
+              case 'dirty':
+                lp.para.task._exState = "clean";
+                lp.para.taskSet[lp.para.curIndex] = lp.para.task;
+                break;
+              case 'new':
+                lp.para.task._exState = "clean";
+                lp.para.taskSet.splice(lp.para.curIndex + 1, 0, lp.para.task);
+                lp.para.taskSetUuidAll[lp.para.task.UUID] = 1;
+                break;
+            }
+            lp.editForm.$setPristine();
           }
-          lp.taskEditMask("editsave");
-        }
-      }, function (status) { lp.para.rtnInfo = JSON.stringify(status); } );
+        }, function (status) { lp.para.rtnInfo = JSON.stringify(status);  aClose=false; } );
+    if (aClose) lp.taskEditMask("editsave");
   };
   lp.taskCancel = function(){
-    lp.taskEditMask("editcancel");
-    if (lp.para.curIndex >= 0  && lp.para.task._exState!="new") lp.taskSet[lp.para.curIndex] = lp.para.pristineTask;
+    console.log('lp is', lp, $scope);
+    if (lp.editForm.$dirty){
+      if (confirm("确认要放弃更改？")) {
+        if (lp.para.curIndex >= 0  && lp.para.task._exState!="new") lp.taskSet[lp.para.curIndex] = lp.para.pristineTask;
+        lp.editForm.$setPristine();
+        lp.taskEditMask("editcancel");
+      }
+    }
+    else
+      lp.taskEditMask("editcancel");
   };
+
   lp.taskDelete = function(){
-    exAccess.taskDeletePromise(lp.para.task)
-      .then(function (data) {    // 得到新的消息
-        lp.para.rtnInfo = data.rtnInfo;
-        if (data.rtnCode > 0){
-          for (var i in lp.para.taskSet){
-            if (lp.para.taskSet[i].UUID == lp.para.task.UUID) {
-              if (lp.para.showDebug) console.log("get it delete " + lp.para.task.UUID);
-              lp.para.taskSet.splice(i,1);
-              delete lp.para.taskSetUuidAll[lp.para.task.UUID];
-              lp.taskEditMask("editdelete");
-              break;
+    if (confirm("确认删除？")) {
+      exAccess.taskDeletePromise(lp.para.task)
+        .then(function (data) {    // 得到新的消息
+          lp.para.rtnInfo = data.rtnInfo;
+          if (data.rtnCode > 0) {
+            for (var i in lp.para.taskSet) {
+              if (lp.para.taskSet[i].UUID == lp.para.task.UUID) {
+                if (lp.para.showDebug) console.log("get it delete " + lp.para.task.UUID);
+                lp.para.taskSet.splice(i, 1);
+                delete lp.para.taskSetUuidAll[lp.para.task.UUID];
+                lp.taskEditMask("editdelete");
+                break;
+              }
             }
           }
+        }, function (status) {
+          lp.para.rtnInfo = JSON.stringify(status);
         }
-      }, function (status) {
-        lp.para.rtnInfo = JSON.stringify(status); }
-    );
+      );
+    }
   };
   lp.taskfilter = function(){
     //参数重置。    
@@ -208,7 +223,7 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
       },function (status) {
         lp.para.rtnInfo = JSON.stringify(status);
       });
-  }
+  };
   lp.selectUser = function(){
     lp.para.allSelectUser = lp.para.task.OUGHT.split(',');
     lp.para.allSelectUser.pop();
@@ -380,6 +395,9 @@ app.controller("ctrlTaskAll",function($scope,$routeParams,$location,exStore,exAc
   };
   lp.taskSave = function(){
     if (lp.para.task.STATE == exAccess.planState[2] && (lp.para.task.FINISH||'').length==0) lp.para.task.FINISH = exUtil.getDateTime(new Date());
+    if (lp.para.task._exState == "clean" && lp.editForm.$dirty) lp.para.task._exState="dirty";
+    if (lp.para.task._exState != "clean")
+
     exAccess.taskSavePromise(lp.para.task)
       .then( function (data) {    // 得到新的消息
         lp.para.rtnInfo = data.rtnInfo;
@@ -395,32 +413,43 @@ app.controller("ctrlTaskAll",function($scope,$routeParams,$location,exStore,exAc
               lp.para.taskSetUuidAll[lp.para.task.UUID] = 1;
               break;
           }
-          lp.taskEditMask("editsave");
+          lp.editForm.$setPristine();
         }
-      }, function (status) { lp.para.rtnInfo = JSON.stringify(status); } );
+      }, function (status) { lp.para.rtnInfo = JSON.stringify(status); aClose=false;} );
+    if(aClose) lp.taskEditMask("editsave");
   };
   lp.taskCancel = function(){
-    lp.taskEditMask("editcancel");
-    if (lp.para.curIndex >= 0  && lp.para.task._exState!="new") lp.para.taskSet[lp.para.curIndex] = lp.para.pristineTask;
+    console.log('lp is', lp);
+    if (lp['editForm']['$dirty']){
+      if (confirm("确认要放弃更改？")) {
+        if (lp.para.curIndex >= 0  && lp.para.task._exState!="new") lp.taskSet[lp.para.curIndex] = lp.para.pristineTask;
+        lp.editForm.$setPristine();
+        lp.taskEditMask("editcancel");
+      }
+    }
+    else
+      lp.taskEditMask("editcancel");
   };
   lp.taskDelete = function(){
-    exAccess.taskDeletePromise(lp.task)
-      .then(function (data) {    // 得到新的消息
-        lp.para.rtnInfo = data.rtnInfo;
-        if (data.rtnCode > 0){
-          for (var i in lp.para.taskSet){
-            if (lp.para.taskSet[i].UUID == lp.para.task.UUID) {
-              if (lp.para.showDebug) console.log("get it delete " + lp.para.task.UUID);
-              lp.para.taskSet.splice(i,1);
-              delete lp.para.taskSetUuidAll[lp.para.task.UUID];
-              lp.taskEditMask("editdelete");
-              break;
+    if (confirm("确认删除？")) {
+      exAccess.taskDeletePromise(lp.task)
+        .then(function (data) {    // 得到新的消息
+          lp.para.rtnInfo = data.rtnInfo;
+          if (data.rtnCode > 0){
+            for (var i in lp.para.taskSet){
+              if (lp.para.taskSet[i].UUID == lp.para.task.UUID) {
+                if (lp.para.showDebug) console.log("get it delete " + lp.para.task.UUID);
+                lp.para.taskSet.splice(i,1);
+                delete lp.para.taskSetUuidAll[lp.para.task.UUID];
+                lp.taskEditMask("editdelete");
+                break;
+              }
             }
           }
-        }
-      }, function (status) {
-        lp.para.rtnInfo = JSON.stringify(status); }
-    );
+        }, function (status) {
+          lp.para.rtnInfo = JSON.stringify(status); }
+      );
+    }
   };
   lp.taskfilter = function(){
     //参数重置。
@@ -602,48 +631,62 @@ app.controller("ctrlWorkList",function($scope,$routeParams,exStore,exAccess,exUt
     lp.para.work._exState = 'dirty';
     lp.workEditMask("listedit");
   };
-  lp.workSave = function(){
+  lp.workSave = function(aClose){
     if (lp.para.work.STATE == exAccess.planState[2] && (lp.para.work.FINISH||'').length==0) lp.para.work.FINISH = exUtil.getDateTime(new Date());
-    exAccess.workSavePromise(lp.para.work)
-      .then( function (data) {
-        lp.para.rtnInfo = data.rtnInfo;
-        if (data.rtnCode > 0) {
-          switch (lp.para.work._exState) {
-            case 'dirty':
-              lp.para.work._exState = "clean";
-              break;
-            case 'new':
-              lp.para.work._exState = "clean";
-              lp.para.workSet.splice(lp.para.curIndex+1,0,lp.para.work);
-              lp.para.workSetUuidAll[lp.para.work.UUID] = 1;
-              break;
+    if (lp.para.work._exState == "clean" && lp.editForm.$dirty) lp.para.work._exState="dirty";
+    if (lp.para.work._exState != "clean")
+      exAccess.workSavePromise(lp.para.work)
+        .then( function (data) {
+          lp.para.rtnInfo = data.rtnInfo;
+          if (data.rtnCode > 0) {
+            switch (lp.para.work._exState) {
+              case 'dirty':
+                lp.para.work._exState = "clean";
+                break;
+              case 'new':
+                lp.para.work._exState = "clean";
+                lp.para.workSet.splice(lp.para.curIndex+1,0,lp.para.work);
+                lp.para.workSetUuidAll[lp.para.work.UUID] = 1;
+                break;
+            }
+            lp.editForm.$setPristine();
           }
-          lp.workEditMask("editsave");
-        }
-      }, function (status) { lp.para.rtnInfo = JSON.stringify(status); console.log('something wrong?') }
-    );
+        }, function (status) { lp.para.rtnInfo = JSON.stringify(status); aClose=false; }
+      );
+    if(aClose) lp.workEditMask("editsave");
   };
   lp.workCancel = function(){
-    if (lp.para.curIndex >= 0 && lp.para.work._exState!="new") lp.para.workSet[lp.para.curIndex] = angular.copy(lp.para.pristineWork);
-    lp.workEditMask("editcancel");
+    if (lp.editForm.$dirty){
+      if (confirm("确认要放弃更改？")) {
+        if (lp.para.curIndex >= 0 && lp.para.work._exState!="new") lp.para.workSet[lp.para.curIndex] = angular.copy(lp.para.pristineWork);
+        lp.editForm.$setPristine();
+        lp.workEditMask("editcancel");
+      }
+    }
+    else
+        lp.workEditMask("editcancel");
   };
   lp.workDelete = function(){
-    exAccess.workDeletePromise(lp.para.work)
-      .then( function (data) {
-        lp.para.rtnInfo = data.rtnInfo;
-        if (data.rtnCode > 0){
-          for (var i in lp.para.workSet){
-            if (lp.para.workSet[i].UUID == lp.para.work.UUID) {
-              if (lp.para.showDebug) console.log("get it delete " + lp.para.work.UUID);
-              lp.para.workSet.splice(i,1);
-              delete lp.para.workSetUuidAll[lp.para.work.UUID];
-              lp.workEditMask("editdelete");
-              break;
+    if (confirm("确认删除？")) {
+      exAccess.workDeletePromise(lp.para.work)
+        .then(function (data) {
+          lp.para.rtnInfo = data.rtnInfo;
+          if (data.rtnCode > 0) {
+            for (var i in lp.para.workSet) {
+              if (lp.para.workSet[i].UUID == lp.para.work.UUID) {
+                if (lp.para.showDebug) console.log("get it delete " + lp.para.work.UUID);
+                lp.para.workSet.splice(i, 1);
+                delete lp.para.workSetUuidAll[lp.para.work.UUID];
+                lp.workEditMask("editdelete");
+                break;
+              }
             }
           }
+        }, function (status) {
+          lp.para.rtnInfo = JSON.stringify(status);
         }
-      }, function (status) {    lp.para.rtnInfo = JSON.stringify(status);     }
-    );
+      );
+    }
   };
   lp.memCheck = function(){
     lp.para.work.MEMTIMER = exUtil.getDateTime(new Date(), true);

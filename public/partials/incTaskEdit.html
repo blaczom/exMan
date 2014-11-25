@@ -1,7 +1,8 @@
 <div class="divModal" ng-show="para.editMode=='edit'" style="width:100%;height:100%;position:absolute;top:0;left:0;z-index:10;display:inline;" >
     <div class="modalContent">
         <form name="editForm" id="editForm" novalidate>
-            <button ng-disabled="!editForm.$valid" ng-click="taskSave()"> 保存 </button>
+            <button ng-disabled="!editForm.$valid" ng-click="taskSave()">原地保存</button>
+            <button ng-disabled="!editForm.$valid" ng-click="taskSave(true)"> 保存 </button>
             <button ng-click="taskCancel()"> 取消 </button>
             <button ng-click="taskDelete()"> 删除 </button>
             <hr/>

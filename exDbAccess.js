@@ -1,5 +1,5 @@
 /**
- * Created by blaczom4gmail on 2014/11/17.
+ * Created by donghai4gmail on 2014/11/17.
  */
 
 var ex = require('./exUtil');

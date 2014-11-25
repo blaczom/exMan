@@ -10,3 +10,35 @@
         <button id="btnSub" class="btn btn-lg btn-primary" type="submit">发送</button>
     </form>
 </div>
+
+
+<div ng-controller="testtest">
+
+  <select ng-model="test1" multiple ng-options="m for m in testUser"
+          style="position:absolute;" id="tttt"> </select>
+
+  <input type="text" ng-model="test1" name="txtSelect" id="txtSelect"/>
+
+
+
+  {{test1}} this is a test
+  <button ng-click="showme()"> showme </button>
+  <button ng-click="showme2()"> showme2 </button>
+
+  <span dir-select-user="userPack"></span>
+  userPack.filter.select : single, multiple
+  userPack.filter.upman : ''
+  userPack.filter.
+
+
+</div>
+
+<script type="text/javascript">
+  function setPositionAbsolute()
+  {
+    document.getElementById("tttt").style.top="20px";
+  }
+</script>
+
+<input type="button" id="b1" onclick="document.getElementById('tttt').style.top='20px';" value="Set button position to be absolute" />
+

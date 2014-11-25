@@ -1,5 +1,5 @@
 /**
- * Created by donghai on 2014/9/20.
+ * Created by donghai4gmail on 2014/9/20.
  */
 
 var sqlite3 = require('sqlite3');

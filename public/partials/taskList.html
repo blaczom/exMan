@@ -1,3 +1,5 @@
+<div>
+
 <div class="content" ng-show="para.editMode=='list'">
   <div class="contentHead" ng-show="para.rtnInfo">
       <span class="markInfo" ng-bind="para.rtnInfo"></span>
@@ -11,10 +13,10 @@
   <div class="contentBodyTitle">
     <span style="width:30px;">   序号  </span>
     <span ng-show="para.showDebug" style="width:300px;"> uuid </span>
-    <span style="width:140px;"> 内容 </span>
+    <span style="width:240px;"> 内容 </span>
     <span ng-show="para.showDebug" style="width:40px;"> 父任务 </span>
-    <span style="width:120px;">计划开始</span>
-    <span style="width:120px;">计划结束</span>
+    <span style="width:80px;">计划开始</span>
+    <span style="width:80px;">计划结束</span>
     <span ng-show="para.showDebug" style="width:140px;">结束时间</span>
     <span style="width:150px;">承担者</span>
     <span style="width:60px;">所有者</span>
@@ -26,10 +28,10 @@
       <span style="line-height :30px; width:100%;" >
       <span class="contentBodyContentItemPanel" style="width:20px;">    {{$index}}  </span>
       <span class="contentBodyContentItemPanel" ng-show="para.showDebug" style="width:300px;">{{ taskItem.UUID }}</span>
-      <span class="contentBodyContentItemPanel" style="width:150px;">{{taskItem.CONTENT.substr(0,16)||'&nbsp;' }}</span>
+      <span class="contentBodyContentItemPanel" style="width:250px;">{{taskItem.CONTENT.substr(0,16)||'&nbsp;' }}</span>
       <span class="contentBodyContentItemPanel" ng-show="para.showDebug" style="width:40px;">{{ taskItem.UPTASK }}</span>
-      <span class="contentBodyContentItemPanel" style="width:120px;">{{taskItem.PLANSTART.substr(0,16)||'&nbsp;'}}</span>
-      <span class="contentBodyContentItemPanel" style="width:120px;">{{taskItem.PLANFINISH.substr(0,16)||'&nbsp;'}}</span>
+      <span class="contentBodyContentItemPanel" style="width:80px;">{{taskItem.PLANSTART.substr(0,10)||'&nbsp;'}}</span>
+      <span class="contentBodyContentItemPanel" style="width:80px;">{{taskItem.PLANFINISH.substr(0,10)||'&nbsp;'}}</span>
       <span class="contentBodyContentItemPanel" ng-show="para.showDebug" style="width:140px;">{{taskItem.FINISH}}</span>
       <span class="contentBodyContentItemPanel" style="width:150px;">{{taskItem.OUGHT.substr(0,16)||'&nbsp;'}}</span>
       <span class="contentBodyContentItemPanel" style="width:60px;">{{taskItem.OWNER}}</span>
@@ -48,3 +50,5 @@
      </div>
 </div>
 <div ng-include="'incTaskEdit.html'" ></div>
+
+</div>

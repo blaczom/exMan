@@ -32,9 +32,9 @@
   <div class="contentBodyTitle">
     <span style="width:30px;">   序号  </span>
     <span ng-show="para.showDebug" style="width:300px;"> uuid </span>
-    <span style="width:150px;"> 内容 </span>
+    <span style="width:240px;"> 内容 </span>
     <span ng-show="para.showDebug" style="width:40px;"> 父任务 </span>
-    <span style="width:120px;">创建时间</span>
+    <span style="width:70px;">创建时间</span>
     <span style="width:100px;">最后更新</span>
     <span style="width:40px;">状态</span>
     <span style="width:60px;">所有者</span>
@@ -49,9 +49,9 @@
       <span style="width:20px;">    {{$index}}  </span>
     <span class="subExpand" style="line-height :30px; margin-bottom: 2px;" >
       <span ng-show="para.showDebug" style="width:300px;">{{ workItem.UUID }}</span>
-      <span style="width:150px;">{{workItem.CONTENT.substr(0,20)||"&nbsp;" }}</span>
+      <span style="width:240px;">{{workItem.CONTENT.substr(0,20)||"&nbsp;" }}</span>
       <span ng-show="para.showDebug" style="width:40px;">{{ workItem.UPTASK }}</span>
-      <span style="width:120px;">{{workItem.CREATETIME.substr(0,16)}}</span>
+      <span style="width:72px;">{{workItem.CREATETIME.substr(0,10)}}</span>
       <span style="width:120px;">{{workItem.LASTMODIFY.substr(0,16)||"&nbsp;"}}</span>
       <span style="width:40px;">{{workItem.STATE}}</span>
       <span style="width:60px;">{{workItem.OWNER}}</span>
@@ -61,7 +61,7 @@
       <span style="width:40px;">{{workItem.LEVEL||"&nbsp;"}}</span>
       <span ng-show="para.showDebug" style="width:40px;">{{workItem.MEMPOINT.substr(0,6)}}</span>
       <span><input style="width:40px;" ng-disabled="1" ng-checked="workItem.MEMEN?true:false" type="checkbox"/></span>
-      <span style="width:120px;">{{workItem.MEMTIMER.substr(0,16)||"&nbsp;"}}</span>
+      <span style="width:75px;">{{workItem.MEMTIMER.substr(0,10)||"&nbsp;"}}</span>
       <span>
       <button ng-click="workEdit($index)"> 详 </button><!--
       --><button ng-click="workAdd($index)"> 增 </button>
@@ -80,7 +80,8 @@
 
     <div class="modalContent">
         <form name="editForm" id="editForm" novalidate>
-            <button ng-click="workSave()"> 保存 </button>
+            <button ng-click="workSave()"> 原地保存 </button>
+          <button ng-click="workSave(true)"> 保存 </button>
             <button ng-click="workCancel()"> 取消 </button>
             <button ng-click="workDelete()"> 删除 </button>
             <hr/>
@@ -107,7 +108,7 @@
             <input ng-model="para.work.PRIVATE" id="txtPRIVATE" name="txtPRIVATE" type="checkbox" text = "私有"/>私有
             <input ng-model="para.work.MEMEN" ng-click="memCheck()" id="txtMEMEN" name="txtMEMEN" type="checkbox" text = "记忆"/> 加强记忆
             <button ng-click="workMem()"> 本次记忆完成 </button>
-            <br/>记忆间隔: <input style="width:80px;" ng-disabled="false" ng-model="para.work.MEMPOINT" id="txtMEMPOINT" name="txtMEMPOINT" type="text" text = "记忆"/>
+            <br/> 记忆间隔: <input style="width:80px;" ng-disabled="false" ng-model="para.work.MEMPOINT" id="txtMEMPOINT" name="txtMEMPOINT" type="text" text = "记忆"/>
             下次提醒: <input style="width:80px;" ng-model="para.work.MEMTIMER" id="txtMEMTIMER" name="txtMEMTIMER" type="text" text = "记忆"/>
             <br/>
             <span > 内容： </span>

@@ -28,6 +28,7 @@ app.directive('validDateModel', function() {
       actr.$parsers.unshift(function (viewValue) {
         if ((viewValue||'').length < 1 ) {actr.$setValidity('dateFormat', true); return viewValue;}
         var lstime = new Date(viewValue);
+        console.log('ctrl is', scope);
         if ( lstime.getFullYear()>2000 && lstime.getMonth() >=0 && lstime.getDate() >=0    )
         {   actr.$setValidity('dateFormat', true);
           return viewValue;}
@@ -35,6 +36,7 @@ app.directive('validDateModel', function() {
           actr.$setValidity('dateFormat', false);
           return undefined;}
       });
+
     }
   };
 });
