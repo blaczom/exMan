@@ -16,9 +16,9 @@
 var child_process = require('child_process');
 function spawn() {
   var worker = child_process.spawn('node', [ 'bin/www' ]);
-  console.log(' -- gogogo -- ');
   worker.on('exit', function (code) {
     if (code !== 0) {
+      console.log('i am dieing~~~~', code)
       spawn();
   }});
 };

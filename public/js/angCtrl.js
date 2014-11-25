@@ -224,39 +224,6 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
         lp.para.rtnInfo = JSON.stringify(status);
       });
   };
-  lp.selectUser = function(){
-    lp.para.allSelectUser = lp.para.task.OUGHT.split(',');
-    lp.para.allSelectUser.pop();
-    lp.para.allSelectUser.shift();
-    exAccess.getAllUserPromise().then( function (data) {
-      var lrtn = data.exObj;
-      lp.para.allOtherUser =[];
-      console.log(lrtn);
-      for (var i in lrtn) {  if (lp.para.task.OUGHT.indexOf(","+ lrtn[i].NICKNAME + ",") < 0 ) lp.para.allOtherUser.push(lrtn[i].NICKNAME); };
-      lp.taskEditMask('userSelect');
-    }, function (reason) { console.log(reason); lp.para.allOtherUser = []  });
-
-  };
-  lp.selectUserMoveOut = function(aInOut, aArray){
-
-    if (aInOut) {   // out
-      for (var i in aArray){
-        lp.para.allSelectUser.splice( lp.para.allSelectUser.indexOf(aArray[i]) ,  1);
-        lp.para.allOtherUser.push(aArray[i]);
-      }
-    }
-    else{
-      for (var i in aArray){
-        lp.para.allOtherUser.splice(lp.para.allOtherUser.indexOf(aArray[i]), 1);
-        lp.para.allSelectUser.push(aArray[i]);
-      }
-    }
-  };
-  lp.selectUserOk = function(){
-    /// 根据选中的用户进行。
-    lp.para.task.OUGHT = "," + lp.para.allSelectUser.join(",") + ",";
-    lp.taskEditMask('usersave');
-  };
   switch (lp.para.aType)
   {
     case "user":
@@ -486,34 +453,6 @@ app.controller("ctrlTaskAll",function($scope,$routeParams,$location,exStore,exAc
         }
         else lp.para.noData = true;
       }, function (status) { lp.para.rtnInfo = JSON.stringify(status); });
-  };
-  lp.selectUser = function(){
-    (lp.para.allSelectUser = lp.para.task.OUGHT.split(',')).pop();
-    exAccess.getAllUserPromise().then( function (data) {
-      var lrtn = data.exObj;
-      lp.para.allOtherUser =[];
-      for (var i in lrtn) {  if (lp.para.task.OUGHT.indexOf(lrtn[i].NICKNAME + ",") < 0 ) lp.para.allOtherUser.push(lrtn[i].NICKNAME); };
-      lp.taskEditMask('userSelect');
-    }, function (reason) { console.log(reason); lp.para.allOtherUser = []  });
-  };
-  lp.selectUserMoveOut = function(aInOut, aArray){
-    if (aInOut) {   // out
-      for (var i in aArray){
-        lp.para.allSelectUser.splice( lp.para.allSelectUser.indexOf(aArray[i]) ,  1);
-        lp.para.allOtherUser.push(aArray[i]);
-      }
-    }
-    else{
-      for (var i in aArray){
-        lp.para.allOtherUser.splice(lp.para.allOtherUser.indexOf(aArray[i]), 1);
-        lp.para.allSelectUser.push(aArray[i]);
-      }
-    }
-  };
-  lp.selectUserOk = function(){
-    /// 根据选中的用户进行。
-    lp.para.task.OUGHT = lp.para.allSelectUser.join(",") + ",";
-    lp.taskEditMask('usersave');
   };
   switch (lp.aType)
   {
@@ -817,7 +756,7 @@ app.controller("ctrlExtools",function($scope,exAccess,exUtil){
 app.controller("testtest",function($window,$scope,exAccess,exUtil){
   var lp = $scope;
   lp.test1 = "111";
-  lp.userPack = {name:"", filter:""};
+  lp.userPack = ",111,222,333,";
   exAccess.getAllUserPromise().then(function(data){
     lp.testUser = [];
     for (var i in data.exObj) lp.testUser.push(data.exObj[i].NICKNAME);

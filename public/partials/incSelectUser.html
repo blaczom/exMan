@@ -1,11 +1,18 @@
-<div>
+<div style="display:inline;">
   <button ng-click="selectUser()"> 选择用户 </button>
-  <div class="divModal" ng-show="showMe" style="width:2000px;height:2100px;position:absolute;top:0;left:0;z-index:99;" >
-
-    this is a test here
-    <button ng-click="showMe=false"> closeme </button>
-    {{dirSelectUser.name}}
-
-    <button ng-click="console.log(dirSelectUser)"> print me </button>
+  <div class="divModal" ng-show="showMe" style="width:100%;height:100%;position:absolute;top:0;left:0;z-index:10;display:inline;" >  
+    <div class="modalContent" >
+        <button ng-click="selectUserRtn(true)"> 确定 </button>
+        <button ng-click="selectUserRtn(false)"> 取消 </button>
+        <hr/>
+        承担者：
+        <span> 
+          <select ng-model="userBeenSelected" multiple ng-options="m for m in userBeenSelectedSet"></select>
+        </span>
+        <button ng-click="selectUserMoveIn(true)"> <-- </button>
+        <button ng-click="selectUserMoveIn(false)"> --> </button>
+        <span> <select ng-model="userToBeChoose" multiple ng-options="m2 for m2 in userToBeChooseSet"></select>
+        </span>        
+    </div>
   </div>
 </div>

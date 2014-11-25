@@ -42,13 +42,46 @@ app.directive('validDateModel', function() {
 });
 app.directive('dirSelectUser', function() {
   return {
-    scope:{ dirSelectUser: '='},
+    scope:{ userOutPack: '=dirSelectUser'},
     templateUrl: "incSelectUser.html",
     replace:true,
-    controller: function($scope){
+    controller: function($scope, exAccess){
       var lp = $scope;
-      lp.showMe = false;
-      lp.selectUser = function(){ lp.showMe=true; console.log(lp); lp.dirSelectUser="changed"; }
+      lp.showMe = false;      
+      lp.selectUser = function(){  
+        lp.showMe=true;
+        lp.userBeenSelectedSet = lp.userOutPack.split(',');
+        lp.userBeenSelectedSet.pop();  // 去掉前后2个逗号
+        lp.userBeenSelectedSet.shift();
+        exAccess.getAllUserPromise().then( function (data) {
+          var lrtn = data.exObj;
+          lp.userToBeChooseSet =[];
+          for (var i in lrtn) {  
+            if (lp.userOutPack.indexOf(","+ lrtn[i].NICKNAME + ",") < 0 ) lp.userToBeChooseSet.push(lrtn[i].NICKNAME); 
+          };      
+        }, function (reason) { console.log(reason); lp.userToBeChooseSet = []  });
+      };
+      lp.selectUserMoveIn = function(aIn){
+        if (aIn) {   // in
+          for (var i in lp.userToBeChoose){
+            lp.userToBeChooseSet.splice( lp.userToBeChooseSet.indexOf(lp.userToBeChoose[i]) ,  1);
+            lp.userBeenSelectedSet.push(lp.userToBeChoose[i]);
+          }
+          lp.userToBeChoose = [];
+        }
+        else{  // out
+          for (var i in lp.userBeenSelected){
+            lp.userBeenSelectedSet.splice(lp.userBeenSelectedSet.indexOf(lp.userBeenSelected[i]), 1);
+            lp.userToBeChooseSet.push(lp.userBeenSelected[i]);
+          }
+          lp.userBeenSelected = [];
+        }
+      };
+      lp.selectUserRtn = function(aOk){
+        /// 根据选中的用户进行。
+        if (aOk) lp.userOutPack = "," + lp.userBeenSelectedSet.join(",") + ",";
+        lp.showMe=false;          
+      };
     }
   };
 });
