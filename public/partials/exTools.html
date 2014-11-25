@@ -17,19 +17,16 @@
 <!--
   <select ng-model="test1" multiple ng-options="m for m in testUser"
           style="position:absolute;" id="tttt"> </select>
-
   <input type="text" ng-model="test1" name="txtSelect" id="txtSelect"/>
-
-
 
   {{test1}} this is a test
   <button ng-click="showme()"> showme </button>
   <button ng-click="showme2()"> showme2 </button>
 -->
   <span dir-select-user="userPack"></span>
-  
   {{userPack}}
 
+  <span dir-edit-task="userPack" dir-button-text="buttontest" dir-task-param="{{ {type:'sss', index:1} }}"></span>
 
 </div>
 

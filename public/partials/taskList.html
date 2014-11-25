@@ -1,11 +1,13 @@
 <div>
 
-<div class="content" ng-show="para.editMode=='list'">
+<div class="content">
   <div class="contentHead" ng-show="para.rtnInfo">
       <span class="markInfo" ng-bind="para.rtnInfo"></span>
   </div>
 
-  <h3> 任 务   <button ng-click="taskAdd(null)"> + </button> </h3>
+  <h3> 任 务
+  <span dir-edit-task="para.taskSet" dir-button-text="+" dir-task-param="{{{type:'add', idx:null} }}"></span>
+  </h3>
   <div class='contentBody'>
     <div ng-include="'incTaskSearch.html'" ></div>
   </div>
@@ -38,8 +40,10 @@
       <span class="contentBodyContentItemPanel" style="width:40px;">{{taskItem.STATE}}</span>
       <span class="contentBodyContentItemPanel" style="width:40px;">{{taskItem.PRIVATE||'&nbsp;'}}</span>
       <span class="contentBodyContentItemPanel"  >
-      <button ng-click="taskEdit($index)">详</button>
-      <button ng-click="taskAdd($index)">+子</button>
+
+      <span dir-edit-task="para.taskSet" dir-button-text="详" dir-task-param="{{ {type:'edit', idx: $index} }}"></span>
+      <span dir-edit-task="para.taskSet" dir-button-text="+子" dir-task-param="{{ {type:'add', idx: $index} }}"></span>
+
       <button ng-click="subWorkList($index)">工作</button>
       </span>
       </span>
