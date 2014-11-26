@@ -246,14 +246,32 @@ router.post('/', function(req, res) {
       });
       break;
     }
-    case 'taskEditSave':  {// lExparm.msgObj
+    case 'taskEditSave':
+    {// lExparm.msgObj
       lExparm.msgObj.OWNER = req.session.loginUser;
-      appDb.TASK.save(lExparm.msgObj, function(aErr, aRtn){
-        if (aErr) { res.json(rtnErr(aErr)) }
-        else {
-          res.json(rtnMsg("更新成功."));
-        }
-      });
+      if (lExparm.msgObj._exState == 'dirty')
+        appDb.dbLib.gdb.get("select owner from task where uuid=?", lExparm.msgObj.UUID,
+          function (aErr, aRow) {
+            if (aErr) res.json(rtnErr(aErr));
+            else {
+              if (aRow.OWNER != req.session.loginUser)  res.json(rtnErr("非自己的数据不可以更改"));
+              else {
+                appDb.TASK.save(lExparm.msgObj, function (aErr, aRtn) {
+                  if (aErr) {
+                    res.json(rtnErr(aErr))
+                  }
+                  else {
+                    res.json(rtnMsg("更新成功."));
+                  }
+                });
+              }
+            }
+          });
+      else  // 增加的不叨叨。
+        appDb.TASK.save(lExparm.msgObj, function (aErr, aRtn) {
+          if (aErr) { res.json(rtnErr(aErr)) }
+          else res.json(rtnMsg("更新成功."));
+        });
       break;
     }
     case 'taskEditDelete':    {
@@ -364,11 +382,11 @@ router.post('/', function(req, res) {
     case 'workEditSave':  {  // lExparm.msgObj
       lExparm.msgObj.OWNER = req.session.loginUser;
       if (lExparm.msgObj._exState=='dirty') {
-        appDb.dbLib.gdb.get("select owner from work where uuid=?", lExparm.msgObj.uuid,
+        appDb.dbLib.gdb.get("select owner from work where uuid=?", lExparm.msgObj.UUID,
           function(aErr, aRow){
             if (aErr) res.json(rtnErr(aErr));
             else{
-              if (aRow != req.session.loginUser)  res.json(rtnErr("非自己的数据不可以更改"));
+              if (aRow.OWNER != req.session.loginUser)  res.json(rtnErr("非自己的数据不可以更改"));
               else {
                 appDb.WORK.save(lExparm.msgObj, function(aErr, aRtn){
                   if (aErr) { res.json(rtnErr(aErr)) }
