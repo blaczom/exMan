@@ -363,12 +363,28 @@ router.post('/', function(req, res) {
     }
     case 'workEditSave':  {  // lExparm.msgObj
       lExparm.msgObj.OWNER = req.session.loginUser;
-      appDb.WORK.save(lExparm.msgObj, function(aErr, aRtn){
-        if (aErr) { res.json(rtnErr(aErr)) }
-        else {
-          res.json(rtnMsg("更新成功."));
-        }
-      });
+      if (lExparm.msgObj._exState=='dirty') {
+        appDb.dbLib.gdb.get("select owner from work where uuid=?", lExparm.msgObj.uuid,
+          function(aErr, aRow){
+            if (aErr) res.json(rtnErr(aErr));
+            else{
+              if (aRow != req.session.loginUser)  res.json(rtnErr("非自己的数据不可以更改"));
+              else {
+                appDb.WORK.save(lExparm.msgObj, function(aErr, aRtn){
+                  if (aErr) { res.json(rtnErr(aErr)) }
+                  else {
+                    res.json(rtnMsg("更新成功."));
+                  }
+                });
+              }
+            }
+          });
+      }
+      else  // 增加的不叨叨。
+        appDb.WORK.save(lExparm.msgObj, function(aErr, aRtn){
+          if (aErr) { res.json(rtnErr(aErr)) }
+          else res.json(rtnMsg("更新成功."));
+        });
       break;
     }
     case 'userListGet':
@@ -392,7 +408,7 @@ router.post('/', function(req, res) {
 
           for (var i in ls_rtn.exObj) { // 对返回的所有数据集进行处理。
             var l_userOught = ','+ls_rtn.exObj[i].NICKNAME+',';
-            stackSubQ.push( appDb.runSqlPromise( ls_runsql, [l_userOught, l_userOught] ));
+            stackSubQ.push( appDb.runSqlPromise( ls_runsql, [l_userOught, ls_rtn.exObj[i].NICKNAME] ));
           }
           Q.all(stackSubQ).then(function(row2){
             for (var ii in row2) {

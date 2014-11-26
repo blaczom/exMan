@@ -74,6 +74,7 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
     noData:false
   };
   lp.para.taskSet.taskSetUuidAll = {};  // 储存所有uuid。用于记录是否已经存在此记录。
+
   lp.subWorkList = function(aIndex) {   // 列出他的子任务。
     $location.path('/workList/list').search(
       {pid:lp.para.taskSet[aIndex].UUID, pcon:lp.para.taskSet[aIndex].CONTENT.substr(0,15) }
@@ -94,8 +95,6 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
       .then(function (data) {    // 得到新的消息
         if (!exAccess.checkRtn(data)) return ;
         lp.para.rtnInfo = data.rtnInfo;
-        lp.para.taskSet = [];
-        lp.para.taskSet.taskSetUuidAll = {};
         var ltmp1 = data.exObj;
         if (ltmp1.length > 0){
           lp.para.locate.curOffset = lp.para.locate.curOffset + lp.para.locate.limit;
@@ -109,7 +108,7 @@ app.controller("ctrlTaskList",function($scope,$routeParams,$location,exStore,exA
           }
           if (ltmp1.length < lp.para.locate.limit ) lp.para.noData = true;
         }
-		else lp.para.noData = true;
+		    else lp.para.noData = true;
       },function (status) {
         lp.para.rtnInfo = JSON.stringify(status);
       });
@@ -154,67 +153,17 @@ app.controller("ctrlTaskAll",function($scope,$routeParams,$location,exStore,exAc
     editMode : "list",    // 是否在单记录编辑模式。
     planState : exAccess.planState,  // 选择的task状态内容。
     task: {},
+    noData: false,
     expandMark : "",  // preFix 的前面标志，他所有的孩子都会是这个开头。。。
     taskSetExpand: {} // 储存所有隐藏的task，下次点击的时候，应该显示。
   };
   lp.para.taskSet.taskSetUuidAll = {}; // 储存所有uuid。用于记录是否已经存在此记录。
-  lp.taskEditMask = function(aShow){
-    switch (aShow){
-      case 'editsave':
-        lp.para.editMode = 'list';
-        break;
-      case 'editcancel':
-        lp.para.rtnInfo = "";
-        lp.para.editMode = 'list';
-        break;
-      case 'editdelete':
-        lp.para.editMode = 'list';
-        break;
-      case 'usercancel':
-        lp.para.rtnInfo = "";
-        lp.para.editMode = 'edit';
-        break;
-      case 'usersave':
-        lp.para.rtnInfo = "";
-        lp.para.editMode = 'edit';
-        break;
-      case 'listadd':
-      case 'listedit':
-        lp.para.rtnInfo = "";
-        lp.para.editMode = 'edit';
-        break;
-      case 'userSelect':
-        lp.para.rtnInfo = "";
-        lp.para.editMode = 'user';
-        break;
-    }
-  };
-  lp.taskAdd = function(aIndex){   // 增加和编辑。
-    lp.para.curIndex = aIndex;
-    lp.para.task = exAccess.TASK.newTask();
-    lp.para.task.OWNER = exStore.getUser().name;
-    lp.para.task.STATE = '计划';
-    lp.para.task._exState = 'new';
-    lp.para.task.classShow = "subExpand";
 
-    if(aIndex != null){
-      lp.para.task.UPTASK = lp.para.taskSet[aIndex].UUID;
-      lp.para.task.preFix = l_preIndent + lp.para.taskSet[aIndex].preFix + "-新";
-    }
-    lp.taskEditMask("listadd")
-  };
   lp.subWorkList = function(aIndex) {   // 列出他的子任务。
     $location.path('/workList/list').search(
       {pid:lp.para.taskSet[aIndex].UUID, pcon:lp.para.taskSet[aIndex].CONTENT.substr(0,15) });
   };
-  lp.taskEdit = function(aIndex){
-    lp.para.curIndex = aIndex;
-    lp.para.task = lp.para.taskSet[aIndex];
-    lp.para.pristineTask = angular.copy(lp.para.taskSet[aIndex]);
-    lp.para.task._exState = 'dirty';
-    lp.para.task.PRIVATE = exUtil.verifyBool(lp.para.task.PRIVATE);
-    lp.taskEditMask("listedit");
-  };
+
   lp.taskExpend = function(aIndex){
     lp.para.curIndex = aIndex;
     var l_uuid = lp.para.taskSet[aIndex].UUID;
@@ -249,54 +198,11 @@ app.controller("ctrlTaskAll",function($scope,$routeParams,$location,exStore,exAc
       }, function (status) {    lp.para.rtnInfo = JSON.stringify(status);
       });
   };
-  lp.taskSave = function(){
-    if (lp.para.task.STATE == exAccess.planState[2] && (lp.para.task.FINISH||'').length==0) lp.para.task.FINISH = exUtil.getDateTime(new Date());
-    exAccess.taskSavePromise(lp.para.task)
-      .then( function (data) {    // 得到新的消息
-        lp.para.rtnInfo = data.rtnInfo;
-        if (data.rtnCode > 0) {
-          switch (lp.para.task._exState) {
-            case 'dirty':
-              lp.para.task._exState = "clean";
-              lp.para.taskSet[lp.curIndex] = lp.para.task;
-              break;
-            case 'new':
-              lp.para.task._exState = "clean";
-              lp.para.taskSet.splice(lp.para.curIndex + 1, 0, lp.para.task);
-              lp.para.taskSetUuidAll[lp.para.task.UUID] = 1;
-              break;
-          }
-          lp.taskEditMask("editsave");
-        }
-      }, function (status) { lp.para.rtnInfo = JSON.stringify(status); } );
-  };
-  lp.taskCancel = function(){
-    lp.taskEditMask("editcancel");
-    if (lp.para.curIndex >= 0  && lp.para.task._exState!="new") lp.para.taskSet[lp.para.curIndex] = lp.para.pristineTask;
-  };
-  lp.taskDelete = function(){
-    exAccess.taskDeletePromise(lp.task)
-      .then(function (data) {    // 得到新的消息
-        lp.para.rtnInfo = data.rtnInfo;
-        if (data.rtnCode > 0){
-          for (var i in lp.para.taskSet){
-            if (lp.para.taskSet[i].UUID == lp.para.task.UUID) {
-              if (lp.para.showDebug) console.log("get it delete " + lp.para.task.UUID);
-              lp.para.taskSet.splice(i,1);
-              delete lp.para.taskSetUuidAll[lp.para.task.UUID];
-              lp.taskEditMask("editdelete");
-              break;
-            }
-          }
-        }
-      }, function (status) {
-        lp.para.rtnInfo = JSON.stringify(status); }
-    );
-  };
-  lp.taskfilter = function(){
+
+  lp.taskfilter = function(){    // 任务梯次信息。
     //参数重置。
     lp.para.taskSet = [];  // 当前网页的数据集合。     -- 查询条件改变。要重头来。
-    lp.para.taskSetUuidAll = {};
+    lp.para.taskSet.taskSetUuidAll = {};
     lp.para.locate.curOffset = 0;  // 当前查询的偏移页面量。  -- 查询条件改变。要重头来。
     lp.para.locate.limit = 10;      // 当前查询显示限制。
     lp.para.noData = false;     // 是否显示下10条数据。
@@ -309,7 +215,6 @@ app.controller("ctrlTaskAll",function($scope,$routeParams,$location,exStore,exAc
       .then(function (data) {
         if (!exAccess.checkRtn(data)) return ;
         lp.para.rtnInfo = data.rtnInfo;
-        lp.para.taskSet = [];
         var ltmp1 = data.exObj ;
         if (ltmp1.length > 0){
           for (var i=0; i< ltmp1.length; i++) {
@@ -318,8 +223,8 @@ app.controller("ctrlTaskAll",function($scope,$routeParams,$location,exStore,exAc
             ltmp1[i].expandMark = l_preIndent + ltmp1[i].preFix + "-";     //  用来选择的[expandMark~="..1-"]{display:none;} inherit
             ltmp1[i].PRIVATE = exUtil.verifyBool(ltmp1[i].PRIVATE);
             ltmp1[i].classShow = "prefixHead";
-            if (!lp.para.taskSetUuidAll[ltmp1[i].UUID]){
-              lp.para.taskSetUuidAll[ltmp1[i].UUID] = 1;
+            if (!lp.para.taskSet.taskSetUuidAll[ltmp1[i].UUID]){
+              lp.para.taskSet.taskSetUuidAll[ltmp1[i].UUID] = 1;
               lp.para.taskSet.push(ltmp1[i]);
             }
           }
@@ -328,34 +233,6 @@ app.controller("ctrlTaskAll",function($scope,$routeParams,$location,exStore,exAc
         }
         else lp.para.noData = true;
       }, function (status) { lp.para.rtnInfo = JSON.stringify(status); });
-  };
-  lp.selectUser = function(){
-    (lp.para.allSelectUser = lp.para.task.OUGHT.split(',')).pop();
-    exAccess.getAllUserPromise().then( function (data) {
-      var lrtn = data.exObj;
-      lp.para.allOtherUser =[];
-      for (var i in lrtn) {  if (lp.para.task.OUGHT.indexOf(lrtn[i].NICKNAME + ",") < 0 ) lp.para.allOtherUser.push(lrtn[i].NICKNAME); };
-      lp.taskEditMask('userSelect');
-    }, function (reason) { console.log(reason); lp.para.allOtherUser = []  });
-  };
-  lp.selectUserMoveOut = function(aInOut, aArray){
-    if (aInOut) {   // out
-      for (var i in aArray){
-        lp.para.allSelectUser.splice( lp.para.allSelectUser.indexOf(aArray[i]) ,  1);
-        lp.para.allOtherUser.push(aArray[i]);
-      }
-    }
-    else{
-      for (var i in aArray){
-        lp.para.allOtherUser.splice(lp.para.allOtherUser.indexOf(aArray[i]), 1);
-        lp.para.allSelectUser.push(aArray[i]);
-      }
-    }
-  };
-  lp.selectUserOk = function(){
-    /// 根据选中的用户进行。
-    lp.para.task.OUGHT = lp.para.allSelectUser.join(",") + ",";
-    lp.taskEditMask('usersave');
   };
   switch (lp.aType)
   {
@@ -524,6 +401,7 @@ app.controller("ctrlWorkList",function($scope,$routeParams,exStore,exAccess,exUt
               }
             }
           }
+          else {}
         }, function (status) {
           lp.para.rtnInfo = JSON.stringify(status);
         }

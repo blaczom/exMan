@@ -4,11 +4,12 @@
     <span class="markInfo" ng-bind="subPara.rtnInfo"></span>
   </div>
   <div class="modalContent">
-    <form name="editForm" id="editForm" novalidate>
-       <button id="saveStay" ng-disabled="!editForm.$valid" ng-click="subPara.dirSaveTask(true)">原地保存</button>
-      <button id="saveClose" ng-disabled="!editForm.$valid" ng-click="subPara.dirSaveTask(false)">保存</button>
+    <form name="subPara.editForm" id="editForm" novalidate>
+       <button id="saveStay" ng-disabled="!subPara.editForm.$valid" ng-click="subPara.dirSaveTask(true)">原地保存</button>
+      <button id="saveClose" ng-disabled="!subPara.editForm.$valid" ng-click="subPara.dirSaveTask(false)">保存</button>
       <button id="cancelEdit" ng-click="subPara.taskCancel()"> 取消 </button>
       <button id="deleteTask" ng-click="subPara.taskDelete()"> 删除 </button>
+      <button ng-click="scopePrint()"> 打印scope </button>
       <hr/>
       <input ng-show="subPara.showDebug" ng-model="subPara.dirTask.UUID" id="txtUUID" name="txtUUID" type="text" class="fromex-control" placeholder="task id"  autofocus />
       <input ng-show="subPara.showDebug" ng-model="subPara.dirTask.UPTASK" id="txtUPTASK" name="txtUPTASK" type="text" class="fromex-control" placeholder="父任务" />
@@ -31,6 +32,6 @@
       <br/>
       <textarea ng-model="subPara.dirTask.CONTENT" class="formex-control" name="txtMsg" id="txtCONTENT" cols="40" rows="20" placeholder="内容" > </textarea>
     </form>
-    <span class="markInfo" ng-show="editForm.$invalid"> 表单校验失败，请更正红底的输入项目。 </span>
+    <span class="markInfo" ng-show="subPara.editForm.$invalid"> 表单校验失败，请更正红底的输入项目。 </span>
   </div>
 </div>

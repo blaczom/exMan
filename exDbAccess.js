@@ -83,6 +83,6 @@ exports.setNew = function(aParm) { aParm._exState = 'new' };
 exports.setClean = function(aParm) { aParm._exState = 'clean' };
 exports.runSql = gdbLib.runSql;
 exports.runSqlPromise = gdbLib.runSqlPromise;
-exports.get = gdbLib.get;
+exports.get = gdbLib.gdb.get;
 exports.getPromise = gdbLib.getPromise;
 exports.dbLib = gdbLib;

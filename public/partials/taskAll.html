@@ -2,7 +2,7 @@
   <div class="contentHead" ng-show="para.rtnInfo">
       <span class="markInfo" ng-bind="para.rtnInfo"></span>
   </div>
-
+  <span dir-edit-task="taskEditor"></span>
   <h3 class="divex-heading"> 任务梯次 </h3>
   <div class='contentBody'>
     <div ng-include="'incTaskSearch.html'" ></div>
@@ -40,8 +40,8 @@
       <span style="width:40px;">{{taskItem.PRIVATE||'&nbsp;'}}</span>
       <span style="width:40px;">{{taskItem.subTask}}</span>
       <span style="margin:0px;padding:0px;">
-        <button ng-click="taskExpend($index)">展</button><button ng-click="taskEdit($index)">详</button><!--
-        --><button ng-click="taskAdd($index)"> +子</button><button ng-click="subWorkList($index)">工作</button>
+        <button ng-click="taskExpend($index)">展</button><button ng-click="subPara.dirEditTask($index)">详</button><!--
+        --><button ng-click="subPara.dirAddTask($index)"> +子</button><button ng-click="subWorkList($index)">工作</button>
       </span>
     </span>
     <br/>
