@@ -87,92 +87,94 @@ app.directive('dirSelectUser', function() {
 });
 app.directive('dirEditTask', function() { //<span dir-edit-task="" dir-button-text="" dir-task-param=""></span>
   return {
-    scope:{ outTaskSet: '=dirEditTask', dirButtonText:"@", dirTaskParam:"@"},  // {type:edit/add, idx:xx}
+    scope:false,  // {type:edit/add, idx:xx}
     //<span dir-edit-task="userPack" dir-button-text="buttontest" dir-task-param="{{ {type:'sss', idx:1} }}"></span>
     templateUrl: "incTaskEdit.html",
     replace:true,
-    controller: function($scope, exAccess,exStore,exUtil){
-      var lp = $scope;
-      lp.showMe = false;
-      lp.dirParam = JSON.parse(lp.dirTaskParam);  // 属性传递进来的是字符串。
-      lp.curIndex = lp.dirParam.idx;
-      lp.rtnInfo = "";
-      lp.dirTask = {};
-      lp.showDebug = false;
-      lp.planState =  exAccess.planState;
-      lp.dirEditTask = function(){
-        switch (lp.dirParam.type){   // 增加和编辑。
-          case "add":    {   // 增加
-            lp.dirTask = exAccess.TASK.newTask();
-            lp.dirTask.OWNER = exStore.getUser().name;
-            lp.dirTask.STATE = '计划';
-            lp.dirTask._exState = 'new';
-            if(lp.curIndex != null){
-              lp.dirTask.UPTASK = lp.outTaskSet[lp.curIndex].UUID;
-            }
-            break;
-          }
-          case 'edit': {   // 编辑。
-            lp.dirTask = angular.copy(lp.outTaskSet[lp.curIndex]);
-            lp.dirTask._exState = 'dirty';
-            lp.dirTask.PRIVATE = exUtil.verifyBool(lp.dirTask.PRIVATE);
-            break;
-          }
-        }
-        lp.showMe = true;
+    controller: function($scope,exAccess,exStore,exUtil){
+      var lp = $scope;    // angular.element("#divEditTask").hide();
+      lp.subPara = {
+        dirTask: {},
+        planState: exAccess.planState,
+        curIndex:0
       };
-      lp.dirSaveTask = function(aStay){
-        if (lp.dirTask._exState == "clean" && lp.editForm.$dirty) lp.dirTask._exState="dirty";
-        if (lp.dirTask.STATE == exAccess.planState[2] && (lp.dirTask.FINISH||'').length==0) lp.dirTask.FINISH = exUtil.getDateTime(new Date());
-        if (lp.dirTask._exState != "clean" && lp.editForm.$dirty) {
-          exAccess.taskSavePromise(lp.dirTask)
-          .then( function (data) {    // 得到新的消息
-            lp.rtnInfo = data.rtnInfo;
-            if (data.rtnCode > 0) {
-              switch (lp.dirTask._exState) {
-                case 'dirty':
-                  lp.outTaskSet[lp.curIndex] = lp.dirTask;
-                  break;
-                case 'new':
-                  lp.outTaskSet.splice(lp.curIndex + 1, 0, lp.dirTask);
-                  lp.outTaskSet.taskSetUuidAll[lp.dirTask.UUID] = 1;   // 放到taskSet里面的一个属性。
-                  break;
+      lp.subPara.showEditor = function(aShow){
+        lp.subPara.showEditTask = aShow;
+        if (aShow) lp.para.editMode = "editor"; else { lp.para.editMode = "list"; lp.subPara.rtnInfo = '';}
+      };
+      lp.subPara.dirAddTask = function(aIndex){
+        lp.subPara.dirTask = exAccess.TASK.newTask();
+        lp.subPara.dirTask.OWNER = exStore.getUser().name;
+        lp.subPara.dirTask.STATE = '计划';
+        lp.subPara.dirTask._exState = 'new';
+        if(aIndex != null){
+          lp.subPara.dirTask.UPTASK = lp.para.taskSet[aIndex].UUID;
+        }
+        lp.subPara.curIndex = aIndex; // 记着
+        lp.subPara.showEditor(true);
+
+      };
+      lp.subPara.dirEditTask = function(aIndex){
+        lp.subPara.dirTask = angular.copy(lp.para.taskSet[aIndex]);
+        lp.subPara.dirTask._exState = 'dirty';
+        lp.subPara.dirTask.PRIVATE = exUtil.verifyBool(lp.subPara.dirTask.PRIVATE);
+        lp.subPara.curIndex = aIndex; // 记着
+        lp.subPara.showEditor(true);
+      };
+      lp.subPara.dirSaveTask = function(aStay){
+        if (lp.subPara.dirTask._exState == "clean" && lp.$$childHead.editForm.$dirty) lp.subPara.dirTask._exState="dirty";
+        if (lp.subPara.dirTask.STATE == exAccess.planState[2] && (lp.subPara.dirTask.FINISH||'').length==0) lp.subPara.dirTask.FINISH = exUtil.getDateTime(new Date());
+        if (lp.subPara.dirTask._exState != "clean" && lp.$$childHead.editForm.$dirty) {
+          exAccess.taskSavePromise(lp.subPara.dirTask)
+            .then( function (data) {    // 得到新的消息
+              lp.subPara.rtnInfo = data.rtnInfo;
+              if (data.rtnCode > 0) {
+                switch (lp.subPara.dirTask._exState) {
+                  case 'dirty':
+                    lp.para.taskSet[lp.subPara.curIndex] = lp.subPara.dirTask;
+                    break;
+                  case 'new':
+                    lp.para.taskSet.push(lp.subPara.dirTask);
+                    lp.para.taskSet.taskSetUuidAll[lp.subPara.dirTask.UUID] = 1;   // 放到taskSet里面的一个属性。
+                    lp.subPara.curIndex = lp.para.taskSet.length - 1;
+                    break;
+                }
+                lp.subPara.dirTask._exState = "clean";
+                lp.$$childHead.editForm.$setPristine();
+                if (!aStay) lp.subPara.showEditor(false);
               }
-              lp.dirTask._exState = "clean";
-              lp.editForm.$setPristine();
-              if (!aStay) lp.showMe = false;
-            }
-          }, function (status) { lp.rtnInfo = JSON.stringify(status); } );
-        }
+          }, function (status) { lp.subPara.rtnInfo = JSON.stringify(status); } );
+        } else if (!aStay) lp.subPara.showEditor(false);
       };
-      lp.taskCancel = function() {
-        if (lp.editForm.$dirty) {
+      lp.subPara.taskCancel = function() {
+        if (lp.$$childHead.editForm.$dirty) {
           if (confirm("确认要放弃更改？")) {
-            lp.editForm.$setPristine();
-            lp.showMe = false;
+            lp.$$childHead.editForm.$setPristine();
+            lp.subPara.showEditor(false);
           }
         }
-        else lp.showMe = false;
+        else lp.subPara.showEditor(false);
       };
-      lp.taskDelete = function(){
-        if (confirm("确认删除？"))
-          exAccess.taskDeletePromise(lp.dirTask)
+      lp.subPara.taskDelete = function(){
+      if (confirm("确认删除？"))
+        exAccess.taskDeletePromise(lp.subPara.dirTask)
           .then(function (data) {    // 得到新的消息
-            lp.rtnInfo = data.rtnInfo;
+            lp.subPara.rtnInfo = data.rtnInfo;
             if (data.rtnCode > 0) {
-              for (var i in lp.outTaskSet) {
-                if (lp.outTaskSet[i].UUID == lp.dirTask.UUID) {
-                  lp.outTaskSet.splice(i, 1);
-                  delete lp.outTaskSet.taskSetUuidAll[lp.dirTask.UUID];
-                  lp.showMe = false;
+              for (var i in lp.para.taskSet) {
+                if (lp.para.taskSet[i].UUID == lp.subPara.dirTask.UUID) {
+                  lp.para.taskSet.splice(i, 1);
+                  delete lp.para.taskSet.taskSetUuidAll[lp.subPara.dirTask.UUID];
+                  lp.subPara.showEditor(false);
                   break;
                 }
               }
             }
           }, function (status) {
-            lp.rtnInfo = JSON.stringify(status);
+            lp.subPara.rtnInfo = JSON.stringify(status);
           });
-      };
+        };
+      //console.log('i am here',lp);
     }
   };
 });

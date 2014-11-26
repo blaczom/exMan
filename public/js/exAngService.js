@@ -56,7 +56,7 @@ angular.module('exService', ['angular-md5'])
       getDate : function(arg1){ return getDateTime(arg1,true) },
       verifyBool : function (aParam){ return (aParam==true||aParam=="true")?true:false;  } ,
       md5String: md5.createHash,
-      shareCache: {ctrlStateCache:{}}
+      shareCache: {ctrlStateCache:{}, ctrlEditTask:false}
     }
   })
   .factory('exStore', function(){
