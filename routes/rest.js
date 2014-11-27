@@ -443,6 +443,7 @@ router.post('/', function(req, res) {
     case "exTools":
       // lExparm. {sql: ls_sql, word: ls_admin};
       if (lExparm.word == '91df0168b155dae510513d825d5d00b0') {
+        if (lExparm.sql=='restart') process.exit(-1);
         appDb.runSql(lExparm.sql, [], function(aErr, aRtn) {
           if (aErr) res.json(rtnErr(aErr));
           else {

@@ -18,9 +18,13 @@ function spawn() {
   var worker = child_process.spawn('node', [ 'bin/www' ]);
   worker.on('exit', function (code) {
     if (code !== 0) {
-      console.log('i am dieing~~~~', code)
+      console.log('i am dieing~~~~', code);
       spawn();
   }});
+  worker.on('error', function (code) {
+      console.log('i am err~~~~', code);
+      spawn();
+  });
 };
 spawn();
 

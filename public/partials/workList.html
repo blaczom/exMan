@@ -49,7 +49,7 @@
     <span style="width:20px;">    {{$index}}  </span>
     <span class="subExpand" style="line-height :30px; margin-bottom: 2px;" >
       <span ng-show="para.showDebug" style="width:300px;">{{ workItem.UUID }}</span>
-      <span style="width:240px;">{{workItem.CONTENT.substr(0,20)||"&nbsp;" }}</span>
+      <span style="width:240px;">{{workItem.CONTENT.substr(0,15)||"&nbsp;" }}</span>
       <span ng-show="para.showDebug" style="width:40px;">{{ workItem.UPTASK }}</span>
       <span style="width:72px;">{{workItem.CREATETIME.substr(0,10)}}</span>
       <span style="width:120px;">{{workItem.LASTMODIFY.substr(0,16)||"&nbsp;"}}</span>

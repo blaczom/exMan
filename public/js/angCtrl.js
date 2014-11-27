@@ -352,7 +352,7 @@ app.controller("ctrlWorkList",function($scope,$routeParams,exStore,exAccess,exUt
   };
   lp.workSave = function(aClose){
     if (lp.para.work._exState == "clean" && lp.editForm.$dirty) lp.para.work._exState="dirty";
-    if (lp.para.work.STATE == exAccess.planState[2] && (lp.para.work.FINISH||'').length==0) lp.para.work.FINISH = exUtil.getDateTime(new Date());
+    lp.para.work.LASTMODIFY = exUtil.getDateTime(new Date());
     if (lp.para.work._exState != "clean" && lp.editForm.$dirty)
       exAccess.workSavePromise(lp.para.work)
         .then( function (data) {
