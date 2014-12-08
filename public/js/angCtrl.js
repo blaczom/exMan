@@ -411,6 +411,7 @@ app.controller("ctrlWorkList",function($scope,$routeParams,exStore,exAccess,exUt
   lp.memCheck = function(){
     lp.para.work.MEMTIMER = exUtil.getDateTime(new Date(), true);
     if ((lp.para.work.MEMPOINT||'').length > 0);else lp.para.work.MEMPOINT = exAccess.memPoint;
+    lp.editForm.$setDirty(true);
   };
   lp.workfilter = function(){
     //参数重置。
@@ -457,7 +458,7 @@ app.controller("ctrlWorkList",function($scope,$routeParams,exStore,exAccess,exUt
       }
     }
     else lp.para.work.MEMEN = false;
-
+    lp.editForm.$setDirty(true);
   };
   switch ($routeParams.aType)// 查询的页面参数。暂时没用。随便参数。
   {

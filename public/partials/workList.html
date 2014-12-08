@@ -60,7 +60,7 @@
       </span>
       <span style="width:40px;">{{workItem.LEVEL||"&nbsp;"}}</span>
       <span ng-show="para.showDebug" style="width:40px;">{{workItem.MEMPOINT.substr(0,6)}}</span>
-      <span><input style="width:40px;" ng-disabled="1" ng-checked="workItem.MEMEN?true:false" type="checkbox"/></span>
+      <span ng-style="{'background-color':(workItem.MEMEN?'lightpink':'')}"><input style="width:40px;" ng-disabled="1" ng-checked="workItem.MEMEN?true:false" type="checkbox"/></span>
       <span style="width:75px;">{{workItem.MEMTIMER.substr(0,10)||"&nbsp;"}}</span>
       <span>
       <button ng-click="workEdit($index)"> 详 </button><!--
@@ -84,6 +84,7 @@
       <button ng-click="workSave(true)"> 保存 </button>
       <button ng-click="workCancel()"> 取消 </button>
       <button ng-click="workDelete()"> 删除 </button>
+
       <hr/>
       任务信息：<input ng-show="false" ng-model="para.work.UPTASK" id="txtUPTASK" name="txtUPTASK" type="text" class="fromex-control" placeholder="父任务" />
       <button ng-disabled="para.work.parent" ng-click="workGetParent(para.work.UPTASK)"> V </button>
